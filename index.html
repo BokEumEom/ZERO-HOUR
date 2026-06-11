@@ -156,6 +156,7 @@
   .controls-hint { font-size: 11px; letter-spacing: 0.1em; color: rgba(234,246,255,0.35); }
 
   /* ---------- game over ---------- */
+  #screen-over { gap: 12px; }
   #over-mode { font-size: 11px; letter-spacing: 0.2em; color: rgba(159,245,232,0.55); }
   #over-reason { font-family: var(--pixel); font-size: 16px; color: var(--pink); text-shadow: 0 0 14px rgba(255,90,120,0.7); }
   #over-score {
@@ -176,7 +177,12 @@
   @keyframes bestPop { from { transform: scale(0.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   @keyframes bestGlow { from { text-shadow: 0 0 10px rgba(255,195,77,0.6); } to { text-shadow: 0 0 26px rgba(255,195,77,1), 0 0 50px rgba(255,195,77,0.5); } }
 
-  #over-stats { width: 320px; display: flex; flex-direction: column; gap: 6px; }
+  #over-stats { width: 320px; display: flex; flex-direction: column; gap: 4px; }
+  #over-spark {
+    border: 1px dashed rgba(45,226,198,0.25);
+    background: rgba(8,20,32,0.6);
+  }
+  #over-countdown { display: none; letter-spacing: 0.08em; }
   .stat-row { display: flex; justify-content: space-between; font-size: 13px; border-bottom: 1px dashed rgba(45,226,198,0.18); padding-bottom: 5px; }
   .stat-k { color: rgba(159,245,232,0.55); letter-spacing: 0.08em; }
   .stat-v { color: var(--ink); font-weight: 600; }
@@ -203,8 +209,8 @@
   }
   .arcade-btn.primary { background: rgba(45,226,198,0.14); border-color: var(--teal); }
 
-  /* ---------- mute (outside scaled stage) ---------- */
-  #btn-mute {
+  /* ---------- mute + pause (outside scaled stage) ---------- */
+  #btn-mute, #btn-pause {
     position: fixed;
     top: 14px; right: 14px;
     z-index: 50;
@@ -216,7 +222,29 @@
     cursor: pointer;
     transition: all 0.12s;
   }
-  #btn-mute:hover { border-color: var(--teal); box-shadow: 0 0 14px rgba(45,226,198,0.3); }
+  #btn-mute:hover, #btn-pause:hover { border-color: var(--teal); box-shadow: 0 0 14px rgba(45,226,198,0.3); }
+  #btn-pause { right: 66px; display: none; font-family: var(--mono); font-weight: 700; }
+
+  /* ---------- pause / how-to ---------- */
+  .pause-title {
+    font-family: var(--pixel);
+    font-size: 26px;
+    color: var(--teal-soft);
+    text-shadow: 0 0 18px rgba(45,226,198,0.7);
+  }
+  .howto-list { display: flex; flex-direction: column; gap: 10px; width: 460px; text-align: left; }
+  .howto-row { display: flex; gap: 14px; font-size: 13px; align-items: baseline; }
+  .howto-k { font-family: var(--pixel); font-size: 10px; color: var(--teal); min-width: 120px; text-align: right; }
+  .howto-v { color: rgba(234,246,255,0.75); line-height: 1.5; }
+
+  /* ---------- daily history ---------- */
+  .day-cell {
+    display: inline-block;
+    width: 18px; height: 10px;
+    margin: 0 2px;
+    border: 1px solid rgba(45,226,198,0.35);
+  }
+  .day-cell.hit { background: var(--teal); box-shadow: 0 0 6px rgba(45,226,198,0.5); }
 
   /* ---------- touch joystick ---------- */
   #joystick {
@@ -292,6 +320,7 @@
             <span id="menu-date">—</span>
             <span class="mode-desc">Same seeded arena for everyone today.<br />오늘은 모두 같은 맵 — 점수로 승부</span>
             <span id="menu-daily-best" class="mode-meta">—</span>
+            <span id="menu-streak" class="mode-meta" style="color: var(--teal);"></span>
           </button>
           <button id="btn-free" class="mode-card" type="button">
             <span class="mode-name">FREE PLAY</span>
@@ -301,7 +330,8 @@
           </button>
         </div>
         <p id="menu-all-best" class="best-line">ALL-TIME BEST —</p>
-        <p class="controls-hint">WASD / ARROWS — MOVE · FIRE IS AUTOMATIC · 모바일: 화면 드래그</p>
+        <p id="menu-week" class="best-line" style="display: none;"></p>
+        <p class="controls-hint">WASD / ARROWS — MOVE · FIRE IS AUTOMATIC · ESC — PAUSE · 모바일: 화면 드래그</p>
       </div>
 
       <div id="screen-over" class="screen" data-screen-label="Game Over">
@@ -313,12 +343,39 @@
         </div>
         <span id="over-best-banner"><span id="over-best-label">NEW BEST!</span> ★</span>
         <div id="over-stats"></div>
+        <canvas id="over-spark" width="320" height="60"></canvas>
         <div class="btn-row">
           <button id="btn-retry" class="arcade-btn primary" type="button">RETRY</button>
           <button id="btn-share" class="arcade-btn" type="button">COPY RESULT</button>
           <button id="btn-menu" class="arcade-btn" type="button">MENU</button>
         </div>
-        <p class="kr-sub">결과 복사에는 개인정보가 포함되지 않습니다</p>
+        <p id="over-countdown" class="kr-sub"></p>
+        <p class="kr-sub">결과 복사에는 개인정보가 포함되지 않습니다 · R — RETRY · M — MENU</p>
+      </div>
+
+      <div id="screen-pause" class="screen" data-screen-label="Paused">
+        <span class="pause-title">PAUSED</span>
+        <div class="btn-row">
+          <button id="btn-resume" class="arcade-btn primary" type="button">RESUME</button>
+          <button id="btn-pause-restart" class="arcade-btn" type="button">RESTART</button>
+          <button id="btn-pause-quit" class="arcade-btn" type="button">QUIT TO MENU</button>
+        </div>
+        <p class="controls-hint">ESC / P — RESUME · 나가면 이번 런은 기록되지 않습니다</p>
+      </div>
+
+      <div id="screen-howto" class="screen" data-screen-label="How To Play">
+        <span class="pause-title" style="color: var(--teal);">HOW TO PLAY</span>
+        <div class="howto-list">
+          <div class="howto-row"><span class="howto-k">MOVE</span><span class="howto-v">WASD / ARROW KEYS · 모바일: 화면 드래그</span></div>
+          <div class="howto-row"><span class="howto-k">FIRE</span><span class="howto-v">Automatic — nearest enemy · 발사는 자동입니다</span></div>
+          <div class="howto-row"><span class="howto-k">GOAL</span><span class="howto-v">75 seconds — collect crystals, chain combos · 크리스털 콤보로 점수를 쌓으세요</span></div>
+          <div class="howto-row"><span class="howto-k">HULL ◆◆◆</span><span class="howto-v">Mines &amp; boss fire cost 1 — at 0 it's over · 피격 3번이면 게임 오버</span></div>
+          <div class="howto-row"><span class="howto-k">CORE WARDEN</span><span class="howto-v">Boss arrives at 20s left — destroy for +1,500 · 마지막 20초, 보스 격파 대량 보너스</span></div>
+          <div class="howto-row"><span class="howto-k">PAUSE</span><span class="howto-v">ESC / P · 모바일: 우측 상단 II 버튼</span></div>
+        </div>
+        <div class="btn-row">
+          <button id="btn-howto-start" class="arcade-btn primary" type="button">START</button>
+        </div>
       </div>
 
       <div id="crt"></div>
@@ -326,6 +383,7 @@
   </div>
 
   <button id="btn-mute" type="button" aria-label="Mute">🔊</button>
+  <button id="btn-pause" type="button" aria-label="Pause">II</button>
 
   <div id="joystick">
     <div id="joystick-knob"></div>

@@ -29,6 +29,11 @@
   SY.todayUTC = function () {
     return new Date().toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
   };
+  function utcDateMinus(n) {
+    const now = new Date();
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - n))
+      .toISOString().slice(0, 10);
+  }
 
   // ---------- IndexedDB key-value store ----------
   const DB_NAME = 'scoreyard';
@@ -99,5 +104,20 @@
     saveSettings(s) { return kvSet('settings', s); },
     saveBestAll(rec) { return kvSet('best_all', rec); },
     saveDaily(date, rec) { return kvSet('daily_' + date, rec); },
+    async loadRecentDailies(n) {
+      const dates = [];
+      for (let i = 0; i < n; i++) dates.push(utcDateMinus(i));
+      const recsArr = await Promise.all(dates.map((d) => kvGet('daily_' + d)));
+      return dates.map((date, i) => ({ date, rec: recsArr[i] || null })); // newest first
+    },
+    // Streak is derived from daily_<date> keys (no stored counter, self-healing).
+    // A missing record today doesn't break the streak until the day is over.
+    async computeStreak() {
+      let offset = 0;
+      if (!(await kvGet('daily_' + utcDateMinus(0)))) offset = 1;
+      let streak = 0;
+      while (streak < 365 && (await kvGet('daily_' + utcDateMinus(offset + streak)))) streak++;
+      return streak;
+    },
   };
 })();

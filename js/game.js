@@ -25,12 +25,13 @@
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
   });
   window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+  function resetKeys() { for (const k in keys) keys[k] = false; }
 
   function dist2(a, b) { const dx = a.x - b.x, dy = a.y - b.y; return dx * dx + dy * dy; }
 
   const G = {
     W, H, POWER_META,
-    phase: 'menu', // menu | ready | playing | over
+    phase: 'menu', // menu | ready | playing | paused | over
     mode: 'daily',
     state: null,
     events: {}, // onGameOver(res), onReadySound...
@@ -58,6 +59,7 @@
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
+      breakdown: { crystals: 0, combo: 0, destruction: 0, boss: 0 },
     };
   }
 
@@ -145,10 +147,19 @@
   function floatText(s, x, y, text, color) {
     s.floats.push({ x, y, text, color, life: 1 });
   }
-  function addScore(s, base, x, y, label) {
+  function addScore(s, base, x, y, label, bucket) {
     const mul = s.fx.X2 > 0 ? 2 : 1;
     const v = base * mul;
     s.score += v;
+    if (bucket === 'crystal') {
+      // base is 10 + combo: split the combo part into its own bucket
+      s.breakdown.crystals += 10 * mul;
+      s.breakdown.combo += (base - 10) * mul;
+    } else if (bucket === 'destroy') {
+      s.breakdown.destruction += v;
+    } else if (bucket === 'boss') {
+      s.breakdown.boss += v;
+    }
     if (x !== undefined) floatText(s, x, y, '+' + v + (label ? ' ' + label : ''), mul === 2 ? '#ffc34d' : '#9ff5e8');
   }
 
@@ -197,7 +208,7 @@
           const a = Math.random() * Math.PI * 2, d = 20 + Math.random() * 70;
           s.crystals.push({ x: b.x + Math.cos(a) * d, y: b.y + Math.sin(a) * d, vx: Math.cos(a) * 120, vy: Math.sin(a) * 120, r: 7, phase: Math.random() * 6 });
         }
-        addScore(s, 1500, b.x, b.y, 'CORE WARDEN');
+        addScore(s, 1500, b.x, b.y, 'CORE WARDEN', 'boss');
         s.bossDown = true;
         s.boss = null;
         s.freeze = Math.max(s.freeze, 0.32);
@@ -249,6 +260,7 @@
       mode: s.mode, score: s.score, maxCombo: s.maxCombo,
       bossDown: s.bossDown, reason, pace: s.pace.slice(),
       collected: s.collected, duration: s.duration,
+      breakdown: { ...s.breakdown },
     };
     SY.audio.gameOver();
     if (G.events.onGameOver) G.events.onGameOver(res);
@@ -258,6 +270,8 @@
   function update(dt) {
     const s = G.state;
     if (!s) return;
+
+    if (G.phase === 'paused') return; // sim + cosmetics fully frozen
 
     if (G.phase === 'ready') {
       s.readyT -= dt;
@@ -371,7 +385,7 @@
         s.combo += 1; s.comboT = 2.6;
         s.maxCombo = Math.max(s.maxCombo, s.combo);
         s.collected += 1;
-        addScore(s, 10 + s.combo, c.x, c.y);
+        addScore(s, 10 + s.combo, c.x, c.y, undefined, 'crystal');
         burst(s, c.x, c.y, '#2de2c6', 7, 150, 2.2);
         SY.audio.collect(s.combo);
       }
@@ -403,7 +417,7 @@
       let dead = b.life <= 0 || b.x < -10 || b.x > W + 10 || b.y < -10 || b.y > H + 10;
       if (!dead && s.boss && s.boss.dying <= 0 && dist2(b, s.boss) < (s.boss.r + 4) * (s.boss.r + 4)) {
         s.boss.hp -= 1; s.boss.flash = 0.08;
-        addScore(s, 5);
+        addScore(s, 5, undefined, undefined, undefined, 'boss');
         burst(s, b.x, b.y, '#ffc34d', 4, 120, 2);
         s.freeze = Math.max(s.freeze, 0.016);
         SY.audio.bossHit();
@@ -416,7 +430,7 @@
           m.hp -= 1; m.flash = 0.06; dead = true;
           if (m.hp <= 0) {
             s.mines.splice(j, 1);
-            addScore(s, 25, m.x, m.y);
+            addScore(s, 25, m.x, m.y, undefined, 'destroy');
             burst(s, m.x, m.y, '#ff9a5a', 12, 190, 2.6);
             wave(s, m.x, m.y, 40, '#ff9a5a');
             SY.audio.explode();
@@ -431,7 +445,7 @@
           burst(s, b.x, b.y, '#9ff5e8', 4, 110, 2);
           if (r.hp <= 0) {
             s.rocks.splice(j, 1);
-            addScore(s, 40, r.x, r.y);
+            addScore(s, 40, r.x, r.y, undefined, 'destroy');
             burst(s, r.x, r.y, '#2de2c6', 18, 220, 3);
             wave(s, r.x, r.y, 60, '#2de2c6');
             SY.audio.explode();
@@ -532,5 +546,17 @@
     G.phase = 'ready';
   };
   G.toMenu = function () { G.phase = 'menu'; G.state = null; };
+  G.pause = function () {
+    if (G.phase !== 'playing' && G.phase !== 'ready') return;
+    G.pausedFrom = G.phase;
+    G.phase = 'paused';
+    resetKeys();
+    SY.input.ax = 0; SY.input.ay = 0;
+  };
+  G.resume = function () {
+    if (G.phase !== 'paused') return;
+    G.phase = G.pausedFrom || 'playing';
+    resetKeys(); // keys pressed while the overlay was up must not leak in
+  };
   G.update = update;
 })();
