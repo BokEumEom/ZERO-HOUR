@@ -1,6 +1,7 @@
-// Rebuilds standalone.html from index.html by inlining the
-// local js/ modules and the CDN libraries (React, ReactDOM, Babel Standalone)
-// so the result runs fully offline as a single file.
+// Rebuilds standalone.html from index.html by inlining the local js/ modules,
+// the local css/ stylesheets, and the CDN libraries (React, ReactDOM, Babel
+// Standalone) so the result runs as a single file. Google Fonts links stay
+// external (they pull separate font binaries either way).
 //
 // Usage: node .claude/skills/build-standalone/build.mjs [output.html]
 // Requires Node 18+ (uses global fetch). Network access is needed once per
@@ -19,7 +20,15 @@ const html = await readFile(path.join(root, 'index.html'), 'utf8');
 const escapeScript = (code) => code.replace(/<\/script/gi, '<\\/script');
 
 const scriptTag = /<script([^>]*?)\ssrc="([^"]+)"([^>]*)><\/script>/g;
+const localCssTag = /<link\s+rel="stylesheet"\s+href="((?!https?:\/\/)[^"]+)">/g;
 const tasks = [];
+for (const m of html.matchAll(localCssTag)) {
+  tasks.push((async () => {
+    const [tag, href] = m;
+    const css = await readFile(path.join(root, href), 'utf8');
+    return [tag, `<style>\n/* --- inlined: ${href} --- */\n${css.replace(/<\/style/gi, '<\\/style')}\n</style>`];
+  })());
+}
 for (const m of html.matchAll(scriptTag)) {
   tasks.push((async () => {
     const [tag, pre, src] = m;

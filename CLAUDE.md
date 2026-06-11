@@ -19,7 +19,9 @@ There is nothing to install or compile. Deployed to Vercel as a static site
 
 ## Architecture
 
-All modules are IIFEs attaching to the `window.SY` namespace:
+UI styles live in `css/style.css` (linked from `index.html`); the canvas is
+drawn by `js/render.js`. All JS modules are IIFEs attaching to the `window.SY`
+namespace:
 
 - `js/store.js` — IndexedDB persistence (`scoreyard` DB) + seeded RNG
   (`SY.makeRng`: xmur3 → mulberry32)

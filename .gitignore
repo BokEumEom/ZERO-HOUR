@@ -1,0 +1,14 @@
+# OS
+Thumbs.db
+.DS_Store
+
+# tooling
+node_modules/
+.vercel/
+*.log
+
+# local Claude Code overrides
+.claude/settings.local.json
+
+# throwaway test artifacts
+__test-harness.html

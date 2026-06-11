@@ -5,7 +5,7 @@ $data = [Console]::In.ReadToEnd() | ConvertFrom-Json
 $p = $data.tool_input.file_path
 if (-not $p) { exit 0 }
 $n = $p -replace '/', '\'
-if ($n -match '\\js\\[^\\]+\.(js|jsx)$' -or $n -match '(^|\\)index\.html$') {
+if ($n -match '\\js\\[^\\]+\.(js|jsx)$' -or $n -match '\\css\\[^\\]+\.css$' -or $n -match '(^|\\)index\.html$') {
   [Console]::Error.WriteLine("Note: a game source file changed, so 'standalone.html' is now stale. Suggest the user run /build-standalone before shipping the single-file build. (Do not edit the standalone file directly.)")
   exit 2
 }
