@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<!-- E2E harness: runs 4 scenarios sequentially against the real page in an
+     iframe, then POSTs results to /report. rAF is starved under headless
+     virtual time, so the sim is stepped via G.update() where needed. -->
+<html><body style="margin:0;background:#000">
+<iframe id="f" style="width:1100px;height:760px;border:0"></iframe>
+<pre id="log" style="color:#0f0;font:12px monospace"></pre>
+<script>
+  const results = [];
+  const logEl = document.getElementById('log');
+  function check(scenario, name, pass, detail) {
+    results.push({ scenario, name, pass: !!pass, detail: detail || '' });
+    logEl.textContent += (pass ? 'PASS ' : 'FAIL ') + scenario + ': ' + name + '\n';
+  }
+  const f = document.getElementById('f');
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  function freshPage() {
+    return new Promise((resolve) => {
+      f.addEventListener('load', () => setTimeout(() => resolve({ w: f.contentWindow, d: f.contentDocument }), 600), { once: true });
+      f.src = '/?' + Math.random();
+    });
+  }
+  const visible = (d, id) => d.getElementById(id).classList.contains('visible');
+  const key = (w, code) => w.dispatchEvent(new w.KeyboardEvent('keydown', { code }));
+  function stepTo(w, phase, mut) {
+    // manually advance the sim (rAF-independent)
+    for (let i = 0; i < 200 && w.SY.game.phase !== phase; i++) {
+      if (mut) mut(w.SY.game);
+      w.SY.game.update(0.05);
+    }
+    return w.SY.game.phase === phase;
+  }
+
+  async function run() {
+    // ---------- scenario 1: first-visit how-to gate ----------
+    let { w, d } = await freshPage();
+    d.getElementById('btn-daily').click();
+    await sleep(100);
+    check('howto', 'first start opens HOW TO PLAY instead of the game', visible(d, 'screen-howto') && w.SY.game.phase === 'menu');
+    d.getElementById('btn-howto-start').click();
+    await sleep(100);
+    check('howto', 'START begins the chosen mode and hides the overlay', !visible(d, 'screen-howto') && w.SY.game.phase === 'ready' && w.SY.game.mode === 'daily');
+
+    // ---------- scenario 2: pause + quit discards the run ----------
+    ({ w, d } = await freshPage());
+    d.getElementById('btn-free').click(); // seenHowto persisted -> starts directly
+    await sleep(100);
+    check('quit', 'second visit skips the how-to gate', w.SY.game.phase === 'ready');
+    check('quit', 'pause button is visible during play', d.getElementById('btn-pause').style.display !== 'none');
+    stepTo(w, 'playing', (g) => { if (g.state) g.state.readyT = 0.01; });
+    w.SY.game.state.score = 777; // pretend we earned something
+    let overFired = 0;
+    const prevHandler = w.SY.game.events.onGameOver;
+    w.SY.game.events.onGameOver = (res) => { overFired++; if (prevHandler) prevHandler(res); };
+    key(w, 'Escape');
+    await sleep(100);
+    check('quit', 'ESC pauses and shows the overlay', w.SY.game.phase === 'paused' && visible(d, 'screen-pause'));
+    const tBefore = w.SY.game.state.t;
+    for (let i = 0; i < 20; i++) w.SY.game.update(0.05);
+    check('quit', 'sim is frozen while paused', w.SY.game.state.t === tBefore);
+    d.getElementById('btn-pause-quit').click();
+    await sleep(150);
+    check('quit', 'QUIT returns to menu', visible(d, 'screen-menu') && w.SY.game.phase === 'menu');
+    check('quit', 'no game-over event fired for a discarded run', overFired === 0);
+    const recs = await w.SY.store.loadAll();
+    check('quit', 'no records were written (best stays null)', recs.bestAll === null && recs.dailyBest === null);
+
+    // ---------- scenario 3: pause via button, resume via key ----------
+    ({ w, d } = await freshPage());
+    d.getElementById('btn-free').click();
+    await sleep(100);
+    stepTo(w, 'playing', (g) => { if (g.state) g.state.readyT = 0.01; });
+    w.SY.input.ax = 1;
+    d.getElementById('btn-pause').click();
+    await sleep(100);
+    check('pause', 'mobile pause button pauses', w.SY.game.phase === 'paused' && visible(d, 'screen-pause'));
+    check('pause', 'joystick axis zeroed on pause', w.SY.input.ax === 0 && w.SY.input.ay === 0);
+    key(w, 'KeyP');
+    await sleep(100);
+    check('pause', 'P resumes back to playing', w.SY.game.phase === 'playing' && !visible(d, 'screen-pause'));
+
+    // ---------- scenario 4: game over screen (breakdown/sparkline/countdown) ----------
+    ({ w, d } = await freshPage());
+    let overRes = null;
+    const orig = w.SY.game.events.onGameOver;
+    w.SY.game.events.onGameOver = (res) => { overRes = res; if (orig) orig(res); };
+    d.getElementById('btn-daily').click();
+    await sleep(100);
+    stepTo(w, 'playing', (g) => { if (g.state) g.state.readyT = 0.01; });
+    // play ~8 sim-seconds, force-feeding crystals so the run has a real score
+    {
+      const g = w.SY.game;
+      g.state.timeLeft = 8;
+      for (let i = 0; i < 220 && g.phase === 'playing'; i++) {
+        if (i % 15 === 0) {
+          g.state.crystals.push({ x: g.state.player.x, y: g.state.player.y, vx: 0, vy: 0, r: 7, phase: 0 });
+        }
+        g.update(0.05);
+      }
+    }
+    await sleep(900); // over screen appears after 650ms
+    check('over', 'game over screen is shown', visible(d, 'screen-over') && !!overRes);
+    check('over', 'run scored non-trivially', overRes.score > 0, 'score=' + overRes.score);
+    const bd = overRes.breakdown;
+    check('over', 'breakdown buckets sum to final score (non-trivial)',
+      bd.crystals + bd.combo + bd.destruction + bd.boss === overRes.score,
+      JSON.stringify(bd) + ' vs ' + overRes.score);
+    check('over', 'pace series has a real curve for the sparkline', overRes.pace.length >= 3 && overRes.pace[overRes.pace.length - 1] > 0);
+    const statsText = d.getElementById('over-stats').textContent;
+    check('over', 'breakdown rows rendered', /CRYSTAL PTS/.test(statsText) && /COMBO BONUS/.test(statsText) && /DESTRUCTION/.test(statsText) && /BOSS PTS/.test(statsText));
+    const cd = d.getElementById('over-countdown');
+    check('over', 'daily countdown visible with HH:MM:SS', cd.style.display !== 'none' && /NEXT DAILY IN \d{2}:\d{2}:\d{2}/.test(cd.textContent), cd.textContent);
+    const spark = d.getElementById('over-spark');
+    const px = spark.getContext('2d').getImageData(0, 0, spark.width, spark.height).data;
+    check('over', 'sparkline canvas is not blank', px.some((v) => v !== 0));
+    check('over', 'daily record was saved this time', !!(await w.SY.store.loadAll()).dailyBest);
+    d.getElementById('btn-retry').click();
+    await sleep(150);
+    check('over', 'RETRY hides countdown (interval cleaned up)', cd.style.display === 'none' && !visible(d, 'screen-over'));
+
+    // R / M shortcuts: back to over screen first (retry already restarted the run)
+    stepTo(w, 'playing', (g) => { if (g.state) g.state.readyT = 0.01; });
+    stepTo(w, 'over', (g) => { if (g.state) g.state.timeLeft = 0.04; });
+    await sleep(900);
+    key(w, 'KeyM');
+    await sleep(100);
+    check('over', 'M shortcut returns to menu from the over screen', visible(d, 'screen-menu'));
+
+    // ---------- scenario 5: UTC midnight rollover ----------
+    // pretend the page sat on the menu past midnight: the next daily run must
+    // seed AND save under the new date
+    const realToday = w.SY.todayUTC();
+    w.SY.todayUTC = () => '2099-01-01';
+    let rollRes = null;
+    w.SY.game.events.onGameOver = (res) => { rollRes = res; if (orig) orig(res); };
+    d.getElementById('btn-daily').click();
+    await sleep(100);
+    check('rollover', 'new run seeds with the new UTC date', w.SY.game.state.seedStr === 'daily-2099-01-01');
+    stepTo(w, 'playing', (g) => { if (g.state) g.state.readyT = 0.01; });
+    stepTo(w, 'over', (g) => { if (g.state) g.state.timeLeft = 0.04; });
+    await sleep(900);
+    check('rollover', 'result carries the seed date', rollRes && rollRes.seedStr === 'daily-2099-01-01');
+    const rolled = await w.SY.store.loadAll(); // loadAll reads daily_<todayUTC()>
+    check('rollover', 'record saved under the NEW day key, streak intact',
+      rolled.dailyBest && rolled.dailyBest.score === rollRes.score,
+      JSON.stringify(rolled.dailyBest));
+    check('rollover', 'over screen labels the new day', d.getElementById('over-mode').textContent.includes('2099-01-01'));
+    w.SY.todayUTC = () => realToday;
+
+    await fetch('/report', { method: 'POST', body: JSON.stringify({ results }) });
+    logEl.textContent += 'REPORT SENT';
+  }
+  run().catch(async (e) => {
+    check('harness', 'unhandled error: ' + e.message, false, e.stack);
+    await fetch('/report', { method: 'POST', body: JSON.stringify({ results }) });
+  });
+</script>
+</body></html>

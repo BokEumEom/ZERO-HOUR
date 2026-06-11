@@ -38,6 +38,7 @@
   const hudEls = {
     time: $('hud-time'), score: $('hud-score'), combo: $('hud-combo'),
     hearts: $('hud-hearts'), pace: $('hud-pace'), fx: $('hud-fx'), mode: $('hud-mode'),
+    pauseBtn: $('btn-pause'),
   };
 
   function updateHud() {
@@ -45,7 +46,7 @@
     const playing = G.phase === 'playing' || G.phase === 'ready';
     const active = playing || G.phase === 'paused'; // keep the frozen HUD visible behind the pause overlay
     $('hud').style.visibility = active ? 'visible' : 'hidden';
-    $('btn-pause').style.display = playing ? 'block' : 'none'; // CSS default is display:none
+    hudEls.pauseBtn.style.display = playing ? 'block' : 'none'; // CSS default is display:none
     if (!s || !active) return;
 
     const tl = Math.max(0, s.timeLeft);
@@ -117,6 +118,7 @@
   }
   function reallyStart(mode) {
     SY.audio.unlock();
+    syncToday(); // don't pace-compare a new day's run against yesterday's best
     runBestPace = mode === 'daily' && recs.dailyBest ? recs.dailyBest.pace : null;
     G.start(mode);
     show(null);
@@ -146,26 +148,42 @@
       : '';
     const week = $('menu-week');
     const anyRun = days.some((d) => d.rec);
-    week.style.display = anyRun ? '' : 'none';
+    week.style.display = anyRun ? 'block' : 'none'; // CSS default is display:none
     if (anyRun) {
       week.innerHTML = 'LAST 7 DAYS ' + days.slice().reverse().map((d) =>
         '<span class="day-cell' + (d.rec ? ' hit' : '') +
-        '" title="' + d.date + (d.rec ? ' · ' + fmt(d.rec.score) : '') + '"></span>'
+        '" title="' + d.date + (d.rec ? ' · ' + fmt(Number(d.rec.score) || 0) : '') + '"></span>'
       ).join('');
     }
   }
 
   // ---------- game over ----------
+  // UTC midnight may roll over while the page stays open (the over-screen
+  // countdown invites exactly that). Re-sync the cached daily slate.
+  function syncToday() {
+    const today = SY.todayUTC();
+    if (today === recs.today) return;
+    recs.today = today;
+    recs.dailyBest = null; // brand-new day: no best yet
+    renderMenuStats();
+    renderDailyHistory();
+  }
+
   G.events.onGameOver = async function (res) {
     lastResult = res;
     let newDaily = false, newAll = false;
 
     if (res.mode === 'daily') {
-      if (!recs.dailyBest || res.score > recs.dailyBest.score) {
+      // record under the run's seed date — a run that started before midnight
+      // must not be filed (or compared) as the new day's daily
+      const runDay = res.seedStr.slice('daily-'.length);
+      const isCurrentDay = runDay === recs.today;
+      if (isCurrentDay && (!recs.dailyBest || res.score > recs.dailyBest.score)) {
         newDaily = true;
         recs.dailyBest = { score: res.score, combo: res.maxCombo, pace: res.pace, bossDown: res.bossDown };
-        SY.store.saveDaily(recs.today, recs.dailyBest);
+        SY.store.saveDaily(runDay, recs.dailyBest);
       }
+      syncToday(); // after filing: refresh the slate if midnight passed mid-run
     }
     if (!recs.bestAll || res.score > recs.bestAll.score) {
       newAll = true;
@@ -188,7 +206,9 @@
       statRow('CRYSTALS', fmt(res.collected)) +
       statRow('CORE WARDEN', res.bossDown ? 'CLEARED \u2726' : res.mode && res.duration >= 40 ? 'SURVIVED' : '\u2014') +
       statRow(res.mode === 'daily' ? 'TODAY\u2019S BEST' : 'ALL-TIME BEST',
-        fmt(res.mode === 'daily' ? recs.dailyBest.score : recs.bestAll.score));
+        res.mode === 'daily'
+          ? (recs.dailyBest ? fmt(recs.dailyBest.score) : '\u2014') // null right after a midnight rollover
+          : fmt(recs.bestAll.score));
     drawSparkline(res.pace, res.mode === 'daily' ? runBestPace : null);
 
     $('btn-share').style.display = res.mode === 'daily' ? '' : 'none';
@@ -244,7 +264,13 @@
     function tick() {
       const now = new Date();
       const next = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
-      const ms = Math.max(0, next - now.getTime());
+      const ms = next - now.getTime();
+      if (ms <= 0 || SY.todayUTC() !== recs.today) { // midnight reached while waiting
+        syncToday();
+        el.textContent = 'NEW DAILY READY!';
+        if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+        return;
+      }
       const h = Math.floor(ms / 3600000), m = Math.floor(ms / 60000) % 60, s2 = Math.floor(ms / 1000) % 60;
       el.textContent = 'NEXT DAILY IN ' +
         String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s2).padStart(2, '0');

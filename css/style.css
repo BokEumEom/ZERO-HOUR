@@ -1,4 +1,4 @@
-/* Scoreyard - all UI styles (game canvas rendering lives in js/render.js) */
+﻿/* Scoreyard - all UI styles (game canvas rendering lives in js/render.js) */
 :root {
     --bg: #04090f;
     --panel: #081420;
@@ -223,12 +223,15 @@
     color: var(--teal-soft);
     text-shadow: 0 0 18px rgba(45,226,198,0.7);
   }
+  #screen-howto .pause-title { color: var(--teal); }
   .howto-list { display: flex; flex-direction: column; gap: 10px; width: 460px; text-align: left; }
   .howto-row { display: flex; gap: 14px; font-size: 13px; align-items: baseline; }
   .howto-k { font-family: var(--pixel); font-size: 10px; color: var(--teal); min-width: 120px; text-align: right; }
   .howto-v { color: rgba(234,246,255,0.75); line-height: 1.5; }
 
   /* ---------- daily history ---------- */
+  #menu-streak { color: var(--teal); }
+  #menu-week { display: none; }
   .day-cell {
     display: inline-block;
     width: 18px; height: 10px;

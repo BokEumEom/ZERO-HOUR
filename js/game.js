@@ -261,6 +261,7 @@
       bossDown: s.bossDown, reason, pace: s.pace.slice(),
       collected: s.collected, duration: s.duration,
       breakdown: { ...s.breakdown },
+      seedStr: s.seedStr, // daily runs record under their seed's date, not "now"
     };
     SY.audio.gameOver();
     if (G.events.onGameOver) G.events.onGameOver(res);
@@ -544,6 +545,7 @@
     G.mode = mode;
     G.state = freshState(mode, seed);
     G.phase = 'ready';
+    resetKeys(); // a key stuck since the menu (blurred mid-press) must not steer the new run
   };
   G.toMenu = function () { G.phase = 'menu'; G.state = null; };
   G.pause = function () {
