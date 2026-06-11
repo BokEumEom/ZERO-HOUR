@@ -11,16 +11,18 @@
 
 | 파일 | 설명 |
 |---|---|
-| `Scoreyard.html` | 메인 진입점 — `js/` 폴더의 스크립트를 로드 (개발용) |
-| `Scoreyard Standalone.html` | 모든 코드가 번들된 단일 파일 버전 — 파일 하나로 어디서나 실행 |
+| `index.html` | 메인 진입점 — `js/` 폴더의 스크립트를 로드 |
+| `standalone.html` | 모든 코드가 번들된 단일 파일 버전 — 파일 하나로 어디서나 실행 (생성 산출물) |
 
 ```
 # 그냥 브라우저로 열거나
-start Scoreyard.html
+start index.html
 
 # 로컬 서버로 실행 (선택)
 npx serve .
 ```
+
+Vercel에 정적 사이트로 배포됩니다 — 메인 게임은 `/`, 단일 파일 버전은 `/standalone.html`에서 제공됩니다.
 
 ## 게임 방법
 
@@ -66,8 +68,8 @@ npx serve .
 
 ```
 Retro Arcade Shooter/
-├── Scoreyard.html            # 메인 진입점 (HTML/CSS/HUD/화면)
-├── Scoreyard Standalone.html # 단일 파일 번들 버전
+├── index.html                # 메인 진입점 (HTML/CSS/HUD/화면)
+├── standalone.html           # 단일 파일 번들 버전 (생성 산출물 — 직접 수정 금지)
 └── js/
     ├── store.js              # IndexedDB 기록 저장 + 시드 RNG (xmur3 → mulberry32)
     ├── audio.js              # 사운드 효과 (Web Audio)
