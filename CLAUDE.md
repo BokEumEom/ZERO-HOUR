@@ -7,6 +7,9 @@ Decision records, plans, and verification reports live in `docs/` (ADRs in
 `docs/adr/`); distilled pitfalls in `LEARNINGS.md`. Tests: `test/run-all.ps1`
 (zero-dependency: node --test + headless Edge E2E + bundle hash sync).
 
+**Agent operating manual: `AGENT.md`** (absolute rules, workflow, role split) —
+read it before any non-trivial change. Verifier criteria: `rubric.md`.
+
 ## Run / Deploy
 
 Open `index.html` in a browser, or `npx serve .` for a local server.

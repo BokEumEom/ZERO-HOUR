@@ -11,7 +11,8 @@
 | [rubrics/](rubrics/) | Verifier용 평가 루브릭 (객관적·자동 검증 가능 기준) |
 | [reviews/](reviews/) | 독립 Verifier 평가 보고서와 Refiner 반영 결과 |
 
-루트의 [LEARNINGS.md](../LEARNINGS.md)는 이터레이션에서 발견된 문제 패턴의 증류본.
+루트 문서: [AGENT.md](../AGENT.md)(에이전트 작업 지침서) · [rubric.md](../rubric.md)(상시 평가
+기준 — 여기 폴더의 루브릭은 작업별 스냅샷) · [LEARNINGS.md](../LEARNINGS.md)(문제 패턴 증류본).
 
 ## ADR 목록
 
