@@ -5,6 +5,13 @@
   let ctx = null;
   let master = null;
   let muted = false;
+  let haptics = true;
+
+  // tactile feedback lives with the audio feedback (same call sites)
+  function buzz(pattern) {
+    if (!haptics || !navigator.vibrate) return;
+    try { navigator.vibrate(pattern); } catch (e) { /* unsupported / blocked */ }
+  }
 
   function ensure() {
     if (!ctx) {
@@ -64,6 +71,8 @@
   SY.audio = {
     setMuted(m) { muted = !!m; },
     isMuted() { return muted; },
+    setHaptics(h) { haptics = !!h; },
+    hapticsOn() { return haptics; },
     unlock() { ensure(); },
 
     // light pew — kept very quiet, fires constantly
@@ -85,11 +94,13 @@
     hit() {
       noise(0.22, 0.4, 0, 240, 0.8);
       tone('sawtooth', 180, 50, 0.25, 0.3, 0, 'exp');
+      buzz(45);
     },
 
     shieldPop() {
       tone('sine', 700, 180, 0.18, 0.25, 0, 'exp');
       noise(0.12, 0.18, 0, 1400, 2);
+      buzz(20);
     },
 
     explode() {
@@ -109,6 +120,7 @@
       noise(0.7, 0.4, 0, 400, 0.5);
       tone('triangle', 400, 50, 0.6, 0.3, 0, 'exp');
       [523, 659, 784, 1047].forEach((f, i) => tone('square', f, f, 0.12, 0.16, 0.25 + i * 0.09));
+      buzz([30, 40, 60]);
     },
 
     newBest() {
@@ -129,6 +141,7 @@
     gameOver() {
       tone('sawtooth', 220, 110, 0.4, 0.2, 0, 'exp');
       tone('sawtooth', 165, 82, 0.5, 0.18, 0.15, 'exp');
+      buzz(80);
     },
   };
 })();

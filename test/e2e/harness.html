@@ -147,6 +147,33 @@
     check('rollover', 'over screen labels the new day', d.getElementById('over-mode').textContent.includes('2099-01-01'));
     w.SY.todayUTC = () => realToday;
 
+    // ---------- scenario 6: responsive layout (ADR-0006) ----------
+    key(w, 'KeyM'); // back to menu
+    await sleep(150);
+    f.style.width = '390px'; f.style.height = '700px'; // phone portrait
+    await sleep(150);
+    w.dispatchEvent(new w.Event('resize'));
+    await sleep(250);
+    check('layout', 'portrait class applied on tall viewport', d.body.classList.contains('portrait'));
+    const tfP = d.getElementById('stage').style.transform;
+    check('layout', 'arena width-fits the portrait viewport (scale 390/960)', /scale\(0\.40/.test(tfP), tfP);
+    const dailyR = d.getElementById('btn-daily').getBoundingClientRect();
+    const freeR = d.getElementById('btn-free').getBoundingClientRect();
+    check('layout', 'menu mode cards stack vertically on narrow screens', freeR.top >= dailyR.bottom - 1,
+      'daily.bottom=' + Math.round(dailyR.bottom) + ' free.top=' + Math.round(freeR.top));
+    d.getElementById('btn-free').click(); // real user flow -> reallyStart activates the touch zone
+    await sleep(200);
+    const tz = d.getElementById('touch-zone');
+    check('layout', 'portrait touch zone active during play', tz.classList.contains('active') &&
+      w.getComputedStyle(tz).display === 'flex', 'cls=' + tz.className + ' top=' + tz.style.top);
+    f.style.width = '700px'; f.style.height = '390px'; // phone landscape
+    await sleep(150);
+    w.dispatchEvent(new w.Event('resize'));
+    await sleep(250);
+    check('layout', 'landscape class + centered contain-fit', d.body.classList.contains('landscape') &&
+      /scale\(0\.65/.test(d.getElementById('stage').style.transform), d.getElementById('stage').style.transform);
+    check('layout', 'touch zone hidden in landscape', w.getComputedStyle(tz).display === 'none');
+
     await fetch('/report', { method: 'POST', body: JSON.stringify({ results }) });
     logEl.textContent += 'REPORT SENT';
   }

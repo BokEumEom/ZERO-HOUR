@@ -2,8 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Zero Hour — Retro Arcade</title>
+<meta name="theme-color" content="#04090f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;family=IBM+Plex+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
@@ -24,7 +31,11 @@
   </template>
   <div id="viewport">
     <div id="stage" data-screen-label="Game Arena">
-      <div id="hud">
+      <canvas id="game-canvas" width="960" height="600"></canvas>
+      <div id="crt"></div>
+    </div>
+
+    <div id="hud">
         <div class="hud-block">
           <span class="hud-label">TIME</span>
           <span id="hud-time">75</span>
@@ -46,7 +57,7 @@
         <span id="hud-mode"></span>
       </div>
 
-      <canvas id="game-canvas" width="960" height="600"></canvas>
+    <div id="touch-zone"><span class="touch-hint">DRAG TO MOVE · 드래그로 이동</span></div>
 
       <div id="screen-menu" class="screen visible" data-screen-label="Main Menu">
         <div>
@@ -100,6 +111,7 @@
           <button id="btn-pause-restart" class="arcade-btn" type="button">RESTART</button>
           <button id="btn-pause-quit" class="arcade-btn" type="button">QUIT TO MENU</button>
         </div>
+        <button id="btn-haptic" class="arcade-btn haptic-toggle" type="button">VIBRATION: ON</button>
         <p class="controls-hint">ESC / P — RESUME · 나가면 이번 런은 기록되지 않습니다</p>
       </div>
 
@@ -117,13 +129,11 @@
           <button id="btn-howto-start" class="arcade-btn primary" type="button">START</button>
         </div>
       </div>
-
-      <div id="crt"></div>
-    </div>
   </div>
 
   <button id="btn-mute" type="button" aria-label="Mute">🔊</button>
   <button id="btn-pause" type="button" aria-label="Pause">II</button>
+  <button id="btn-fullscreen" type="button" aria-label="Fullscreen">⛶</button>
 
   <div id="joystick">
     <div id="joystick-knob"></div>

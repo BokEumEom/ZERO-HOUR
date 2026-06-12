@@ -14,7 +14,9 @@
   async function boot() {
     recs = await SY.store.loadAll();
     SY.audio.setMuted(!!recs.settings.muted);
+    SY.audio.setHaptics(recs.settings.haptics !== false);
     updateMuteBtn();
+    updateHapticBtn();
     renderMenuStats();
     renderDailyHistory();
     requestAnimationFrame(loop);
@@ -118,10 +120,14 @@
   }
   function reallyStart(mode) {
     SY.audio.unlock();
+    // touch devices: ride the start gesture into fullscreen (silently ignored if blocked)
+    if (window.matchMedia && matchMedia('(pointer: coarse)').matches) enterFullscreen();
     syncToday(); // don't pace-compare a new day's run against yesterday's best
     runBestPace = mode === 'daily' && recs.dailyBest ? recs.dailyBest.pace : null;
     G.start(mode);
     show(null);
+    // toggled on phase transitions (not per-frame): portrait drag area, CSS gates to body.portrait
+    touchZone.classList.add('active');
   }
 
   // ---------- pause ----------
@@ -171,6 +177,7 @@
 
   G.events.onGameOver = async function (res) {
     lastResult = res;
+    touchZone.classList.remove('active');
     let newDaily = false, newAll = false;
 
     if (res.mode === 'daily') {
@@ -333,6 +340,7 @@
   // ---------- buttons ----------
   function quitToMenu() {
     G.toMenu();
+    touchZone.classList.remove('active');
     renderMenuStats();
     renderDailyHistory();
     show('screen-menu');
@@ -372,11 +380,11 @@
     }
   });
 
-  // ---------- touch joystick ----------
+  // ---------- touch joystick (whole viewport, incl. the portrait touch zone) ----------
   const stage = $('stage');
   let stick = null;
   const stickEl = $('joystick'), knobEl = $('joystick-knob');
-  stage.addEventListener('pointerdown', (e) => {
+  $('viewport').addEventListener('pointerdown', (e) => {
     if (G.phase !== 'playing' && G.phase !== 'ready') return;
     if (e.pointerType === 'mouse') return;
     stick = { id: e.pointerId, x: e.clientX, y: e.clientY };
@@ -411,15 +419,63 @@
     knobEl.style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px))';
   }
 
-  // ---------- stage scaling ----------
-  const SW = 960, SH = 664;
+  // ---------- responsive layout (ADR-0006: only the stage scales) ----------
+  const SW = 960, SH = 600;
+  const touchZone = $('touch-zone');
+  const hudEl = $('hud');
   function fit() {
-    const pad = 18;
-    const scale = Math.min((window.innerWidth - pad) / SW, (window.innerHeight - pad) / SH, 1.4);
-    stage.style.transform = 'translate(-50%, -50%) scale(' + scale + ')';
+    const vv = window.visualViewport;
+    const vw = vv ? vv.width : window.innerWidth;
+    const vh = vv ? vv.height : window.innerHeight;
+    const portrait = vh > vw;
+    document.body.classList.toggle('portrait', portrait);
+    document.body.classList.toggle('landscape', !portrait);
+    let scale, x, y;
+    if (portrait) {
+      scale = vw / SW; // width-fit arena under the solid HUD bar
+      x = 0;
+      y = hudEl.offsetHeight; // visibility:hidden keeps layout, so this is stable
+      touchZone.style.top = Math.min(vh, y + SH * scale) + 'px';
+    } else {
+      scale = Math.min(vw / SW, vh / SH, 1.5);
+      x = (vw - SW * scale) / 2;
+      y = (vh - SH * scale) / 2;
+    }
+    stage.style.transform = 'translate(' + x + 'px, ' + y + 'px) scale(' + scale + ')';
   }
   window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', fit);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
   fit();
+
+  // ---------- fullscreen ----------
+  const fsBtn = $('btn-fullscreen');
+  const fsSupported = !!document.documentElement.requestFullscreen;
+  if (fsSupported) fsBtn.classList.add('available');
+  function enterFullscreen() {
+    if (!fsSupported || document.fullscreenElement) return;
+    document.documentElement.requestFullscreen().catch(() => {});
+  }
+  fsBtn.addEventListener('click', () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else enterFullscreen();
+  });
+
+  // ---------- haptics toggle (pause screen; only on devices that vibrate) ----------
+  const hapticBtn = $('btn-haptic');
+  if (navigator.vibrate) hapticBtn.classList.add('available');
+  function updateHapticBtn() {
+    hapticBtn.textContent = 'VIBRATION: ' + (SY.audio.hapticsOn() ? 'ON' : 'OFF');
+  }
+  hapticBtn.addEventListener('click', () => {
+    const on = !SY.audio.hapticsOn();
+    SY.audio.setHaptics(on);
+    recs.settings.haptics = on;
+    SY.store.saveSettings(recs.settings);
+    updateHapticBtn();
+  });
+  updateHapticBtn();
 
   show('screen-menu');
   boot();
