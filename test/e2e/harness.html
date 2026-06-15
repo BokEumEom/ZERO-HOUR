@@ -182,6 +182,16 @@
     w.dispatchEvent(pe('pointerup', 195, 600));
     check('layout', 'drag-down moves drone down on screen (rotation-aware remap)',
       w.SY.game.state.player.x > px0 + 10, 'px0=' + Math.round(px0) + ' px1=' + Math.round(w.SY.game.state.player.x));
+    // second axis: on-screen "right" is arena -y → player.y should shrink (touch feel locked)
+    const py0 = w.SY.game.state.player.y;
+    vp.dispatchEvent(pe('pointerdown', 200, 400));
+    w.dispatchEvent(pe('pointermove', 300, 400)); // drag RIGHT 100px
+    for (let i = 0; i < 25; i++) w.SY.game.update(0.05);
+    w.dispatchEvent(pe('pointerup', 300, 400));
+    check('layout', 'drag-right moves drone right on screen (touch feel preserved)',
+      w.SY.game.state.player.y < py0 - 10, 'py0=' + Math.round(py0) + ' py1=' + Math.round(w.SY.game.state.player.y));
+    check('layout', 'SY.layout.rot is set for portrait', Math.abs(w.SY.layout.rot - Math.PI / 2) < 0.01,
+      'rot=' + w.SY.layout.rot.toFixed(3));
 
     await fetch('/report', { method: 'POST', body: JSON.stringify({ results }) });
     logEl.textContent += 'REPORT SENT';

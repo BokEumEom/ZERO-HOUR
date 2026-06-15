@@ -4,6 +4,8 @@
   const G = SY.game;
 
   const $ = (id) => document.getElementById(id);
+  // stage rotation (radians) so render.js can keep in-canvas overlay text upright
+  SY.layout = SY.layout || { rot: 0 };
   let recs = { settings: { muted: false }, bestAll: null, dailyBest: null, today: SY.todayUTC() };
   let lastResult = null;
   let runBestPace = null; // daily pace snapshot for live comparison
@@ -430,6 +432,7 @@
     const vw = vv ? vv.width : window.innerWidth;
     const vh = vv ? vv.height : window.innerHeight;
     isPortrait = vh > vw;
+    SY.layout.rot = isPortrait ? Math.PI / 2 : 0; // render.js counter-rotates overlay text by this
     document.body.classList.toggle('portrait', isPortrait);
     document.body.classList.toggle('landscape', !isPortrait);
     if (isPortrait) {

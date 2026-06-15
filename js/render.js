@@ -224,6 +224,9 @@
 
   function render(ctx) {
     const s = G.state;
+    // stage may be rotated for portrait; screen-space overlays (READY, boss banner)
+    // counter-rotate by this so their text stays upright. 0 in landscape.
+    const rot = (SY.layout && SY.layout.rot) || 0;
     ctx.clearRect(0, 0, W, H);
     ctx.save();
 
@@ -299,28 +302,38 @@
     }
     ctx.globalAlpha = 1;
 
-    // boss warning banner
+    // boss warning banner (counter-rotated so text reads upright in portrait)
     if (s.bossWarnT > 0 && Math.floor(s.bossWarnT * 5) % 2 === 0) {
+      ctx.save();
+      ctx.translate(W / 2, H / 2);
+      ctx.rotate(-rot);
       ctx.fillStyle = 'rgba(255,90,120,0.12)';
-      ctx.fillRect(0, H / 2 - 34, W, 68);
+      ctx.fillRect(-W, -34, W * 2, 68); // band across the screen in upright space
       ctx.fillStyle = '#ff5a78';
       ctx.font = 'bold 28px ' + MONO;
-      ctx.fillText('⚠ CORE WARDEN INBOUND ⚠', W / 2, H / 2 + 9);
+      ctx.textAlign = 'center';
+      ctx.fillText('⚠ CORE WARDEN INBOUND ⚠', 0, 9);
+      ctx.restore();
     }
 
-    // ready countdown
+    // ready countdown (full-screen dim stays flat; text counter-rotates to stay upright)
     if (G.phase === 'ready') {
       ctx.fillStyle = 'rgba(4,9,15,0.55)';
       ctx.fillRect(0, 0, W, H);
+      ctx.save();
+      ctx.translate(W / 2, H / 2);
+      ctx.rotate(-rot);
       ctx.fillStyle = '#2de2c6';
       ctx.shadowColor = '#2de2c6';
       ctx.shadowBlur = 20;
       ctx.font = 'bold 52px ' + MONO;
-      ctx.fillText(s.readyT > 0.5 ? 'READY' : 'GO!', W / 2, H / 2 + 16);
+      ctx.textAlign = 'center';
+      ctx.fillText(s.readyT > 0.5 ? 'READY' : 'GO!', 0, 16);
       ctx.shadowBlur = 0;
       ctx.font = '14px ' + MONO;
       ctx.fillStyle = '#9ff5e8';
-      ctx.fillText('WASD / 터치 드래그로 이동 · 사격은 자동', W / 2, H / 2 + 56);
+      ctx.fillText('DRAG TO MOVE · 사격은 자동', 0, 56);
+      ctx.restore();
     }
 
     ctx.restore();
