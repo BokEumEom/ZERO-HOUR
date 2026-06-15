@@ -106,55 +106,6 @@ body.portrait #hud { background: var(--panel); border-bottom: 1px solid rgba(45,
   #hud-mode, #hud-pace { display: none !important; } /* JS toggles pace inline; narrow screens drop it */
 }
 
-/* ---------- portrait control deck (reclaimed dead space below the arena) ----------
-   The arena is a fixed 1.6:1 landscape box, so upright it can only width-fit
-   (~29% of a phone's height). Rather than leave the rest empty, the lower
-   region becomes a retro-handheld "controller": a joystick home ring the thumb
-   rests in, on a panel that visually separates it from the arena "screen".
-   Dragging anywhere still works (listener is on #viewport); the ring is just an
-   affordance — the live joystick spawns at the touch point. */
-#touch-zone {
-  display: none;
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  z-index: 35;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(12px, 3vh, 22px);
-  background:
-    radial-gradient(ellipse 70% 55% at 50% 58%, rgba(45,226,198,0.06), rgba(4,9,15,0) 72%),
-    var(--panel);
-  border-top: 1px solid rgba(45,226,198,0.28);
-  box-shadow: inset 0 1px 0 rgba(45,226,198,0.12);
-  padding-bottom: var(--safe-bottom);
-}
-body.portrait #touch-zone.active { display: flex; }
-.joy-home {
-  width: clamp(88px, 26vw, 120px);
-  aspect-ratio: 1;
-  border: 2px dashed rgba(45,226,198,0.38);
-  border-radius: 50%;
-  position: relative;
-  pointer-events: none;
-}
-.joy-home::after { /* resting knob */
-  content: '';
-  position: absolute; left: 50%; top: 50%;
-  width: 38%; aspect-ratio: 1;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: rgba(45,226,198,0.16);
-  border: 2px solid rgba(45,226,198,0.5);
-  box-shadow: 0 0 14px rgba(45,226,198,0.35);
-}
-.touch-hint {
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  color: rgba(159,245,232,0.4);
-  pointer-events: none;
-}
-
 /* ---------- screens: viewport-level responsive overlays ---------- */
 .screen {
   position: fixed; inset: 0;

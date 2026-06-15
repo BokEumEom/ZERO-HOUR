@@ -147,40 +147,41 @@
     check('rollover', 'over screen labels the new day', d.getElementById('over-mode').textContent.includes('2099-01-01'));
     w.SY.todayUTC = () => realToday;
 
-    // ---------- scenario 6: responsive layout (ADR-0006) ----------
+    // ---------- scenario 6: portrait rotate-to-fill (ADR-0006) ----------
     key(w, 'KeyM'); // back to menu
     await sleep(150);
-    f.style.width = '390px'; f.style.height = '700px'; // phone portrait
+    f.style.width = '390px'; f.style.height = '844px'; // phone portrait
     await sleep(150);
     w.dispatchEvent(new w.Event('resize'));
     await sleep(250);
     check('layout', 'portrait class applied on tall viewport', d.body.classList.contains('portrait'));
     const tfP = d.getElementById('stage').style.transform;
-    check('layout', 'arena width-fits the portrait viewport (scale 390/960)', /scale\(0\.40/.test(tfP), tfP);
+    check('layout', 'arena is rotated 90° to fill portrait', /rotate\(90deg\)/.test(tfP), tfP);
+    // rotated+scaled arena should span the full viewport width (edge to edge)
+    const ar = d.getElementById('stage').getBoundingClientRect();
+    check('layout', 'rotated arena fills the screen width', Math.round(ar.width) >= w.innerWidth - 2,
+      'arena.w=' + Math.round(ar.width) + ' vw=' + w.innerWidth);
+    check('layout', 'rotated arena is much taller than width-fit (>2x)', Math.round(ar.height) > 500,
+      'arena.h=' + Math.round(ar.height));
     const dailyR = d.getElementById('btn-daily').getBoundingClientRect();
     const freeR = d.getElementById('btn-free').getBoundingClientRect();
     check('layout', 'menu mode cards stack vertically on narrow screens', freeR.top >= dailyR.bottom - 1,
       'daily.bottom=' + Math.round(dailyR.bottom) + ' free.top=' + Math.round(freeR.top));
-    d.getElementById('btn-free').click(); // real user flow -> reallyStart activates the touch zone
-    await sleep(200);
-    const tz = d.getElementById('touch-zone');
-    check('layout', 'portrait touch zone active during play', tz.classList.contains('active') &&
-      w.getComputedStyle(tz).display === 'flex', 'cls=' + tz.className + ' top=' + tz.style.top);
-    // control deck: starts flush at the arena bottom (no wasted gap) and shows the joystick home ring
-    const arenaBottom = d.getElementById('stage').getBoundingClientRect().bottom;
-    check('layout', 'control deck is flush below the arena (no gap)',
-      Math.abs(parseFloat(tz.style.top) - arenaBottom) < 2,
-      'deck.top=' + tz.style.top + ' arena.bottom=' + Math.round(arenaBottom));
-    const joy = d.querySelector('#touch-zone .joy-home');
-    check('layout', 'joystick home ring present in the deck', !!joy && joy.getBoundingClientRect().width > 60,
-      joy ? Math.round(joy.getBoundingClientRect().width) + 'px' : 'missing');
-    f.style.width = '700px'; f.style.height = '390px'; // phone landscape
-    await sleep(150);
-    w.dispatchEvent(new w.Event('resize'));
-    await sleep(250);
-    check('layout', 'landscape class + centered contain-fit', d.body.classList.contains('landscape') &&
-      /scale\(0\.65/.test(d.getElementById('stage').style.transform), d.getElementById('stage').style.transform);
-    check('layout', 'touch zone hidden in landscape', w.getComputedStyle(tz).display === 'none');
+    // drag input is remapped for the 90° rotation: screen drag-down moves the drone down on screen
+    d.getElementById('btn-free').click();
+    await sleep(120);
+    stepTo(w, 'playing', (g) => { if (g.state) g.state.readyT = 0.01; });
+    // arena is rotated 90° CW, so on-screen "down" is arena +x → player.x should grow.
+    // pointerdown listens on #viewport; pointermove on window (both need bubbles:true)
+    const vp = d.getElementById('viewport');
+    const px0 = w.SY.game.state.player.x;
+    const pe = (type, x, y) => new w.PointerEvent(type, { pointerId: 1, clientX: x, clientY: y, pointerType: 'touch', bubbles: true });
+    vp.dispatchEvent(pe('pointerdown', 195, 500));
+    w.dispatchEvent(pe('pointermove', 195, 600)); // drag DOWN 100px
+    for (let i = 0; i < 25; i++) w.SY.game.update(0.05);
+    w.dispatchEvent(pe('pointerup', 195, 600));
+    check('layout', 'drag-down moves drone down on screen (rotation-aware remap)',
+      w.SY.game.state.player.x > px0 + 10, 'px0=' + Math.round(px0) + ' px1=' + Math.round(w.SY.game.state.player.x));
 
     await fetch('/report', { method: 'POST', body: JSON.stringify({ results }) });
     logEl.textContent += 'REPORT SENT';

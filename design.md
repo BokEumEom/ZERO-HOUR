@@ -152,20 +152,27 @@ requestAnimationFrame(loop):
 
 ---
 
-## 7. 레이아웃 모델 — 모바일 First ([ADR-0006](docs/adr/0006-mobile-first-scaled-canvas-unscaled-ui.md))
+## 7. 레이아웃 모델 — 세로 모바일 First ([ADR-0006](docs/adr/0006-mobile-first-scaled-canvas-unscaled-ui.md))
+
+**주 타깃은 세로 모바일.** 가로·PC는 개발용 폴백으로만 둔다.
 
 **스케일되는 캔버스 / 스케일 안 되는 UI** 분리:
-- `#stage`(`<canvas>` + `#crt`)만 `transform: scale()`로 뷰포트에 맞춘다.
-- HUD·4개 화면·조이스틱·버튼은 뷰포트 레벨 fixed DOM — `clamp()`·`flex-wrap`·
-  `env(safe-area-inset-*)`로 자연 크기 적응. 절대 스케일되지 않아 글자가 작아지지 않는다.
+- `#stage`(`<canvas>` + `#crt`)만 `transform`으로 뷰포트에 맞춘다.
+- HUD·4개 화면·버튼은 뷰포트 레벨 fixed DOM — `clamp()`·`flex-wrap`·
+  `env(safe-area-inset-*)`로 자연 크기 적응. 스케일되지 않아 글자가 작아지지 않는다.
 
 `fit()`(main.js)이 `visualViewport` 기준으로 방향 클래스를 body에 부여:
-- **세로(`body.portrait`)**: 상단 솔리드 HUD 바 → 폭 맞춤 아레나 → 하단 `#touch-zone`
-  (조이스틱 영역, 손가락이 아레나를 안 가림).
-- **가로(`body.landscape`)**: contain-fit 중앙 아레나 + 반투명 HUD 오버레이(데스크탑 동일).
+- **세로(`body.portrait`, 주)**: 1.6:1 가로 아레나를 **90° 회전**해 화면 폭을 edge-to-edge로
+  가득 채운다(390px 폭 폰에서 390×624px, 폭 맞춤이던 244px의 2.5배 면적). 상시 HUD 바는
+  위에서 정상 방향 유지. 드래그는 큰 아레나 위 어디서나(부유 조이스틱). 회전에 맞춰
+  **입력 축을 재매핑**(화면 (dx,dy) → 아레나 (dy,−dx))해 드래그 방향과 화면상 드론 이동을 일치.
+- **가로(`body.landscape`)**: contain-fit 중앙 아레나 + 반투명 HUD (폴백, 비주력).
 
-**PWA/풀스크린**: `manifest.json`(fullscreen, any orientation) + 아이콘. 터치 기기는
-게임 시작 제스처에 편승해 Fullscreen API 자동 요청(미지원 시 버튼 숨김).
+트레이드오프: 회전으로 캔버스 안 일시적 텍스트(READY/보스 배너/점수 팝업)는 옆으로 눕지만,
+읽기 핵심인 상시 HUD·화면은 DOM이라 정상 방향. 엔진(`game.js`)은 무변경.
+
+**PWA/풀스크린**: `manifest.json`(fullscreen) + 아이콘. 터치 기기는 게임 시작 제스처에
+편승해 Fullscreen API 자동 요청(미지원 시 버튼 숨김).
 
 ---
 

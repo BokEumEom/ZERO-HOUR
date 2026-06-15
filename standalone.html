@@ -124,55 +124,6 @@ body.portrait #hud { background: var(--panel); border-bottom: 1px solid rgba(45,
   #hud-mode, #hud-pace { display: none !important; } /* JS toggles pace inline; narrow screens drop it */
 }
 
-/* ---------- portrait control deck (reclaimed dead space below the arena) ----------
-   The arena is a fixed 1.6:1 landscape box, so upright it can only width-fit
-   (~29% of a phone's height). Rather than leave the rest empty, the lower
-   region becomes a retro-handheld "controller": a joystick home ring the thumb
-   rests in, on a panel that visually separates it from the arena "screen".
-   Dragging anywhere still works (listener is on #viewport); the ring is just an
-   affordance — the live joystick spawns at the touch point. */
-#touch-zone {
-  display: none;
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  z-index: 35;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(12px, 3vh, 22px);
-  background:
-    radial-gradient(ellipse 70% 55% at 50% 58%, rgba(45,226,198,0.06), rgba(4,9,15,0) 72%),
-    var(--panel);
-  border-top: 1px solid rgba(45,226,198,0.28);
-  box-shadow: inset 0 1px 0 rgba(45,226,198,0.12);
-  padding-bottom: var(--safe-bottom);
-}
-body.portrait #touch-zone.active { display: flex; }
-.joy-home {
-  width: clamp(88px, 26vw, 120px);
-  aspect-ratio: 1;
-  border: 2px dashed rgba(45,226,198,0.38);
-  border-radius: 50%;
-  position: relative;
-  pointer-events: none;
-}
-.joy-home::after { /* resting knob */
-  content: '';
-  position: absolute; left: 50%; top: 50%;
-  width: 38%; aspect-ratio: 1;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: rgba(45,226,198,0.16);
-  border: 2px solid rgba(45,226,198,0.5);
-  box-shadow: 0 0 14px rgba(45,226,198,0.35);
-}
-.touch-hint {
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  color: rgba(159,245,232,0.4);
-  pointer-events: none;
-}
-
 /* ---------- screens: viewport-level responsive overlays ---------- */
 .screen {
   position: fixed; inset: 0;
@@ -399,11 +350,6 @@ body.portrait #touch-zone.active { display: flex; }
         <span id="hud-pace" style="display: none;"></span>
         <div id="hud-fx"></div>
         <span id="hud-mode"></span>
-      </div>
-
-    <div id="touch-zone">
-        <div class="joy-home" aria-hidden="true"></div>
-        <span class="touch-hint">DRAG ANYWHERE TO MOVE · 드래그로 이동</span>
       </div>
 
       <div id="screen-menu" class="screen visible" data-screen-label="Main Menu">
@@ -1798,8 +1744,6 @@ body.portrait #touch-zone.active { display: flex; }
     runBestPace = mode === 'daily' && recs.dailyBest ? recs.dailyBest.pace : null;
     G.start(mode);
     show(null);
-    // toggled on phase transitions (not per-frame): portrait drag area, CSS gates to body.portrait
-    touchZone.classList.add('active');
   }
 
   // ---------- pause ----------
@@ -1849,7 +1793,6 @@ body.portrait #touch-zone.active { display: flex; }
 
   G.events.onGameOver = async function (res) {
     lastResult = res;
-    touchZone.classList.remove('active');
     let newDaily = false, newAll = false;
 
     if (res.mode === 'daily') {
@@ -2012,7 +1955,6 @@ body.portrait #touch-zone.active { display: flex; }
   // ---------- buttons ----------
   function quitToMenu() {
     G.toMenu();
-    touchZone.classList.remove('active');
     renderMenuStats();
     renderDailyHistory();
     show('screen-menu');
@@ -2052,9 +1994,10 @@ body.portrait #touch-zone.active { display: flex; }
     }
   });
 
-  // ---------- touch joystick (whole viewport, incl. the portrait touch zone) ----------
+  // ---------- touch drag-to-move (whole viewport; arena is rotated 90° in portrait) ----------
   const stage = $('stage');
   let stick = null;
+  let isPortrait = false; // set by fit(); portrait rotates the arena, so drag axes are remapped
   const stickEl = $('joystick'), knobEl = $('joystick-knob');
   $('viewport').addEventListener('pointerdown', (e) => {
     if (G.phase !== 'playing' && G.phase !== 'ready') return;
@@ -2070,8 +2013,14 @@ body.portrait #touch-zone.active { display: flex; }
     const len = Math.hypot(dx, dy);
     const max = 52;
     if (len > max) { dx = (dx / len) * max; dy = (dy / len) * max; }
-    SY.input.ax = dx / max;
-    SY.input.ay = dy / max;
+    if (isPortrait) {
+      // arena rotated 90° CW: screen (dx,dy) -> arena (dy,-dx) so drag matches on-screen motion
+      SY.input.ax = dy / max;
+      SY.input.ay = -dx / max;
+    } else {
+      SY.input.ax = dx / max;
+      SY.input.ay = dy / max;
+    }
     positionStick(stick.x, stick.y, dx, dy);
   });
   function releaseStick() {
@@ -2093,27 +2042,31 @@ body.portrait #touch-zone.active { display: flex; }
 
   // ---------- responsive layout (ADR-0006: only the stage scales) ----------
   const SW = 960, SH = 600;
-  const touchZone = $('touch-zone');
   const hudEl = $('hud');
   function fit() {
     const vv = window.visualViewport;
     const vw = vv ? vv.width : window.innerWidth;
     const vh = vv ? vv.height : window.innerHeight;
-    const portrait = vh > vw;
-    document.body.classList.toggle('portrait', portrait);
-    document.body.classList.toggle('landscape', !portrait);
-    let scale, x, y;
-    if (portrait) {
-      scale = vw / SW; // width-fit arena under the solid HUD bar
-      x = 0;
-      y = hudEl.offsetHeight; // visibility:hidden keeps layout, so this is stable
-      touchZone.style.top = Math.min(vh, y + SH * scale) + 'px';
+    isPortrait = vh > vw;
+    document.body.classList.toggle('portrait', isPortrait);
+    document.body.classList.toggle('landscape', !isPortrait);
+    if (isPortrait) {
+      // Rotate the 1.6:1 landscape arena 90° CW so it fills the portrait width
+      // edge-to-edge — the only no-crop way to make it (near) full-screen upright.
+      const hudH = hudEl.offsetHeight;
+      const availH = vh - hudH;
+      const s = Math.min(vw / SH, availH / SW); // rotated box is SH wide × SW tall
+      const dispW = SH * s, dispH = SW * s;
+      const lx = (vw - dispW) / 2;
+      const ly = hudH + Math.max(0, (availH - dispH) / 2);
+      // transform-origin 0 0: scale → rotate(90°) lands the box in x∈[-dispW,0] → shift back
+      stage.style.transform =
+        'translate(' + (lx + dispW) + 'px, ' + ly + 'px) rotate(90deg) scale(' + s + ')';
     } else {
-      scale = Math.min(vw / SW, vh / SH, 1.5);
-      x = (vw - SW * scale) / 2;
-      y = (vh - SH * scale) / 2;
+      const s = Math.min(vw / SW, vh / SH, 1.5);
+      stage.style.transform =
+        'translate(' + ((vw - SW * s) / 2) + 'px, ' + ((vh - SH * s) / 2) + 'px) scale(' + s + ')';
     }
-    stage.style.transform = 'translate(' + x + 'px, ' + y + 'px) scale(' + scale + ')';
   }
   window.addEventListener('resize', fit);
   window.addEventListener('orientationchange', fit);
