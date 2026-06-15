@@ -9,7 +9,8 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const read = (f) => readFileSync(path.join(root, f), 'utf8');
 
-const CORE = ['js/store.js', 'js/audio.js', 'js/game.js', 'js/render.js', 'js/main.js'];
+const ZH = 'js/games/zerohour';
+const CORE = ['js/store.js', 'js/audio.js', `${ZH}/game.js`, `${ZH}/render.js`, `${ZH}/main.js`];
 
 test('game core stays React-free', () => {
   for (const f of CORE) {
@@ -26,7 +27,7 @@ test('all core modules attach to window.SY via IIFE pattern', () => {
 });
 
 test('gameplay randomness in game.js uses s.rng; Math.random stays at the cosmetic baseline', () => {
-  const src = read('js/game.js');
+  const src = read(`${ZH}/game.js`);
   // Baseline: 14 pre-existing calls, all cosmetic (burst particles, boss-death
   // visuals/scatter, thrust exhaust) plus the free-play seed string. Any NEW
   // Math.random forces this test (and a fairness review) to be updated.
@@ -50,12 +51,12 @@ test('inline style= attributes do not grow (pre-existing baseline: 6)', () => {
 });
 
 test('sparkline stays out of render.js (render.js is game-canvas only)', () => {
-  assert.ok(!read('js/render.js').includes('over-spark'));
-  assert.ok(read('js/main.js').includes('over-spark'));
+  assert.ok(!read(`${ZH}/render.js`).includes('over-spark'));
+  assert.ok(read(`${ZH}/main.js`).includes('over-spark'));
 });
 
 test('innerHTML sinks in main.js only receive fmt()/fixed-format values', () => {
-  const src = read('js/main.js');
+  const src = read(`${ZH}/main.js`);
   const sinkLines = src.split('\n').filter((l) => l.includes('.innerHTML'));
   // exactly the known sinks (fx badges, over-stats, menu-week, records-body);
   // adding a new one forces a review here
@@ -66,6 +67,7 @@ test('innerHTML sinks in main.js only receive fmt()/fixed-format values', () => 
 
 test('script load order in index.html is store -> audio -> game -> render -> main', () => {
   const html = read('index.html');
-  const order = [...html.matchAll(/<script src="js\/([a-z-]+)\.js">/g)].map((m) => m[1]);
+  // match basenames regardless of folder (zerohour modules live under js/games/zerohour/)
+  const order = [...html.matchAll(/<script src="js[^"]*\/([a-z-]+)\.js">/g)].map((m) => m[1]);
   assert.deepEqual(order, ['store', 'audio', 'game', 'render', 'main']);
 });
