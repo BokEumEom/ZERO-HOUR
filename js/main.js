@@ -39,19 +39,49 @@
   }
 
   // ---------- HUD ----------
+  const POWER_DUR = { MAGNET: 7, SLOW: 5, X2: 7, BOOST: 6, SPREAD: 7 }; // for effect timer bars
   const hudEls = {
     time: $('hud-time'), score: $('hud-score'), combo: $('hud-combo'),
     hearts: $('hud-hearts'), pace: $('hud-pace'), fx: $('hud-fx'), mode: $('hud-mode'),
-    pauseBtn: $('btn-pause'),
+    pauseBtn: $('btn-pause'), muteBtn: $('btn-mute'), fsBtn: $('btn-fullscreen'),
+    bossHp: $('boss-hp'), bossHpFill: $('boss-hp-fill'),
+    vignette: $('danger-vignette'), hitFlash: $('hit-flash'),
   };
+  let lastHp = 3, dangerOn = false; // tracked across frames for hit-flash / low-HP toggles
 
   function updateHud() {
     const s = G.state;
     const playing = G.phase === 'playing' || G.phase === 'ready';
     const active = playing || G.phase === 'paused'; // keep the frozen HUD visible behind the pause overlay
+    const inGame = active; // during play/pause the corner toggles move into the pause menu
     $('hud').style.visibility = active ? 'visible' : 'hidden';
     hudEls.pauseBtn.style.display = playing ? 'block' : 'none'; // CSS default is display:none
-    if (!s || !active) return;
+    hudEls.muteBtn.style.display = inGame ? 'none' : 'block';
+    hudEls.fsBtn.style.display = (inGame || !fsSupported) ? 'none' : 'block';
+    if (!s || !active) {
+      if (dangerOn) { hudEls.vignette.classList.remove('active'); dangerOn = false; }
+      hudEls.bossHp.classList.remove('show');
+      return;
+    }
+
+    // boss HP (upright DOM; the canvas bar was removed for portrait rotation)
+    if (s.boss && s.boss.dying <= 0) {
+      hudEls.bossHp.classList.add('show');
+      hudEls.bossHpFill.style.width = (Math.max(0, s.boss.hp / s.boss.maxHp) * 100).toFixed(1) + '%';
+    } else {
+      hudEls.bossHp.classList.remove('show');
+    }
+
+    // damage feedback: flash on any hull loss, pulse vignette while on the last hull
+    if (s.player.hp < lastHp) {
+      hudEls.hitFlash.classList.remove('flash');
+      void hudEls.hitFlash.offsetWidth; // reflow so the animation restarts
+      hudEls.hitFlash.classList.add('flash');
+    }
+    lastHp = s.player.hp;
+    const danger = playing && s.player.hp <= 1 && s.player.hp > 0;
+    if (danger !== dangerOn) { hudEls.vignette.classList.toggle('active', danger); dangerOn = danger; }
+
 
     const tl = Math.max(0, s.timeLeft);
     hudEls.time.textContent = Math.ceil(tl).toString().padStart(2, '0');
@@ -78,27 +108,64 @@
       hudEls.pace.style.display = 'none';
     }
 
-    // active effect chips
+    // active effect badges: glyph + depleting timer bar
     let chips = '';
     const meta = G.POWER_META;
-    if (s.shield) chips += chip(meta.SHIELD, null);
+    if (s.shield) chips += chip(meta.SHIELD, 0, 0); // consumable: glyph only, no bar
     for (const k of ['MAGNET', 'SLOW', 'X2', 'BOOST', 'SPREAD']) {
-      if (s.fx[k] > 0) chips += chip(meta[k], s.fx[k]);
+      if (s.fx[k] > 0) chips += chip(meta[k], s.fx[k], POWER_DUR[k]);
     }
     hudEls.fx.innerHTML = chips;
   }
 
-  function chip(meta, secs) {
-    return '<span class="fx-chip" style="--c:' + meta.color + '">' + meta.label +
-      (secs != null ? ' ' + Math.ceil(secs) : '') + '</span>';
+  function chip(meta, secs, max) {
+    const pct = max > 0 ? Math.max(0, Math.min(1, secs / max)) * 100 : 0;
+    return '<span class="fx-badge" style="--c:' + meta.color + '">' +
+      '<span class="fx-glyph">' + meta.glyph + '</span>' +
+      (max > 0 ? '<span class="fx-bar"><i style="width:' + pct.toFixed(0) + '%"></i></span>' : '') +
+      '</span>';
   }
 
   // ---------- screens ----------
   function show(screenId) {
-    for (const id of ['screen-menu', 'screen-over', 'screen-pause', 'screen-howto']) {
+    for (const id of ['screen-menu', 'screen-over', 'screen-pause', 'screen-howto', 'screen-records']) {
       $(id).classList.toggle('visible', id === screenId);
     }
     if (screenId !== 'screen-over') stopCountdown();
+  }
+
+  // ---------- records screen ----------
+  async function renderRecords() {
+    const [days, streak] = await Promise.all([
+      SY.store.loadRecentDailies(14),
+      SY.store.computeStreak(),
+    ]);
+    const b = recs.bestAll;
+    let html = '<div><div class="rec-section-title">ALL-TIME BEST</div>';
+    if (b) {
+      html += '<div class="rec-best">' + fmt(b.score) + '</div>' +
+        '<div class="rec-best-meta">×' + (Number(b.combo) || 0) + ' COMBO · ' + b.date +
+        ' · ' + (b.mode === 'daily' ? 'DAILY' : 'FREE') + '</div>';
+    } else {
+      html += '<div class="rec-best">—</div>';
+    }
+    html += '</div>';
+    if (streak > 0) {
+      html += '<div class="rec-streak">🔥 STREAK ' + streak + (streak === 1 ? ' DAY' : ' DAYS') + '</div>';
+    }
+    html += '<div><div class="rec-section-title">LAST 14 DAYS (UTC)</div>';
+    for (const d of days) { // newest first
+      if (d.rec) {
+        html += '<div class="rec-day"><span class="rec-day-date">' + d.date + '</span>' +
+          '<span class="rec-day-score">' + fmt(Number(d.rec.score) || 0) +
+          (d.rec.bossDown ? '<span class="boss">✦</span>' : '') + '</span></div>';
+      } else {
+        html += '<div class="rec-day empty"><span class="rec-day-date">' + d.date +
+          '</span><span class="rec-day-score">—</span></div>';
+      }
+    }
+    html += '</div>';
+    $('records-body').innerHTML = html;
   }
 
   function renderMenuStats() {
@@ -324,17 +391,21 @@
     setTimeout(() => { $('btn-share').textContent = 'COPY RESULT'; }, 1800);
   }
 
-  // ---------- mute ----------
+  // ---------- mute (top button + pause-menu toggle share state) ----------
   function updateMuteBtn() {
-    $('btn-mute').textContent = SY.audio.isMuted() ? '\ud83d\udd07' : '\ud83d\udd0a';
-    $('btn-mute').setAttribute('aria-label', SY.audio.isMuted() ? 'Unmute' : 'Mute');
+    const m = SY.audio.isMuted();
+    $('btn-mute').textContent = m ? '\ud83d\udd07' : '\ud83d\udd0a';
+    $('btn-mute').setAttribute('aria-label', m ? 'Unmute' : 'Mute');
+    $('btn-pause-mute').textContent = 'SOUND: ' + (m ? 'OFF' : 'ON');
   }
-  $('btn-mute').addEventListener('click', () => {
+  function toggleMute() {
     SY.audio.setMuted(!SY.audio.isMuted());
     recs.settings.muted = SY.audio.isMuted();
     SY.store.saveSettings(recs.settings);
     updateMuteBtn();
-  });
+  }
+  $('btn-mute').addEventListener('click', toggleMute);
+  $('btn-pause-mute').addEventListener('click', toggleMute);
 
   // ---------- buttons ----------
   function quitToMenu() {
@@ -352,11 +423,16 @@
   $('btn-resume').addEventListener('click', resumeGame);
   $('btn-pause-restart').addEventListener('click', () => reallyStart(G.mode));
   $('btn-pause-quit').addEventListener('click', quitToMenu); // run is discarded: no onGameOver, no saves
+  $('btn-pause-fs').addEventListener('click', () => {
+    if (document.fullscreenElement) document.exitFullscreen(); else enterFullscreen();
+  });
   $('btn-howto-start').addEventListener('click', () => {
     recs.settings.seenHowto = true;
     SY.store.saveSettings(recs.settings);
     reallyStart(pendingMode || 'daily');
   });
+  $('btn-records').addEventListener('click', () => { renderRecords(); show('screen-records'); });
+  $('btn-records-back').addEventListener('click', () => show('screen-menu'));
 
   // ---------- auto-pause ----------
   document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
@@ -371,6 +447,8 @@
       else if (e.code === 'KeyM' || e.code === 'Escape') $('btn-menu').click();
     } else if ($('screen-howto').classList.contains('visible')) {
       if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); $('btn-howto-start').click(); }
+    } else if ($('screen-records').classList.contains('visible')) {
+      if (e.code === 'Escape' || e.code === 'KeyM') $('btn-records-back').click();
     } else if (G.phase === 'paused') {
       if (e.code === 'Escape' || e.code === 'KeyP') resumeGame();
     } else if (G.phase === 'playing' || G.phase === 'ready') {
@@ -463,6 +541,7 @@
   const fsBtn = $('btn-fullscreen');
   const fsSupported = !!document.documentElement.requestFullscreen;
   if (fsSupported) fsBtn.classList.add('available');
+  else $('btn-pause-fs').style.display = 'none'; // hide the pause-menu fullscreen toggle too
   function enterFullscreen() {
     if (!fsSupported || document.fullscreenElement) return;
     document.documentElement.requestFullscreen().catch(() => {});

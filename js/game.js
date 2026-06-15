@@ -16,7 +16,7 @@
   };
 
   // tweakable knobs (written by tweaks UI)
-  SY.tweaks = SY.tweaks || { duration: 75, spawnRate: 1.0, particles: 1.0, shake: 1.0 };
+  SY.tweaks = SY.tweaks || { duration: 60, spawnRate: 1.0, particles: 1.0, shake: 1.0 };
   SY.input = { ax: 0, ay: 0 }; // touch joystick axis, merged with keyboard
 
   const keys = {};

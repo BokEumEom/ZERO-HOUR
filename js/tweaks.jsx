@@ -1,6 +1,6 @@
 // Scoreyard — Tweaks panel (host-protocol wired via tweaks-panel.jsx)
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
-  "duration": 75,
+  "duration": 60,
   "spawnRate": 1,
   "particles": 1,
   "shake": 1

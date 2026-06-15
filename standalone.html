@@ -112,14 +112,60 @@ body.portrait #hud { background: var(--panel); border-bottom: 1px solid rgba(45,
 #hud-pace { font-size: 13px; font-weight: 600; padding: 3px 8px; border: 1px solid; }
 #hud-pace.ahead { color: var(--teal); border-color: rgba(45,226,198,0.5); background: rgba(45,226,198,0.08); }
 #hud-pace.behind { color: var(--pink); border-color: rgba(255,90,120,0.5); background: rgba(255,90,120,0.08); }
-#hud-fx { display: flex; gap: 6px; flex: 1; justify-content: flex-end; flex-wrap: wrap; }
-.fx-chip {
-  font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
-  color: var(--c); border: 1px solid var(--c);
-  padding: 3px 7px;
-  text-shadow: 0 0 8px var(--c);
+/* effects stay on one compact row (never wrap into the boss-bar/button band) */
+#hud-fx { display: flex; gap: 5px; flex: 1; justify-content: flex-end; flex-wrap: nowrap; overflow: hidden; }
+/* active-powerup badge: glyph + depleting timer bar (--c is the powerup color) */
+.fx-badge {
+  display: inline-flex; flex-direction: column; align-items: center; gap: 2px;
+  flex: 0 0 auto;
+  min-width: 20px; padding: 2px 5px 3px;
+  border: 1px solid var(--c);
+  color: var(--c);
 }
+.fx-glyph { font-size: 11px; font-weight: 700; line-height: 1; text-shadow: 0 0 8px var(--c); }
+.fx-bar { width: 100%; height: 3px; background: rgba(255,255,255,0.12); overflow: hidden; }
+.fx-bar > i { display: block; height: 100%; background: var(--c); box-shadow: 0 0 6px var(--c); }
 #hud-mode { font-size: 10px; letter-spacing: 0.12em; color: rgba(159,245,232,0.55); }
+
+/* ---------- boss HP (DOM so it stays upright in portrait) ---------- */
+#boss-hp {
+  display: none;
+  position: fixed;
+  top: calc(var(--safe-top) + 58px);
+  left: 50%; transform: translateX(-50%);
+  z-index: 41;
+  width: min(300px, 82vw);
+  text-align: center;
+  pointer-events: none;
+}
+#boss-hp.show { display: block; }
+/* portrait: HUD stat bar is tight, so effects + boss HP live in the empty band
+   between the bar and the rotated arena (otherwise-wasted space) */
+body.portrait #hud-fx {
+  position: fixed; left: auto; flex: none;
+  top: calc(var(--safe-top) + 50px);
+  right: calc(var(--safe-right) + 10px);
+  z-index: 42;
+}
+body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
+#boss-hp-label { font-size: 10px; letter-spacing: 0.18em; color: #ff9ab0; text-shadow: 0 0 8px rgba(255,90,120,0.7); }
+#boss-hp-track { margin-top: 3px; height: 9px; background: rgba(255,90,120,0.15); border: 1px solid rgba(255,90,120,0.6); }
+#boss-hp-fill { height: 100%; width: 100%; background: #ff5a78; box-shadow: 0 0 10px rgba(255,90,120,0.8); transition: width 0.1s linear; }
+
+/* ---------- danger feedback (low HP + hit flash) ---------- */
+#danger-vignette {
+  position: fixed; inset: 0; z-index: 38; pointer-events: none;
+  box-shadow: inset 0 0 80px 18px rgba(255,40,70,0);
+  transition: box-shadow 0.25s ease;
+}
+#danger-vignette.active { animation: dangerPulse 0.9s ease-in-out infinite; }
+@keyframes dangerPulse {
+  0%, 100% { box-shadow: inset 0 0 70px 14px rgba(255,40,70,0.12); }
+  50% { box-shadow: inset 0 0 100px 34px rgba(255,40,70,0.4); }
+}
+#hit-flash { position: fixed; inset: 0; z-index: 39; pointer-events: none; background: rgba(255,60,90,0); }
+#hit-flash.flash { animation: hitFlash 0.26s ease-out; }
+@keyframes hitFlash { from { background: rgba(255,60,90,0.38); } to { background: rgba(255,60,90,0); } }
 @media (max-width: 640px) {
   #hud-mode, #hud-pace { display: none !important; } /* JS toggles pace inline; narrow screens drop it */
 }
@@ -234,8 +280,28 @@ body.portrait #hud { background: var(--panel); border-bottom: 1px solid rgba(45,
   outline: none;
 }
 .arcade-btn.primary { background: rgba(45,226,198,0.14); border-color: var(--teal); }
-.haptic-toggle { display: none; font-size: 11px; min-height: 38px; padding: 8px 14px; border-color: rgba(45,226,198,0.3); }
+.settings-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 4px; }
+.settings-btn { font-size: 11px; min-height: 38px; padding: 8px 14px; border-color: rgba(45,226,198,0.3); }
+.haptic-toggle { display: none; }
 .haptic-toggle.available { display: inline-block; }
+
+/* ---------- records screen ---------- */
+#records-body {
+  width: min(360px, 92vw);
+  display: flex; flex-direction: column; gap: 14px;
+  max-height: 62vh; overflow-y: auto;
+  text-align: left;
+}
+.rec-section-title { font-size: 10px; letter-spacing: 0.16em; color: rgba(159,245,232,0.5); margin-bottom: 4px; }
+.rec-best { font-family: var(--pixel); font-size: clamp(18px, 5vw, 24px); color: var(--teal-soft); text-shadow: 0 0 14px rgba(45,226,198,0.5); }
+.rec-best-meta { font-size: 12px; color: rgba(234,246,255,0.6); margin-top: 4px; letter-spacing: 0.06em; }
+.rec-streak { font-size: 13px; color: var(--teal); letter-spacing: 0.08em; }
+.rec-day { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 7px 2px; border-bottom: 1px dashed rgba(45,226,198,0.15); }
+.rec-day-date { color: rgba(159,245,232,0.7); letter-spacing: 0.06em; }
+.rec-day-score { color: var(--ink); font-weight: 600; }
+.rec-day.empty .rec-day-date { color: rgba(159,245,232,0.3); }
+.rec-day.empty .rec-day-score { color: rgba(234,246,255,0.25); }
+.rec-day .boss { color: var(--amber); margin-left: 6px; }
 
 /* ---------- pause / how-to ---------- */
 .pause-title {
@@ -333,7 +399,7 @@ body.portrait #hud { background: var(--panel); border-bottom: 1px solid rgba(45,
     <div id="hud">
         <div class="hud-block">
           <span class="hud-label">TIME</span>
-          <span id="hud-time">75</span>
+          <span id="hud-time">60</span>
         </div>
         <div class="hud-block">
           <span class="hud-label">SCORE</span>
@@ -352,11 +418,18 @@ body.portrait #hud { background: var(--panel); border-bottom: 1px solid rgba(45,
         <span id="hud-mode"></span>
       </div>
 
+      <div id="boss-hp">
+        <span id="boss-hp-label">CORE WARDEN</span>
+        <div id="boss-hp-track"><div id="boss-hp-fill"></div></div>
+      </div>
+      <div id="danger-vignette"></div>
+      <div id="hit-flash"></div>
+
       <div id="screen-menu" class="screen visible" data-screen-label="Main Menu">
         <div>
           <h1 class="game-title">ZERO HOUR</h1>
           <p class="game-sub" style="margin-top: 12px;">RETRO DRONE ARCADE · BEAT THE CORE WARDEN</p>
-          <p class="kr-sub" style="margin-top: 6px;">75초 동안 크리스털을 모으고, 콤보를 쌓고, 보스를 깨세요</p>
+          <p class="kr-sub" style="margin-top: 6px;">60초 동안 크리스털을 모으고, 콤보를 쌓고, 보스를 깨세요</p>
         </div>
         <div class="mode-row">
           <button id="btn-daily" class="mode-card" type="button">
@@ -375,7 +448,8 @@ body.portrait #hud { background: var(--panel); border-bottom: 1px solid rgba(45,
         </div>
         <p id="menu-all-best" class="best-line">ALL-TIME BEST —</p>
         <p id="menu-week" class="best-line"></p>
-        <p class="controls-hint">WASD / ARROWS — MOVE · FIRE IS AUTOMATIC · ESC — PAUSE · 모바일: 화면 드래그</p>
+        <button id="btn-records" class="arcade-btn" type="button">RECORDS · 기록</button>
+        <p class="controls-hint">DRAG TO MOVE · FIRE IS AUTOMATIC · ESC — PAUSE</p>
       </div>
 
       <div id="screen-over" class="screen" data-screen-label="Game Over">
@@ -404,7 +478,11 @@ body.portrait #hud { background: var(--panel); border-bottom: 1px solid rgba(45,
           <button id="btn-pause-restart" class="arcade-btn" type="button">RESTART</button>
           <button id="btn-pause-quit" class="arcade-btn" type="button">QUIT TO MENU</button>
         </div>
-        <button id="btn-haptic" class="arcade-btn haptic-toggle" type="button">VIBRATION: ON</button>
+        <div class="settings-row">
+          <button id="btn-pause-mute" class="arcade-btn settings-btn" type="button">SOUND: ON</button>
+          <button id="btn-haptic" class="arcade-btn settings-btn haptic-toggle" type="button">VIBRATION: ON</button>
+          <button id="btn-pause-fs" class="arcade-btn settings-btn" type="button">FULLSCREEN</button>
+        </div>
         <p class="controls-hint">ESC / P — RESUME · 나가면 이번 런은 기록되지 않습니다</p>
       </div>
 
@@ -413,13 +491,21 @@ body.portrait #hud { background: var(--panel); border-bottom: 1px solid rgba(45,
         <div class="howto-list">
           <div class="howto-row"><span class="howto-k">MOVE</span><span class="howto-v">WASD / ARROW KEYS · 모바일: 화면 드래그</span></div>
           <div class="howto-row"><span class="howto-k">FIRE</span><span class="howto-v">Automatic — nearest enemy · 발사는 자동입니다</span></div>
-          <div class="howto-row"><span class="howto-k">GOAL</span><span class="howto-v">75 seconds — collect crystals, chain combos · 크리스털 콤보로 점수를 쌓으세요</span></div>
+          <div class="howto-row"><span class="howto-k">GOAL</span><span class="howto-v">60 seconds — collect crystals, chain combos · 크리스털 콤보로 점수를 쌓으세요</span></div>
           <div class="howto-row"><span class="howto-k">HULL ◆◆◆</span><span class="howto-v">Mines &amp; boss fire cost 1 — at 0 it's over · 피격 3번이면 게임 오버</span></div>
           <div class="howto-row"><span class="howto-k">CORE WARDEN</span><span class="howto-v">Boss arrives at 20s left — destroy for +1,500 · 마지막 20초, 보스 격파 대량 보너스</span></div>
           <div class="howto-row"><span class="howto-k">PAUSE</span><span class="howto-v">ESC / P · 모바일: 우측 상단 II 버튼</span></div>
         </div>
         <div class="btn-row">
           <button id="btn-howto-start" class="arcade-btn primary" type="button">START</button>
+        </div>
+      </div>
+
+      <div id="screen-records" class="screen" data-screen-label="Records">
+        <span class="pause-title">RECORDS</span>
+        <div id="records-body"></div>
+        <div class="btn-row">
+          <button id="btn-records-back" class="arcade-btn primary" type="button">BACK</button>
         </div>
       </div>
   </div>
@@ -732,7 +818,7 @@ body.portrait #hud { background: var(--panel); border-bottom: 1px solid rgba(45,
   };
 
   // tweakable knobs (written by tweaks UI)
-  SY.tweaks = SY.tweaks || { duration: 75, spawnRate: 1.0, particles: 1.0, shake: 1.0 };
+  SY.tweaks = SY.tweaks || { duration: 60, spawnRate: 1.0, particles: 1.0, shake: 1.0 };
   SY.input = { ax: 0, ay: 0 }; // touch joystick axis, merged with keyboard
 
   const keys = {};
@@ -1490,20 +1576,8 @@ body.portrait #hud { background: var(--panel); border-bottom: 1px solid rgba(45,
     ctx.shadowColor = '#ffc34d';
     ctx.fill();
     ctx.restore();
-    // HP bar
-    const bw = 220, bh = 8;
-    const bx = W / 2 - bw / 2, by = 18;
-    ctx.fillStyle = 'rgba(255,90,120,0.15)';
-    ctx.fillRect(bx, by, bw, bh);
-    ctx.fillStyle = '#ff5a78';
-    ctx.fillRect(bx, by, bw * Math.max(0, b.hp / b.maxHp), bh);
-    ctx.strokeStyle = 'rgba(255,90,120,0.6)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(bx - 0.5, by - 0.5, bw + 1, bh + 1);
-    ctx.fillStyle = '#ff9ab0';
-    ctx.font = '10px ' + MONO;
-    ctx.textAlign = 'center';
-    ctx.fillText('CORE WARDEN', W / 2, by + bh + 13);
+    // HP bar + label are rendered as upright DOM (#boss-hp) by main.js, not on the
+    // rotated canvas — see updateHud().
   }
 
   function render(ctx) {
@@ -1670,19 +1744,49 @@ body.portrait #hud { background: var(--panel); border-bottom: 1px solid rgba(45,
   }
 
   // ---------- HUD ----------
+  const POWER_DUR = { MAGNET: 7, SLOW: 5, X2: 7, BOOST: 6, SPREAD: 7 }; // for effect timer bars
   const hudEls = {
     time: $('hud-time'), score: $('hud-score'), combo: $('hud-combo'),
     hearts: $('hud-hearts'), pace: $('hud-pace'), fx: $('hud-fx'), mode: $('hud-mode'),
-    pauseBtn: $('btn-pause'),
+    pauseBtn: $('btn-pause'), muteBtn: $('btn-mute'), fsBtn: $('btn-fullscreen'),
+    bossHp: $('boss-hp'), bossHpFill: $('boss-hp-fill'),
+    vignette: $('danger-vignette'), hitFlash: $('hit-flash'),
   };
+  let lastHp = 3, dangerOn = false; // tracked across frames for hit-flash / low-HP toggles
 
   function updateHud() {
     const s = G.state;
     const playing = G.phase === 'playing' || G.phase === 'ready';
     const active = playing || G.phase === 'paused'; // keep the frozen HUD visible behind the pause overlay
+    const inGame = active; // during play/pause the corner toggles move into the pause menu
     $('hud').style.visibility = active ? 'visible' : 'hidden';
     hudEls.pauseBtn.style.display = playing ? 'block' : 'none'; // CSS default is display:none
-    if (!s || !active) return;
+    hudEls.muteBtn.style.display = inGame ? 'none' : 'block';
+    hudEls.fsBtn.style.display = (inGame || !fsSupported) ? 'none' : 'block';
+    if (!s || !active) {
+      if (dangerOn) { hudEls.vignette.classList.remove('active'); dangerOn = false; }
+      hudEls.bossHp.classList.remove('show');
+      return;
+    }
+
+    // boss HP (upright DOM; the canvas bar was removed for portrait rotation)
+    if (s.boss && s.boss.dying <= 0) {
+      hudEls.bossHp.classList.add('show');
+      hudEls.bossHpFill.style.width = (Math.max(0, s.boss.hp / s.boss.maxHp) * 100).toFixed(1) + '%';
+    } else {
+      hudEls.bossHp.classList.remove('show');
+    }
+
+    // damage feedback: flash on any hull loss, pulse vignette while on the last hull
+    if (s.player.hp < lastHp) {
+      hudEls.hitFlash.classList.remove('flash');
+      void hudEls.hitFlash.offsetWidth; // reflow so the animation restarts
+      hudEls.hitFlash.classList.add('flash');
+    }
+    lastHp = s.player.hp;
+    const danger = playing && s.player.hp <= 1 && s.player.hp > 0;
+    if (danger !== dangerOn) { hudEls.vignette.classList.toggle('active', danger); dangerOn = danger; }
+
 
     const tl = Math.max(0, s.timeLeft);
     hudEls.time.textContent = Math.ceil(tl).toString().padStart(2, '0');
@@ -1709,27 +1813,64 @@ body.portrait #hud { background: var(--panel); border-bottom: 1px solid rgba(45,
       hudEls.pace.style.display = 'none';
     }
 
-    // active effect chips
+    // active effect badges: glyph + depleting timer bar
     let chips = '';
     const meta = G.POWER_META;
-    if (s.shield) chips += chip(meta.SHIELD, null);
+    if (s.shield) chips += chip(meta.SHIELD, 0, 0); // consumable: glyph only, no bar
     for (const k of ['MAGNET', 'SLOW', 'X2', 'BOOST', 'SPREAD']) {
-      if (s.fx[k] > 0) chips += chip(meta[k], s.fx[k]);
+      if (s.fx[k] > 0) chips += chip(meta[k], s.fx[k], POWER_DUR[k]);
     }
     hudEls.fx.innerHTML = chips;
   }
 
-  function chip(meta, secs) {
-    return '<span class="fx-chip" style="--c:' + meta.color + '">' + meta.label +
-      (secs != null ? ' ' + Math.ceil(secs) : '') + '</span>';
+  function chip(meta, secs, max) {
+    const pct = max > 0 ? Math.max(0, Math.min(1, secs / max)) * 100 : 0;
+    return '<span class="fx-badge" style="--c:' + meta.color + '">' +
+      '<span class="fx-glyph">' + meta.glyph + '</span>' +
+      (max > 0 ? '<span class="fx-bar"><i style="width:' + pct.toFixed(0) + '%"></i></span>' : '') +
+      '</span>';
   }
 
   // ---------- screens ----------
   function show(screenId) {
-    for (const id of ['screen-menu', 'screen-over', 'screen-pause', 'screen-howto']) {
+    for (const id of ['screen-menu', 'screen-over', 'screen-pause', 'screen-howto', 'screen-records']) {
       $(id).classList.toggle('visible', id === screenId);
     }
     if (screenId !== 'screen-over') stopCountdown();
+  }
+
+  // ---------- records screen ----------
+  async function renderRecords() {
+    const [days, streak] = await Promise.all([
+      SY.store.loadRecentDailies(14),
+      SY.store.computeStreak(),
+    ]);
+    const b = recs.bestAll;
+    let html = '<div><div class="rec-section-title">ALL-TIME BEST</div>';
+    if (b) {
+      html += '<div class="rec-best">' + fmt(b.score) + '</div>' +
+        '<div class="rec-best-meta">×' + (Number(b.combo) || 0) + ' COMBO · ' + b.date +
+        ' · ' + (b.mode === 'daily' ? 'DAILY' : 'FREE') + '</div>';
+    } else {
+      html += '<div class="rec-best">—</div>';
+    }
+    html += '</div>';
+    if (streak > 0) {
+      html += '<div class="rec-streak">🔥 STREAK ' + streak + (streak === 1 ? ' DAY' : ' DAYS') + '</div>';
+    }
+    html += '<div><div class="rec-section-title">LAST 14 DAYS (UTC)</div>';
+    for (const d of days) { // newest first
+      if (d.rec) {
+        html += '<div class="rec-day"><span class="rec-day-date">' + d.date + '</span>' +
+          '<span class="rec-day-score">' + fmt(Number(d.rec.score) || 0) +
+          (d.rec.bossDown ? '<span class="boss">✦</span>' : '') + '</span></div>';
+      } else {
+        html += '<div class="rec-day empty"><span class="rec-day-date">' + d.date +
+          '</span><span class="rec-day-score">—</span></div>';
+      }
+    }
+    html += '</div>';
+    $('records-body').innerHTML = html;
   }
 
   function renderMenuStats() {
@@ -1955,17 +2096,21 @@ body.portrait #hud { background: var(--panel); border-bottom: 1px solid rgba(45,
     setTimeout(() => { $('btn-share').textContent = 'COPY RESULT'; }, 1800);
   }
 
-  // ---------- mute ----------
+  // ---------- mute (top button + pause-menu toggle share state) ----------
   function updateMuteBtn() {
-    $('btn-mute').textContent = SY.audio.isMuted() ? '\ud83d\udd07' : '\ud83d\udd0a';
-    $('btn-mute').setAttribute('aria-label', SY.audio.isMuted() ? 'Unmute' : 'Mute');
+    const m = SY.audio.isMuted();
+    $('btn-mute').textContent = m ? '\ud83d\udd07' : '\ud83d\udd0a';
+    $('btn-mute').setAttribute('aria-label', m ? 'Unmute' : 'Mute');
+    $('btn-pause-mute').textContent = 'SOUND: ' + (m ? 'OFF' : 'ON');
   }
-  $('btn-mute').addEventListener('click', () => {
+  function toggleMute() {
     SY.audio.setMuted(!SY.audio.isMuted());
     recs.settings.muted = SY.audio.isMuted();
     SY.store.saveSettings(recs.settings);
     updateMuteBtn();
-  });
+  }
+  $('btn-mute').addEventListener('click', toggleMute);
+  $('btn-pause-mute').addEventListener('click', toggleMute);
 
   // ---------- buttons ----------
   function quitToMenu() {
@@ -1983,11 +2128,16 @@ body.portrait #hud { background: var(--panel); border-bottom: 1px solid rgba(45,
   $('btn-resume').addEventListener('click', resumeGame);
   $('btn-pause-restart').addEventListener('click', () => reallyStart(G.mode));
   $('btn-pause-quit').addEventListener('click', quitToMenu); // run is discarded: no onGameOver, no saves
+  $('btn-pause-fs').addEventListener('click', () => {
+    if (document.fullscreenElement) document.exitFullscreen(); else enterFullscreen();
+  });
   $('btn-howto-start').addEventListener('click', () => {
     recs.settings.seenHowto = true;
     SY.store.saveSettings(recs.settings);
     reallyStart(pendingMode || 'daily');
   });
+  $('btn-records').addEventListener('click', () => { renderRecords(); show('screen-records'); });
+  $('btn-records-back').addEventListener('click', () => show('screen-menu'));
 
   // ---------- auto-pause ----------
   document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
@@ -2002,6 +2152,8 @@ body.portrait #hud { background: var(--panel); border-bottom: 1px solid rgba(45,
       else if (e.code === 'KeyM' || e.code === 'Escape') $('btn-menu').click();
     } else if ($('screen-howto').classList.contains('visible')) {
       if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); $('btn-howto-start').click(); }
+    } else if ($('screen-records').classList.contains('visible')) {
+      if (e.code === 'Escape' || e.code === 'KeyM') $('btn-records-back').click();
     } else if (G.phase === 'paused') {
       if (e.code === 'Escape' || e.code === 'KeyP') resumeGame();
     } else if (G.phase === 'playing' || G.phase === 'ready') {
@@ -2094,6 +2246,7 @@ body.portrait #hud { background: var(--panel); border-bottom: 1px solid rgba(45,
   const fsBtn = $('btn-fullscreen');
   const fsSupported = !!document.documentElement.requestFullscreen;
   if (fsSupported) fsBtn.classList.add('available');
+  else $('btn-pause-fs').style.display = 'none'; // hide the pause-menu fullscreen toggle too
   function enterFullscreen() {
     if (!fsSupported || document.fullscreenElement) return;
     document.documentElement.requestFullscreen().catch(() => {});
@@ -35956,7 +36109,7 @@ Object.assign(window, {
 // --- inlined: js/tweaks.jsx ---
 // Scoreyard — Tweaks panel (host-protocol wired via tweaks-panel.jsx)
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
-  "duration": 75,
+  "duration": 60,
   "spawnRate": 1,
   "particles": 1,
   "shake": 1

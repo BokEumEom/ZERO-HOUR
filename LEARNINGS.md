@@ -68,6 +68,25 @@
 | 내부 따옴표 포함 멀티라인 인자가 native 명령에서 깨짐 (`git commit -m` 실패) | 메시지를 파일로 쓰고 `git commit -F` |
 | `Process.WaitForExit(timeout)` 후 `ExitCode`가 null | `HasExited` 확인 후 **인자 없는** `WaitForExit()` 한 번 더 |
 | `$profile`은 자동 변수 — 대입 시 부작용 | 변수명 회피 (`$edgeProfile`) |
+| **`Start-Process -PassThru`의 `.ExitCode`가 `$null`** → `exit $null` = exit 0. E2E가 실패해도 스위트가 ALL PASS로 통과되는 침묵 버그(여러 커밋 동안 게이트가 무력) | Start-Process 직후 `$server.Handle \| Out-Null`로 핸들 캐시 후 `WaitForExit()` → `.ExitCode` 신뢰 가능. null이면 명시적 실패 처리 |
+
+## 7. Playwright / headless 검증
+
+### 백그라운드 탭에서 rAF는 스로틀된다 — DOM 검증은 스크린샷으로
+- **증상**: Playwright로 게임 상태를 주입(`s.fx.X2=7` 등)하고 `browser_evaluate`로 HUD DOM을
+  읽으면 0/미반영이 나옴. 게임 루프(`requestAnimationFrame`)가 백그라운드/비페인트 탭에서
+  거의 안 도므로 `updateHud`가 실행되지 않아서임.
+- **해결**: HUD처럼 rAF 루프가 갱신하는 DOM은 **스크린샷으로 검증**(스크린샷은 페인트=프레임을
+  강제). 또는 deterministic하게 만들려면 엔진의 `update`/HUD 갱신을 수동 호출 가능하게 설계.
+  E2E 회귀 가드는 rAF 비의존(버튼 클릭→async 렌더 폴링) 경로로 작성.
+
+### CSS/HTML 변경은 리로드해야 반영된다
+- 라이브 페이지에서 CSS 파일을 편집해도 열려 있는 탭은 옛 스타일을 유지한다. 레이아웃 수정을
+  검증하려면 반드시 `browser_navigate`로 리로드 후 스크린샷. (옛 CSS로 "안 고쳐졌다"고 오판한 적 있음.)
+
+### 비결정 async 렌더는 고정 sleep 말고 폴링
+- IndexedDB 기반 `renderRecords` 같은 async 렌더를 고정 `sleep(250)`으로 기다리면 가상시간
+  스케줄링 편차로 간헐 실패. 조건 폴링(`while(!done && t<2s) sleep`)으로 안정화.
 | `Out-File`/`Set-Content` 기본 인코딩이 UTF-16/BOM | 다른 도구가 읽을 파일은 인코딩 명시 |
 
 ## 6. 프로세스

@@ -5,6 +5,7 @@ $root = Resolve-Path "$PSScriptRoot\..\.."
 $port = 8419
 
 $server = Start-Process node -ArgumentList "`"$root\test\e2e\server.mjs`"", $port -NoNewWindow -PassThru
+$server.Handle | Out-Null # PS 5.1: cache the handle now, or .ExitCode reads back $null later
 Start-Sleep -Seconds 2
 
 $edge = @("$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe",
@@ -26,4 +27,6 @@ if (-not $server.HasExited) {
 }
 $server.WaitForExit() # PS 5.1: ExitCode is only populated after the untimed overload
 Remove-Item $edgeProfile -Recurse -Force -Confirm:$false -ErrorAction SilentlyContinue
-exit $server.ExitCode
+$code = $server.ExitCode
+if ($null -eq $code) { Write-Error 'could not read e2e exit code'; exit 1 }
+exit $code

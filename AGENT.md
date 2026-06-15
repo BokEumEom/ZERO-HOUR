@@ -6,7 +6,7 @@
 
 ## 프로젝트 한 줄 요약
 
-75초 레트로 아케이드 슈터. 순수 HTML/CSS/JS + Canvas 2D, **빌드 도구·package.json 없음**.
+60초 레트로 아케이드 슈터. 순수 HTML/CSS/JS + Canvas 2D, **빌드 도구·package.json 없음**.
 배포: git push → Vercel 자동 배포 (https://zero-hour-seven.vercel.app).
 
 ## 절대 규칙 (위반 시 즉시 중단)

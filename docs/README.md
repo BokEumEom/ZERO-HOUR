@@ -24,6 +24,8 @@
 | [0003](adr/0003-pause-system-and-quit-semantics.md) | 일시정지 시스템과 QUIT 무기록 의미론 | 적용됨 |
 | [0004](adr/0004-daily-records-filed-by-seed-date.md) | 데일리 기록은 런의 시드 날짜로 저장 | 적용됨 |
 | [0005](adr/0005-zero-dependency-test-strategy.md) | 의존성 0 테스트 전략 (vm 샌드박스 + 헤드리스 E2E) | 적용됨 |
+| [0006](adr/0006-mobile-first-scaled-canvas-unscaled-ui.md) | 세로 모바일 First — 아레나 90° 회전 채움 | 적용됨 |
+| [0007](adr/0007-records-screen-and-arena-hud.md) | RECORDS 화면 + 아레나 HUD DOM화 + 60초 | 적용됨 |
 
 ## 타임라인 (2026-06-11)
 

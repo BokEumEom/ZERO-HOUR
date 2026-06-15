@@ -193,6 +193,24 @@
     check('layout', 'SY.layout.rot is set for portrait', Math.abs(w.SY.layout.rot - Math.PI / 2) < 0.01,
       'rot=' + w.SY.layout.rot.toFixed(3));
 
+    // ---------- scenario 7: RECORDS screen ----------
+    key(w, 'Escape'); // pause the run left over from scenario 6
+    await sleep(150);
+    d.getElementById('btn-pause-quit').click();
+    await sleep(150);
+    check('records', 'menu reached after quit', visible(d, 'screen-menu'));
+    d.getElementById('btn-records').click();
+    check('records', 'RECORDS screen opens', visible(d, 'screen-records'));
+    const rb = d.getElementById('records-body');
+    // renderRecords is async (IndexedDB) — poll for it rather than guessing a sleep
+    for (let t = 0; t < 2000 && rb.querySelectorAll('.rec-day').length === 0; t += 80) await sleep(80);
+    check('records', 'shows ALL-TIME BEST section', /ALL-TIME BEST/.test(rb.textContent));
+    check('records', 'lists 14 day rows with scores', rb.querySelectorAll('.rec-day').length === 14,
+      'rows=' + rb.querySelectorAll('.rec-day').length);
+    key(w, 'Escape'); // Esc closes records
+    await sleep(150);
+    check('records', 'Esc returns to menu', visible(d, 'screen-menu'));
+
     await fetch('/report', { method: 'POST', body: JSON.stringify({ results }) });
     logEl.textContent += 'REPORT SENT';
   }

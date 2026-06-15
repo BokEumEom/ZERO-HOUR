@@ -57,8 +57,9 @@ test('sparkline stays out of render.js (render.js is game-canvas only)', () => {
 test('innerHTML sinks in main.js only receive fmt()/fixed-format values', () => {
   const src = read('js/main.js');
   const sinkLines = src.split('\n').filter((l) => l.includes('.innerHTML'));
-  // exactly the three known sinks; adding a new one forces a review here
-  assert.equal(sinkLines.length, 3, `innerHTML sinks changed: ${JSON.stringify(sinkLines)}`);
+  // exactly the known sinks (fx badges, over-stats, menu-week, records-body);
+  // adding a new one forces a review here
+  assert.equal(sinkLines.length, 4, `innerHTML sinks changed: ${JSON.stringify(sinkLines)}`);
   // the day-cell title only embeds d.date (toISOString slice) and a coerced number
   assert.match(src, /title="' \+ d\.date \+ \(d\.rec \? ' · ' \+ fmt\(Number\(d\.rec\.score\) \|\| 0\) : ''\)/);
 });

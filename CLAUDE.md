@@ -1,6 +1,6 @@
 # Scoreyard (Zero Hour — Retro Arcade Shooter)
 
-75-second retro arcade drone shooter. Pure HTML/CSS/JS + Canvas 2D — no build
+60-second retro arcade drone shooter. Pure HTML/CSS/JS + Canvas 2D — no build
 tools, no package.json. Korean README.
 
 Decision records, plans, and verification reports live in `docs/` (ADRs in

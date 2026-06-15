@@ -206,20 +206,8 @@
     ctx.shadowColor = '#ffc34d';
     ctx.fill();
     ctx.restore();
-    // HP bar
-    const bw = 220, bh = 8;
-    const bx = W / 2 - bw / 2, by = 18;
-    ctx.fillStyle = 'rgba(255,90,120,0.15)';
-    ctx.fillRect(bx, by, bw, bh);
-    ctx.fillStyle = '#ff5a78';
-    ctx.fillRect(bx, by, bw * Math.max(0, b.hp / b.maxHp), bh);
-    ctx.strokeStyle = 'rgba(255,90,120,0.6)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(bx - 0.5, by - 0.5, bw + 1, bh + 1);
-    ctx.fillStyle = '#ff9ab0';
-    ctx.font = '10px ' + MONO;
-    ctx.textAlign = 'center';
-    ctx.fillText('CORE WARDEN', W / 2, by + bh + 13);
+    // HP bar + label are rendered as upright DOM (#boss-hp) by main.js, not on the
+    // rotated canvas — see updateHud().
   }
 
   function render(ctx) {
