@@ -12,3 +12,8 @@ node_modules/
 
 # throwaway test artifacts
 __test-harness.html
+
+# browser test artifacts
+.playwright-mcp/
+*.playwright-mcp.png
+portrait-*.png

@@ -166,6 +166,14 @@
     const tz = d.getElementById('touch-zone');
     check('layout', 'portrait touch zone active during play', tz.classList.contains('active') &&
       w.getComputedStyle(tz).display === 'flex', 'cls=' + tz.className + ' top=' + tz.style.top);
+    // control deck: starts flush at the arena bottom (no wasted gap) and shows the joystick home ring
+    const arenaBottom = d.getElementById('stage').getBoundingClientRect().bottom;
+    check('layout', 'control deck is flush below the arena (no gap)',
+      Math.abs(parseFloat(tz.style.top) - arenaBottom) < 2,
+      'deck.top=' + tz.style.top + ' arena.bottom=' + Math.round(arenaBottom));
+    const joy = d.querySelector('#touch-zone .joy-home');
+    check('layout', 'joystick home ring present in the deck', !!joy && joy.getBoundingClientRect().width > 60,
+      joy ? Math.round(joy.getBoundingClientRect().width) + 'px' : 'missing');
     f.style.width = '700px'; f.style.height = '390px'; // phone landscape
     await sleep(150);
     w.dispatchEvent(new w.Event('resize'));
