@@ -9,6 +9,8 @@ Decision records, plans, and verification reports live in `docs/` (ADRs in
 
 **Agent operating manual: `AGENT.md`** (absolute rules, workflow, role split) —
 read it before any non-trivial change. Verifier criteria: `rubric.md`.
+System design overview: `design.md` (architecture, modules, state shape,
+runtime model — ties the ADRs together).
 
 ## Run / Deploy
 
