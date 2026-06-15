@@ -26,6 +26,7 @@
 | [0005](adr/0005-zero-dependency-test-strategy.md) | 의존성 0 테스트 전략 (vm 샌드박스 + 헤드리스 E2E) | 적용됨 |
 | [0006](adr/0006-mobile-first-scaled-canvas-unscaled-ui.md) | 세로 모바일 First — 아레나 90° 회전 채움 | 적용됨 |
 | [0007](adr/0007-records-screen-and-arena-hud.md) | RECORDS 화면 + 아레나 HUD DOM화 + 60초 | 적용됨 |
+| [0008](adr/0008-arcade-platform-shell.md) | 아케이드 플랫폼 — 게임 레지스트리 + 공용 셸 | 적용됨 |
 
 ## 타임라인 (2026-06-11)
 

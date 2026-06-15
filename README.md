@@ -71,19 +71,23 @@ Vercel에 정적 사이트로 배포됩니다 — 메인 게임은 `/`, 단일 �
 
 ```
 Retro Arcade Shooter/
-├── index.html                # 메인 진입점 (HTML/HUD/화면 마크업)
+├── index.html                # 메인 진입점 (HTML/화면 마크업)
 ├── standalone.html           # 단일 파일 번들 버전 (생성 산출물 — 직접 수정 금지)
 ├── css/
-│   └── style.css             # 전체 UI 스타일 (캔버스 렌더링은 js/render.js)
+│   └── style.css             # 전체 UI 스타일
 └── js/
-    ├── store.js              # IndexedDB 기록 저장 + 시드 RNG (xmur3 → mulberry32)
-    ├── audio.js              # 사운드 효과 (Web Audio)
-    ├── game.js               # 게임 엔진 — 상태, 시뮬레이션, 스폰, 충돌, 보스 AI
-    ├── render.js             # Canvas 2D 렌더링
-    ├── main.js               # UI 글루 — 게임 루프, HUD, 화면 전환, 기록, 결과 공유, 터치 조이스틱
-    ├── tweaks-panel.jsx      # 트윅 패널 UI 컴포넌트 (React)
-    └── tweaks.jsx            # 개발용 밸런스 조정 패널 정의
+    ├── store.js              # IndexedDB(게임별 네임스페이스) + 시드 RNG (xmur3 → mulberry32)
+    ├── audio.js              # 사운드 효과 (Web Audio) + 햅틱
+    ├── shell.js              # 아케이드 셸 — 게임 레지스트리·루프·레이아웃·게임 선택 허브
+    └── games/
+        └── zerohour/         # Zero Hour 게임 모듈 (SY.registerGame로 등록)
+            ├── game.js       # 게임 엔진 — 상태, 시뮬레이션, 스폰, 충돌, 보스 AI
+            ├── render.js     # Canvas 2D 렌더링
+            ├── main.js       # 등록(enter/exit/frame) + HUD·화면·기록·입력
+            ├── tweaks-panel.jsx
+            └── tweaks.jsx    # 개발용 밸런스 조정 패널
 ```
+새 게임은 `js/games/<id>/` 모듈을 추가하고 `SY.registerGame(...)`로 등록하면 허브에 카드로 나타납니다.
 
 ## 기술 노트
 

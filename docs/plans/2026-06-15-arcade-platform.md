@@ -1,7 +1,7 @@
 # 설계 스펙: 아케이드 플랫폼 (Phase 1)
 
 - **날짜**: 2026-06-15
-- **상태**: 설계 승인 대기 (브레인스토밍 산출물)
+- **상태**: ✅ Phase 1 구현·검증 완료 ([ADR-0008](../adr/0008-arcade-platform-shell.md)) · Phase 2(양치기 게임) 대기
 - **결정 사항(브레인스토밍)**: 플랫폼 먼저(Phase 1) → 양치기 게임(Phase 2) · 게임 레지스트리 + 공용 셸 · 허브는 카드만(로고/타이틀 없음) · Zero Hour 파일을 `js/games/zerohour/`로 이동
 - **관련 불변식**: [AGENT.md](../../AGENT.md), [rubric.md](../../rubric.md), [ADR-0002](../adr/0002-seeded-rng-daily-fairness.md)(공정성), [ADR-0006](../adr/0006-mobile-first-scaled-canvas-unscaled-ui.md)(세로 회전)
 

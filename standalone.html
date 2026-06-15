@@ -224,6 +224,37 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
 .best-line { font-size: 12px; letter-spacing: 0.1em; color: rgba(159,245,232,0.65); }
 .controls-hint { font-size: 11px; letter-spacing: 0.1em; color: rgba(234,246,255,0.35); }
 
+/* ---------- arcade hub (game select) ---------- */
+#arcade-grid { display: flex; flex-direction: column; gap: clamp(12px, 3vw, 18px); width: min(360px, 92vw); }
+.game-card {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: clamp(18px, 5vw, 24px) 20px;
+  background: var(--panel);
+  border: 2px solid var(--c, var(--teal));
+  color: var(--ink);
+  font-family: var(--mono);
+  text-align: left;
+  cursor: pointer;
+  transition: box-shadow 0.12s, transform 0.12s;
+}
+.game-card:hover, .game-card:focus-visible {
+  box-shadow: 0 0 22px var(--c, var(--teal)), inset 0 0 18px rgba(45,226,198,0.08);
+  transform: translateY(-2px); outline: none;
+}
+.game-card-title { font-family: var(--pixel); font-size: clamp(15px, 4.5vw, 20px); color: var(--c, var(--teal-soft)); text-shadow: 0 0 14px var(--c, var(--teal)); }
+.game-card-blurb { font-size: clamp(10px, 2.8vw, 12px); color: rgba(234,246,255,0.55); letter-spacing: 0.04em; line-height: 1.5; }
+
+/* back-to-arcade affordance on a game's menu */
+.back-btn {
+  position: absolute;
+  top: calc(var(--safe-top) + 12px); left: calc(var(--safe-left) + 12px);
+  font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  color: var(--teal-soft); background: rgba(8,20,32,0.85);
+  border: 1px solid rgba(45,226,198,0.4); padding: 8px 12px;
+  min-height: 36px; cursor: pointer; z-index: 5;
+}
+.back-btn:hover, .back-btn:focus-visible { border-color: var(--teal); outline: none; }
+
 /* ---------- game over ---------- */
 #screen-over { gap: clamp(8px, 1.6vh, 12px); }
 #over-mode { font-size: 11px; letter-spacing: 0.2em; color: rgba(159,245,232,0.55); }
@@ -425,7 +456,12 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
       <div id="danger-vignette"></div>
       <div id="hit-flash"></div>
 
-      <div id="screen-menu" class="screen visible" data-screen-label="Main Menu">
+      <div id="screen-arcade" class="screen" data-screen-label="Arcade">
+        <div id="arcade-grid"></div>
+      </div>
+
+      <div id="screen-menu" class="screen" data-screen-label="Main Menu">
+        <button id="btn-arcade" class="back-btn" type="button">← ARCADE</button>
         <div>
           <h1 class="game-title">ZERO HOUR</h1>
           <p class="game-sub" style="margin-top: 12px;">RETRO DRONE ARCADE · BEAT THE CORE WARDEN</p>
@@ -607,41 +643,57 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
   }
 
   // ---------- Typed accessors ----------
-  // best_all   : { score, combo, date, mode }
-  // daily_<d>  : { score, combo, pace: number[], bossDown }
-  // settings   : { muted: bool }
+  // Records are namespaced per game: "<id>:best_all", "<id>:daily_<date>".
+  //   best_all  : { score, combo, date, mode }
+  //   daily_<d> : { score, combo, pace: number[], bossDown }
+  // Settings are shared across the arcade: "settings" { muted, haptics, seenHowto }.
   SY.store = {
-    async loadAll() {
-      const today = SY.todayUTC();
-      const [settings, bestAll, daily] = await Promise.all([
-        kvGet('settings'),
-        kvGet('best_all'),
-        kvGet('daily_' + today),
-      ]);
+    // ---- shared settings ----
+    async loadSettings() { return (await kvGet('settings')) || { muted: false }; },
+    saveSettings(s) { return kvSet('settings', s); },
+
+    // ---- per-game record store ----
+    forGame(id) {
+      const k = (suffix) => id + ':' + suffix;
       return {
-        settings: settings || { muted: false },
-        bestAll: bestAll || null,
-        dailyBest: daily || null,
-        today,
+        async loadAll() {
+          const today = SY.todayUTC();
+          const [bestAll, daily] = await Promise.all([kvGet(k('best_all')), kvGet(k('daily_' + today))]);
+          return { bestAll: bestAll || null, dailyBest: daily || null, today };
+        },
+        saveBestAll(rec) { return kvSet(k('best_all'), rec); },
+        saveDaily(date, rec) { return kvSet(k('daily_' + date), rec); },
+        async loadRecentDailies(n) {
+          const dates = [];
+          for (let i = 0; i < n; i++) dates.push(utcDateMinus(i));
+          const recsArr = await Promise.all(dates.map((d) => kvGet(k('daily_' + d))));
+          return dates.map((date, i) => ({ date, rec: recsArr[i] || null })); // newest first
+        },
+        // Streak from daily keys (no stored counter, self-healing). A missing
+        // record today doesn't break the streak until the day is over.
+        async computeStreak() {
+          let offset = 0;
+          if (!(await kvGet(k('daily_' + utcDateMinus(0))))) offset = 1;
+          let streak = 0;
+          while (streak < 365 && (await kvGet(k('daily_' + utcDateMinus(offset + streak))))) streak++;
+          return streak;
+        },
       };
     },
-    saveSettings(s) { return kvSet('settings', s); },
-    saveBestAll(rec) { return kvSet('best_all', rec); },
-    saveDaily(date, rec) { return kvSet('daily_' + date, rec); },
-    async loadRecentDailies(n) {
-      const dates = [];
-      for (let i = 0; i < n; i++) dates.push(utcDateMinus(i));
-      const recsArr = await Promise.all(dates.map((d) => kvGet('daily_' + d)));
-      return dates.map((date, i) => ({ date, rec: recsArr[i] || null })); // newest first
-    },
-    // Streak is derived from daily_<date> keys (no stored counter, self-healing).
-    // A missing record today doesn't break the streak until the day is over.
-    async computeStreak() {
-      let offset = 0;
-      if (!(await kvGet('daily_' + utcDateMinus(0)))) offset = 1;
-      let streak = 0;
-      while (streak < 365 && (await kvGet('daily_' + utcDateMinus(offset + streak)))) streak++;
-      return streak;
+
+    // One-time migration of pre-namespace keys (best_all / daily_<date>) into a
+    // game's namespace. Idempotent: skips if the namespaced best already exists,
+    // and no-ops on a fresh install. Legacy keys are left in place (harmless).
+    async migrate(id) {
+      if ((await kvGet(id + ':best_all')) !== undefined) return;
+      const legacyBest = await kvGet('best_all');
+      if (legacyBest === undefined) return;
+      await kvSet(id + ':best_all', legacyBest);
+      for (let i = 0; i < 90; i++) {
+        const d = utcDateMinus(i);
+        const v = await kvGet('daily_' + d);
+        if (v !== undefined) await kvSet(id + ':daily_' + d, v);
+      }
     },
   };
 })();
@@ -795,6 +847,115 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
       buzz(80);
     },
   };
+})();
+
+</script>
+  <script>
+// --- inlined: js/shell.js ---
+// Scoreyard — arcade shell. Game-agnostic: owns the shared canvas + rAF loop,
+// the responsive layout (fit/rotation), the game registry, and the game-select
+// hub. Each game plugs in via SY.registerGame({ id, title, blurb, accent,
+// enter, exit, frame, pause?, resume? }) and owns its own screens/HUD/records.
+(function () {
+  const SY = (window.SY = window.SY || {});
+  const $ = (id) => document.getElementById(id);
+  SY.layout = SY.layout || { rot: 0, portrait: false };
+  SY.input = SY.input || { ax: 0, ay: 0 };
+
+  const games = [];
+  let active = null;
+  SY.registerGame = function (def) { games.push(def); };
+
+  // ---------- shared canvas + loop ----------
+  const SW = 960, SH = 600;
+  const stage = $('stage');
+  const canvas = $('game-canvas');
+  const ctx = canvas.getContext('2d');
+  let lastT = 0;
+  function loop(t) {
+    const dt = Math.min(1 / 30, (t - lastT) / 1000 || 0.016);
+    lastT = t;
+    if (active && active.frame) active.frame(dt, ctx);
+    else ctx.clearRect(0, 0, SW, SH); // hub idle: canvas sits under the hub overlay
+    requestAnimationFrame(loop);
+  }
+
+  // ---------- responsive layout (only the stage scales) — ADR-0006 ----------
+  const hudEl = $('hud');
+  function fit() {
+    const vv = window.visualViewport;
+    const vw = vv ? vv.width : window.innerWidth;
+    const vh = vv ? vv.height : window.innerHeight;
+    const portrait = vh > vw;
+    SY.layout.portrait = portrait;
+    SY.layout.rot = portrait ? Math.PI / 2 : 0; // games counter-rotate overlay text by this
+    document.body.classList.toggle('portrait', portrait);
+    document.body.classList.toggle('landscape', !portrait);
+    if (portrait) {
+      // rotate the 1.6:1 arena 90° CW to fill the portrait width edge-to-edge
+      const hudH = hudEl ? hudEl.offsetHeight : 0;
+      const availH = vh - hudH;
+      const s = Math.min(vw / SH, availH / SW);
+      const dispW = SH * s, dispH = SW * s;
+      const lx = (vw - dispW) / 2;
+      const ly = hudH + Math.max(0, (availH - dispH) / 2);
+      stage.style.transform =
+        'translate(' + (lx + dispW) + 'px, ' + ly + 'px) rotate(90deg) scale(' + s + ')';
+    } else {
+      const s = Math.min(vw / SW, vh / SH, 1.5);
+      stage.style.transform =
+        'translate(' + ((vw - SW * s) / 2) + 'px, ' + ((vh - SH * s) / 2) + 'px) scale(' + s + ')';
+    }
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', fit);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+
+  // ---------- game-select hub ----------
+  function renderHub() {
+    $('arcade-grid').innerHTML = games.map((g) =>
+      '<button class="game-card" data-id="' + g.id + '" type="button" style="--c:' + (g.accent || '#2de2c6') + '">' +
+      '<span class="game-card-title">' + g.title + '</span>' +
+      '<span class="game-card-blurb">' + g.blurb + '</span>' +
+      '</button>'
+    ).join('');
+    $('arcade-grid').querySelectorAll('.game-card').forEach((el) =>
+      el.addEventListener('click', () => SY.shell.enterGame(el.getAttribute('data-id'))));
+  }
+
+  function showHub() {
+    // hide any shared chrome / HUD a game left visible
+    ['btn-mute', 'btn-pause', 'btn-fullscreen'].forEach((id) => { const e = $(id); if (e) e.style.display = 'none'; });
+    const hud = $('hud'); if (hud) hud.style.visibility = 'hidden';
+    renderHub();
+    $('screen-arcade').classList.add('visible');
+  }
+
+  SY.shell = {
+    enterGame(id) {
+      active = games.find((g) => g.id === id) || null;
+      $('screen-arcade').classList.remove('visible');
+      if (active && active.enter) active.enter();
+    },
+    exitToHub() {
+      if (active && active.exit) active.exit();
+      active = null;
+      showHub();
+    },
+    activeId() { return active ? active.id : null; },
+  };
+
+  // ---------- boot ----------
+  (async function boot() {
+    const settings = await SY.store.loadSettings();
+    SY.settings = settings; // shared across games
+    SY.audio.setMuted(!!settings.muted);
+    SY.audio.setHaptics(settings.haptics !== false);
+    fit();
+    showHub(); // games registered synchronously before this microtask resumes
+    requestAnimationFrame(loop);
+  })();
 })();
 
 </script>
@@ -1717,30 +1878,37 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
 
   const fmt = (n) => n.toLocaleString('en-US');
 
-  // ---------- boot ----------
-  async function boot() {
-    recs = await SY.store.loadAll();
-    SY.audio.setMuted(!!recs.settings.muted);
-    SY.audio.setHaptics(recs.settings.haptics !== false);
+  const gameStore = SY.store.forGame('zerohour'); // namespaced records
+
+  // ---------- lifecycle (shell-driven; registered via SY.registerGame below) ----------
+  function enter() {
+    recs.settings = SY.settings; // shared settings, loaded by the shell at boot
     updateMuteBtn();
     updateHapticBtn();
+    renderMenuStats();           // shows defaults until records load
+    show('screen-menu');         // instant — records hydrate asynchronously
+    loadRecords();
+  }
+  async function loadRecords() {
+    await SY.store.migrate('zerohour'); // one-time: legacy keys -> zerohour:*
+    const gr = await gameStore.loadAll();
+    recs.bestAll = gr.bestAll;
+    recs.dailyBest = gr.dailyBest;
+    recs.today = gr.today;
     renderMenuStats();
     renderDailyHistory();
-    requestAnimationFrame(loop);
   }
-
-  // ---------- game loop ----------
-  let lastT = 0;
-  const canvas = document.getElementById('game-canvas');
-  const ctx = canvas.getContext('2d');
-
-  function loop(t) {
-    const dt = Math.min(1 / 30, (t - lastT) / 1000 || 0.016);
-    lastT = t;
+  function exit() {
+    G.toMenu();
+    releaseStick();
+    show(null);            // hide all Zero Hour screens
+    $('hud').style.visibility = 'hidden';
+  }
+  // called every frame by the shell while Zero Hour is the active game
+  function frame(dt, ctx) {
     G.update(dt);
     SY.render(ctx);
     updateHud();
-    requestAnimationFrame(loop);
   }
 
   // ---------- HUD ----------
@@ -1842,8 +2010,8 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
   // ---------- records screen ----------
   async function renderRecords() {
     const [days, streak] = await Promise.all([
-      SY.store.loadRecentDailies(14),
-      SY.store.computeStreak(),
+      gameStore.loadRecentDailies(14),
+      gameStore.computeStreak(),
     ]);
     const b = recs.bestAll;
     let html = '<div><div class="rec-section-title">ALL-TIME BEST</div>';
@@ -1918,8 +2086,8 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
   // ---------- daily streak + 7-day history ----------
   async function renderDailyHistory() {
     const [days, streak] = await Promise.all([
-      SY.store.loadRecentDailies(7),
-      SY.store.computeStreak(),
+      gameStore.loadRecentDailies(7),
+      gameStore.computeStreak(),
     ]);
     $('menu-streak').textContent = streak > 0
       ? 'STREAK ' + streak + (streak === 1 ? ' DAY' : ' DAYS')
@@ -1959,14 +2127,14 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
       if (isCurrentDay && (!recs.dailyBest || res.score > recs.dailyBest.score)) {
         newDaily = true;
         recs.dailyBest = { score: res.score, combo: res.maxCombo, pace: res.pace, bossDown: res.bossDown };
-        SY.store.saveDaily(runDay, recs.dailyBest);
+        gameStore.saveDaily(runDay, recs.dailyBest);
       }
       syncToday(); // after filing: refresh the slate if midnight passed mid-run
     }
     if (!recs.bestAll || res.score > recs.bestAll.score) {
       newAll = true;
       recs.bestAll = { score: res.score, combo: res.maxCombo, date: recs.today, mode: res.mode };
-      SY.store.saveBestAll(recs.bestAll);
+      gameStore.saveBestAll(recs.bestAll);
     }
     const isNewBest = newAll || newDaily;
 
@@ -2162,9 +2330,7 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
   });
 
   // ---------- touch drag-to-move (whole viewport; arena is rotated 90° in portrait) ----------
-  const stage = $('stage');
   let stick = null;
-  let isPortrait = false; // set by fit(); portrait rotates the arena, so drag axes are remapped
   const stickEl = $('joystick'), knobEl = $('joystick-knob');
   $('viewport').addEventListener('pointerdown', (e) => {
     if (G.phase !== 'playing' && G.phase !== 'ready') return;
@@ -2180,7 +2346,7 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
     const len = Math.hypot(dx, dy);
     const max = 52;
     if (len > max) { dx = (dx / len) * max; dy = (dy / len) * max; }
-    if (isPortrait) {
+    if (SY.layout.portrait) {
       // arena rotated 90° CW: screen (dx,dy) -> arena (dy,-dx) so drag matches on-screen motion
       SY.input.ax = dy / max;
       SY.input.ay = -dx / max;
@@ -2206,41 +2372,6 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
     stickEl.style.top = y + 'px';
     knobEl.style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px))';
   }
-
-  // ---------- responsive layout (ADR-0006: only the stage scales) ----------
-  const SW = 960, SH = 600;
-  const hudEl = $('hud');
-  function fit() {
-    const vv = window.visualViewport;
-    const vw = vv ? vv.width : window.innerWidth;
-    const vh = vv ? vv.height : window.innerHeight;
-    isPortrait = vh > vw;
-    SY.layout.rot = isPortrait ? Math.PI / 2 : 0; // render.js counter-rotates overlay text by this
-    document.body.classList.toggle('portrait', isPortrait);
-    document.body.classList.toggle('landscape', !isPortrait);
-    if (isPortrait) {
-      // Rotate the 1.6:1 landscape arena 90° CW so it fills the portrait width
-      // edge-to-edge — the only no-crop way to make it (near) full-screen upright.
-      const hudH = hudEl.offsetHeight;
-      const availH = vh - hudH;
-      const s = Math.min(vw / SH, availH / SW); // rotated box is SH wide × SW tall
-      const dispW = SH * s, dispH = SW * s;
-      const lx = (vw - dispW) / 2;
-      const ly = hudH + Math.max(0, (availH - dispH) / 2);
-      // transform-origin 0 0: scale → rotate(90°) lands the box in x∈[-dispW,0] → shift back
-      stage.style.transform =
-        'translate(' + (lx + dispW) + 'px, ' + ly + 'px) rotate(90deg) scale(' + s + ')';
-    } else {
-      const s = Math.min(vw / SW, vh / SH, 1.5);
-      stage.style.transform =
-        'translate(' + ((vw - SW * s) / 2) + 'px, ' + ((vh - SH * s) / 2) + 'px) scale(' + s + ')';
-    }
-  }
-  window.addEventListener('resize', fit);
-  window.addEventListener('orientationchange', fit);
-  if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
-  document.addEventListener('fullscreenchange', fit);
-  fit();
 
   // ---------- fullscreen ----------
   const fsBtn = $('btn-fullscreen');
@@ -2271,8 +2402,16 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
   });
   updateHapticBtn();
 
-  show('screen-menu');
-  boot();
+  // ---------- register with the arcade shell ----------
+  $('btn-arcade').addEventListener('click', () => SY.shell.exitToHub());
+  SY.registerGame({
+    id: 'zerohour',
+    title: 'ZERO HOUR',
+    blurb: 'RETRO DRONE ARCADE · BEAT THE CORE WARDEN',
+    accent: '#2de2c6',
+    enter, exit, frame,
+    pause: pauseGame, resume: resumeGame,
+  });
 })();
 
 </script>

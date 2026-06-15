@@ -12,30 +12,37 @@
 
   const fmt = (n) => n.toLocaleString('en-US');
 
-  // ---------- boot ----------
-  async function boot() {
-    recs = await SY.store.loadAll();
-    SY.audio.setMuted(!!recs.settings.muted);
-    SY.audio.setHaptics(recs.settings.haptics !== false);
+  const gameStore = SY.store.forGame('zerohour'); // namespaced records
+
+  // ---------- lifecycle (shell-driven; registered via SY.registerGame below) ----------
+  function enter() {
+    recs.settings = SY.settings; // shared settings, loaded by the shell at boot
     updateMuteBtn();
     updateHapticBtn();
+    renderMenuStats();           // shows defaults until records load
+    show('screen-menu');         // instant — records hydrate asynchronously
+    loadRecords();
+  }
+  async function loadRecords() {
+    await SY.store.migrate('zerohour'); // one-time: legacy keys -> zerohour:*
+    const gr = await gameStore.loadAll();
+    recs.bestAll = gr.bestAll;
+    recs.dailyBest = gr.dailyBest;
+    recs.today = gr.today;
     renderMenuStats();
     renderDailyHistory();
-    requestAnimationFrame(loop);
   }
-
-  // ---------- game loop ----------
-  let lastT = 0;
-  const canvas = document.getElementById('game-canvas');
-  const ctx = canvas.getContext('2d');
-
-  function loop(t) {
-    const dt = Math.min(1 / 30, (t - lastT) / 1000 || 0.016);
-    lastT = t;
+  function exit() {
+    G.toMenu();
+    releaseStick();
+    show(null);            // hide all Zero Hour screens
+    $('hud').style.visibility = 'hidden';
+  }
+  // called every frame by the shell while Zero Hour is the active game
+  function frame(dt, ctx) {
     G.update(dt);
     SY.render(ctx);
     updateHud();
-    requestAnimationFrame(loop);
   }
 
   // ---------- HUD ----------
@@ -137,8 +144,8 @@
   // ---------- records screen ----------
   async function renderRecords() {
     const [days, streak] = await Promise.all([
-      SY.store.loadRecentDailies(14),
-      SY.store.computeStreak(),
+      gameStore.loadRecentDailies(14),
+      gameStore.computeStreak(),
     ]);
     const b = recs.bestAll;
     let html = '<div><div class="rec-section-title">ALL-TIME BEST</div>';
@@ -213,8 +220,8 @@
   // ---------- daily streak + 7-day history ----------
   async function renderDailyHistory() {
     const [days, streak] = await Promise.all([
-      SY.store.loadRecentDailies(7),
-      SY.store.computeStreak(),
+      gameStore.loadRecentDailies(7),
+      gameStore.computeStreak(),
     ]);
     $('menu-streak').textContent = streak > 0
       ? 'STREAK ' + streak + (streak === 1 ? ' DAY' : ' DAYS')
@@ -254,14 +261,14 @@
       if (isCurrentDay && (!recs.dailyBest || res.score > recs.dailyBest.score)) {
         newDaily = true;
         recs.dailyBest = { score: res.score, combo: res.maxCombo, pace: res.pace, bossDown: res.bossDown };
-        SY.store.saveDaily(runDay, recs.dailyBest);
+        gameStore.saveDaily(runDay, recs.dailyBest);
       }
       syncToday(); // after filing: refresh the slate if midnight passed mid-run
     }
     if (!recs.bestAll || res.score > recs.bestAll.score) {
       newAll = true;
       recs.bestAll = { score: res.score, combo: res.maxCombo, date: recs.today, mode: res.mode };
-      SY.store.saveBestAll(recs.bestAll);
+      gameStore.saveBestAll(recs.bestAll);
     }
     const isNewBest = newAll || newDaily;
 
@@ -457,9 +464,7 @@
   });
 
   // ---------- touch drag-to-move (whole viewport; arena is rotated 90° in portrait) ----------
-  const stage = $('stage');
   let stick = null;
-  let isPortrait = false; // set by fit(); portrait rotates the arena, so drag axes are remapped
   const stickEl = $('joystick'), knobEl = $('joystick-knob');
   $('viewport').addEventListener('pointerdown', (e) => {
     if (G.phase !== 'playing' && G.phase !== 'ready') return;
@@ -475,7 +480,7 @@
     const len = Math.hypot(dx, dy);
     const max = 52;
     if (len > max) { dx = (dx / len) * max; dy = (dy / len) * max; }
-    if (isPortrait) {
+    if (SY.layout.portrait) {
       // arena rotated 90° CW: screen (dx,dy) -> arena (dy,-dx) so drag matches on-screen motion
       SY.input.ax = dy / max;
       SY.input.ay = -dx / max;
@@ -501,41 +506,6 @@
     stickEl.style.top = y + 'px';
     knobEl.style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px))';
   }
-
-  // ---------- responsive layout (ADR-0006: only the stage scales) ----------
-  const SW = 960, SH = 600;
-  const hudEl = $('hud');
-  function fit() {
-    const vv = window.visualViewport;
-    const vw = vv ? vv.width : window.innerWidth;
-    const vh = vv ? vv.height : window.innerHeight;
-    isPortrait = vh > vw;
-    SY.layout.rot = isPortrait ? Math.PI / 2 : 0; // render.js counter-rotates overlay text by this
-    document.body.classList.toggle('portrait', isPortrait);
-    document.body.classList.toggle('landscape', !isPortrait);
-    if (isPortrait) {
-      // Rotate the 1.6:1 landscape arena 90° CW so it fills the portrait width
-      // edge-to-edge — the only no-crop way to make it (near) full-screen upright.
-      const hudH = hudEl.offsetHeight;
-      const availH = vh - hudH;
-      const s = Math.min(vw / SH, availH / SW); // rotated box is SH wide × SW tall
-      const dispW = SH * s, dispH = SW * s;
-      const lx = (vw - dispW) / 2;
-      const ly = hudH + Math.max(0, (availH - dispH) / 2);
-      // transform-origin 0 0: scale → rotate(90°) lands the box in x∈[-dispW,0] → shift back
-      stage.style.transform =
-        'translate(' + (lx + dispW) + 'px, ' + ly + 'px) rotate(90deg) scale(' + s + ')';
-    } else {
-      const s = Math.min(vw / SW, vh / SH, 1.5);
-      stage.style.transform =
-        'translate(' + ((vw - SW * s) / 2) + 'px, ' + ((vh - SH * s) / 2) + 'px) scale(' + s + ')';
-    }
-  }
-  window.addEventListener('resize', fit);
-  window.addEventListener('orientationchange', fit);
-  if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
-  document.addEventListener('fullscreenchange', fit);
-  fit();
 
   // ---------- fullscreen ----------
   const fsBtn = $('btn-fullscreen');
@@ -566,6 +536,14 @@
   });
   updateHapticBtn();
 
-  show('screen-menu');
-  boot();
+  // ---------- register with the arcade shell ----------
+  $('btn-arcade').addEventListener('click', () => SY.shell.exitToHub());
+  SY.registerGame({
+    id: 'zerohour',
+    title: 'ZERO HOUR',
+    blurb: 'RETRO DRONE ARCADE · BEAT THE CORE WARDEN',
+    accent: '#2de2c6',
+    enter, exit, frame,
+    pause: pauseGame, resume: resumeGame,
+  });
 })();

@@ -29,13 +29,17 @@
 |---|---|---|
 | `index.html` | 마크업·화면 DOM | 인라인 `<style>` 금지, 인라인 `style=` 예산 ≤6 |
 | `css/style.css` | 전체 UI 스타일 단일 출처 | 기본 `display:none` 요소는 JS에서 `'block'` 명시 토글 |
-| `js/store.js` | IndexedDB + 시드 RNG + 날짜 유틸 | UTC 경계는 `Date.UTC` 산술 |
-| `js/game.js` | 엔진: phase 상태머신·시뮬·충돌·보스 | 60fps 핫패스 — 프레임 루프 내 신규 할당 금지 |
-| `js/render.js` | 게임 캔버스 렌더링 **전용** | UI 차트(스파크라인 등)는 main.js 소속 |
-| `js/main.js` | UI 글루: 루프·HUD·화면·기록·입력 | 화면 전환은 `show()` 경유 (타이머 정리 중앙화) |
-| `js/tweaks*.jsx` | dev 밸런스 패널 (React) | 게임 코어가 의존하면 안 됨 |
+| `js/store.js` | IndexedDB + 시드 RNG + 날짜 유틸 | 기록은 게임별 `SY.store.forGame(id)`; 공용 `settings`만 전역. UTC 경계는 `Date.UTC` |
+| `js/audio.js` | Web Audio SFX + 햅틱 | 게임 무관 공용 |
+| `js/shell.js` | 아케이드 셸: 레지스트리·rAF 루프·`fit`·허브·라우팅 | 게임 무관. 활성 게임의 `frame(dt,ctx)`만 호출 |
+| `js/games/zerohour/game.js` | 엔진: phase 상태머신·시뮬·충돌·보스 | 60fps 핫패스 — 프레임 루프 내 신규 할당 금지 |
+| `js/games/zerohour/render.js` | 게임 캔버스 렌더링 **전용** | UI 차트(스파크라인 등)는 main.js 소속 |
+| `js/games/zerohour/main.js` | Zero Hour 등록(`enter/exit/frame`)·HUD·화면·기록·입력 | 화면 전환은 `show()` 경유 |
+| `js/games/zerohour/tweaks*.jsx` | dev 밸런스 패널 (React) | 게임 코어가 의존하면 안 됨 |
 
-phase 상태머신: `menu | ready | playing | paused | over`.
+새 게임 = `js/games/<id>/` 모듈이 `SY.registerGame({id,title,blurb,enter,exit,frame})` 호출 ([ADR-0008](docs/adr/0008-arcade-platform-shell.md)).
+
+phase 상태머신(게임별): `menu | ready | playing | paused | over`. 셸: 허브 ↔ 게임.
 모든 전이 지점(`pause`/`resume`/`start`)에서 입력 리셋 필수 ([ADR-0003](docs/adr/0003-pause-system-and-quit-semantics.md)).
 
 ## 표준 워크플로 (모든 비자명 변경)

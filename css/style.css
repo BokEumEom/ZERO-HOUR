@@ -206,6 +206,37 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
 .best-line { font-size: 12px; letter-spacing: 0.1em; color: rgba(159,245,232,0.65); }
 .controls-hint { font-size: 11px; letter-spacing: 0.1em; color: rgba(234,246,255,0.35); }
 
+/* ---------- arcade hub (game select) ---------- */
+#arcade-grid { display: flex; flex-direction: column; gap: clamp(12px, 3vw, 18px); width: min(360px, 92vw); }
+.game-card {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: clamp(18px, 5vw, 24px) 20px;
+  background: var(--panel);
+  border: 2px solid var(--c, var(--teal));
+  color: var(--ink);
+  font-family: var(--mono);
+  text-align: left;
+  cursor: pointer;
+  transition: box-shadow 0.12s, transform 0.12s;
+}
+.game-card:hover, .game-card:focus-visible {
+  box-shadow: 0 0 22px var(--c, var(--teal)), inset 0 0 18px rgba(45,226,198,0.08);
+  transform: translateY(-2px); outline: none;
+}
+.game-card-title { font-family: var(--pixel); font-size: clamp(15px, 4.5vw, 20px); color: var(--c, var(--teal-soft)); text-shadow: 0 0 14px var(--c, var(--teal)); }
+.game-card-blurb { font-size: clamp(10px, 2.8vw, 12px); color: rgba(234,246,255,0.55); letter-spacing: 0.04em; line-height: 1.5; }
+
+/* back-to-arcade affordance on a game's menu */
+.back-btn {
+  position: absolute;
+  top: calc(var(--safe-top) + 12px); left: calc(var(--safe-left) + 12px);
+  font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  color: var(--teal-soft); background: rgba(8,20,32,0.85);
+  border: 1px solid rgba(45,226,198,0.4); padding: 8px 12px;
+  min-height: 36px; cursor: pointer; z-index: 5;
+}
+.back-btn:hover, .back-btn:focus-visible { border-color: var(--teal); outline: none; }
+
 /* ---------- game over ---------- */
 #screen-over { gap: clamp(8px, 1.6vh, 12px); }
 #over-mode { font-size: 11px; letter-spacing: 0.2em; color: rgba(159,245,232,0.55); }

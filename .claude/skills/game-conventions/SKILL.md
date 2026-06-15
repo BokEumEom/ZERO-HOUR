@@ -31,17 +31,20 @@ When changing any score constant, update the README table in the same change.
 
 ## React-free game core
 
-`js/store.js`, `js/audio.js`, `js/game.js`, `js/render.js`, `js/main.js` must not
-reference React. React 18 + Babel Standalone (CDN) exist only for the dev tweaks
-panel (`js/tweaks-panel.jsx`, `js/tweaks.jsx`). The game must run even if the CDN
-scripts fail to load.
+The shared modules (`js/store.js`, `js/audio.js`, `js/shell.js`) and the game
+modules (`js/games/zerohour/{game,render,main}.js`) must not reference React.
+React 18 + Babel Standalone (CDN) exist only for the dev tweaks panel
+(`js/games/zerohour/tweaks-panel.jsx`, `tweaks.jsx`). The game must run even if
+the CDN scripts fail to load.
 
 ## Module pattern and load order
 
 All modules are IIFEs attaching to the `window.SY` namespace. Script load order
-in `index.html` matters: `store → audio → game → render → main`. New modules
-follow the same pattern and are added to the load order in `index.html`
-(the build-standalone script picks them up automatically).
+in `index.html` matters: `store → audio → shell → games/zerohour/{game → render
+→ main}`. The shell (`SY.registerGame`, rAF loop, `fit`, hub) is game-agnostic;
+each game registers itself and lives under `js/games/<id>/`. New modules are
+added to the load order in `index.html` (the build-standalone script picks them
+up automatically).
 
 ## Generated artifact
 

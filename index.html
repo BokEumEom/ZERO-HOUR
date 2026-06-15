@@ -64,7 +64,12 @@
       <div id="danger-vignette"></div>
       <div id="hit-flash"></div>
 
-      <div id="screen-menu" class="screen visible" data-screen-label="Main Menu">
+      <div id="screen-arcade" class="screen" data-screen-label="Arcade">
+        <div id="arcade-grid"></div>
+      </div>
+
+      <div id="screen-menu" class="screen" data-screen-label="Main Menu">
+        <button id="btn-arcade" class="back-btn" type="button">← ARCADE</button>
         <div>
           <h1 class="game-title">ZERO HOUR</h1>
           <p class="game-sub" style="margin-top: 12px;">RETRO DRONE ARCADE · BEAT THE CORE WARDEN</p>
@@ -161,6 +166,7 @@
 
   <script src="js/store.js"></script>
   <script src="js/audio.js"></script>
+  <script src="js/shell.js"></script>
   <script src="js/games/zerohour/game.js"></script>
   <script src="js/games/zerohour/render.js"></script>
   <script src="js/games/zerohour/main.js"></script>

@@ -1,5 +1,6 @@
 // Rubric #5 (UTC boundary / streak), #9 (injected values are fixed-format),
-// plus seeded-RNG determinism (daily-challenge fairness invariant).
+// plus seeded-RNG determinism (daily-challenge fairness invariant) and the
+// per-game record namespacing + legacy migration (arcade platform).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadModules, fakeIndexedDB, flushMicrotasks } from './helpers.mjs';
@@ -9,6 +10,7 @@ const NOW = '2026-03-01T00:30:00Z'; // month boundary on purpose
 function freshStore(nowIso = NOW) {
   return loadModules(['js/store.js'], { nowIso, idb: fakeIndexedDB() });
 }
+const gs = (sb) => sb.SY.store.forGame('zerohour'); // namespaced record store
 
 test('makeRng is deterministic per seed and differs across seeds', () => {
   const sb = freshStore();
@@ -26,64 +28,100 @@ test('makeRng is deterministic per seed and differs across seeds', () => {
 test('todayUTC and loadRecentDailies dates are strict YYYY-MM-DD (injection-safe)', async () => {
   const sb = freshStore();
   assert.equal(sb.SY.todayUTC(), '2026-03-01');
-  const days = await sb.SY.store.loadRecentDailies(7);
+  const days = await gs(sb).loadRecentDailies(7);
   assert.equal(days.length, 7);
   for (const d of days) assert.match(d.date, /^\d{4}-\d{2}-\d{2}$/);
 });
 
 test('loadRecentDailies crosses month/year boundaries correctly (utcDateMinus)', async () => {
   const sb = freshStore('2026-01-02T05:00:00Z');
-  const days = await sb.SY.store.loadRecentDailies(4);
+  const days = await gs(sb).loadRecentDailies(4);
   // Array.from copies into the host realm (vm arrays fail deepStrictEqual on prototype)
   assert.deepEqual(Array.from(days, (d) => d.date), ['2026-01-02', '2026-01-01', '2025-12-31', '2025-12-30']);
 });
 
 test('computeStreak: today + yesterday recorded -> 2', async () => {
   const sb = freshStore();
-  await sb.SY.store.saveDaily('2026-03-01', { score: 100 });
-  await sb.SY.store.saveDaily('2026-02-28', { score: 90 });
+  await gs(sb).saveDaily('2026-03-01', { score: 100 });
+  await gs(sb).saveDaily('2026-02-28', { score: 90 });
   await flushMicrotasks();
-  assert.equal(await sb.SY.store.computeStreak(), 2);
+  assert.equal(await gs(sb).computeStreak(), 2);
 });
 
 test('computeStreak: only yesterday recorded -> streak survives until the day ends', async () => {
   const sb = freshStore();
-  await sb.SY.store.saveDaily('2026-02-28', { score: 90 });
+  await gs(sb).saveDaily('2026-02-28', { score: 90 });
   await flushMicrotasks();
-  assert.equal(await sb.SY.store.computeStreak(), 1);
+  assert.equal(await gs(sb).computeStreak(), 1);
 });
 
 test('computeStreak: gap two days ago cuts the chain', async () => {
   const sb = freshStore();
-  await sb.SY.store.saveDaily('2026-03-01', { score: 1 });
-  await sb.SY.store.saveDaily('2026-02-28', { score: 1 });
+  await gs(sb).saveDaily('2026-03-01', { score: 1 });
+  await gs(sb).saveDaily('2026-02-28', { score: 1 });
   // 2026-02-27 missing
-  await sb.SY.store.saveDaily('2026-02-26', { score: 1 });
+  await gs(sb).saveDaily('2026-02-26', { score: 1 });
   await flushMicrotasks();
-  assert.equal(await sb.SY.store.computeStreak(), 2);
+  assert.equal(await gs(sb).computeStreak(), 2);
 });
 
 test('computeStreak: nothing recorded -> 0', async () => {
   const sb = freshStore();
-  assert.equal(await sb.SY.store.computeStreak(), 0);
+  assert.equal(await gs(sb).computeStreak(), 0);
 });
 
 test('loadRecentDailies marks exactly the recorded dates', async () => {
   const sb = freshStore();
-  await sb.SY.store.saveDaily('2026-03-01', { score: 11 });
-  await sb.SY.store.saveDaily('2026-02-27', { score: 22 });
+  await gs(sb).saveDaily('2026-03-01', { score: 11 });
+  await gs(sb).saveDaily('2026-02-27', { score: 22 });
   await flushMicrotasks();
-  const days = await sb.SY.store.loadRecentDailies(7);
+  const days = await gs(sb).loadRecentDailies(7);
   const hits = Array.from(days.filter((d) => d.rec), (d) => d.date);
   assert.deepEqual(hits, ['2026-03-01', '2026-02-27']);
   assert.equal(days[0].rec.score, 11);
 });
 
-test('settings round-trip preserves unknown keys (seenHowto compatibility)', async () => {
+test('record stores are isolated per game id', async () => {
+  const sb = freshStore();
+  await sb.SY.store.forGame('zerohour').saveDaily('2026-03-01', { score: 100 });
+  await sb.SY.store.forGame('shepherd').saveDaily('2026-03-01', { score: 7 });
+  await flushMicrotasks();
+  assert.equal((await sb.SY.store.forGame('zerohour').loadAll()).dailyBest.score, 100);
+  assert.equal((await sb.SY.store.forGame('shepherd').loadAll()).dailyBest.score, 7);
+});
+
+test('shared settings round-trip preserves unknown keys (seenHowto)', async () => {
   const sb = freshStore();
   await sb.SY.store.saveSettings({ muted: true, seenHowto: true });
   await flushMicrotasks();
-  const all = await sb.SY.store.loadAll();
-  assert.equal(all.settings.muted, true);
-  assert.equal(all.settings.seenHowto, true);
+  const settings = await sb.SY.store.loadSettings();
+  assert.equal(settings.muted, true);
+  assert.equal(settings.seenHowto, true);
+});
+
+test('migrate copies legacy (pre-namespace) keys into the game namespace, idempotently', async () => {
+  const sb = freshStore();
+  // seed legacy keys as a pre-namespace install would have them
+  sb.indexedDB._dbs.set('scoreyard', new Map([
+    ['best_all', { score: 500, combo: 9, date: '2026-02-20', mode: 'daily' }],
+    ['daily_2026-03-01', { score: 120, combo: 5, pace: [0, 1], bossDown: true }],
+  ]));
+  await sb.SY.store.migrate('zerohour');
+  await flushMicrotasks();
+  const all = await gs(sb).loadAll();
+  assert.equal(all.bestAll.score, 500, 'legacy best_all migrated');
+  assert.equal(all.dailyBest.score, 120, 'legacy daily migrated (today)');
+  // idempotent: a later migrate must not clobber newer namespaced data
+  await gs(sb).saveBestAll({ score: 999, combo: 1, date: '2026-03-01', mode: 'free' });
+  await flushMicrotasks();
+  await sb.SY.store.migrate('zerohour');
+  await flushMicrotasks();
+  assert.equal((await gs(sb).loadAll()).bestAll.score, 999, 'second migrate must not overwrite');
+});
+
+test('migrate is a no-op on a fresh install (no legacy keys)', async () => {
+  const sb = freshStore();
+  await sb.SY.store.migrate('zerohour');
+  await flushMicrotasks();
+  assert.equal((await gs(sb).loadAll()).bestAll, null);
 });

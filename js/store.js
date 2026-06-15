@@ -83,41 +83,57 @@
   }
 
   // ---------- Typed accessors ----------
-  // best_all   : { score, combo, date, mode }
-  // daily_<d>  : { score, combo, pace: number[], bossDown }
-  // settings   : { muted: bool }
+  // Records are namespaced per game: "<id>:best_all", "<id>:daily_<date>".
+  //   best_all  : { score, combo, date, mode }
+  //   daily_<d> : { score, combo, pace: number[], bossDown }
+  // Settings are shared across the arcade: "settings" { muted, haptics, seenHowto }.
   SY.store = {
-    async loadAll() {
-      const today = SY.todayUTC();
-      const [settings, bestAll, daily] = await Promise.all([
-        kvGet('settings'),
-        kvGet('best_all'),
-        kvGet('daily_' + today),
-      ]);
+    // ---- shared settings ----
+    async loadSettings() { return (await kvGet('settings')) || { muted: false }; },
+    saveSettings(s) { return kvSet('settings', s); },
+
+    // ---- per-game record store ----
+    forGame(id) {
+      const k = (suffix) => id + ':' + suffix;
       return {
-        settings: settings || { muted: false },
-        bestAll: bestAll || null,
-        dailyBest: daily || null,
-        today,
+        async loadAll() {
+          const today = SY.todayUTC();
+          const [bestAll, daily] = await Promise.all([kvGet(k('best_all')), kvGet(k('daily_' + today))]);
+          return { bestAll: bestAll || null, dailyBest: daily || null, today };
+        },
+        saveBestAll(rec) { return kvSet(k('best_all'), rec); },
+        saveDaily(date, rec) { return kvSet(k('daily_' + date), rec); },
+        async loadRecentDailies(n) {
+          const dates = [];
+          for (let i = 0; i < n; i++) dates.push(utcDateMinus(i));
+          const recsArr = await Promise.all(dates.map((d) => kvGet(k('daily_' + d))));
+          return dates.map((date, i) => ({ date, rec: recsArr[i] || null })); // newest first
+        },
+        // Streak from daily keys (no stored counter, self-healing). A missing
+        // record today doesn't break the streak until the day is over.
+        async computeStreak() {
+          let offset = 0;
+          if (!(await kvGet(k('daily_' + utcDateMinus(0))))) offset = 1;
+          let streak = 0;
+          while (streak < 365 && (await kvGet(k('daily_' + utcDateMinus(offset + streak))))) streak++;
+          return streak;
+        },
       };
     },
-    saveSettings(s) { return kvSet('settings', s); },
-    saveBestAll(rec) { return kvSet('best_all', rec); },
-    saveDaily(date, rec) { return kvSet('daily_' + date, rec); },
-    async loadRecentDailies(n) {
-      const dates = [];
-      for (let i = 0; i < n; i++) dates.push(utcDateMinus(i));
-      const recsArr = await Promise.all(dates.map((d) => kvGet('daily_' + d)));
-      return dates.map((date, i) => ({ date, rec: recsArr[i] || null })); // newest first
-    },
-    // Streak is derived from daily_<date> keys (no stored counter, self-healing).
-    // A missing record today doesn't break the streak until the day is over.
-    async computeStreak() {
-      let offset = 0;
-      if (!(await kvGet('daily_' + utcDateMinus(0)))) offset = 1;
-      let streak = 0;
-      while (streak < 365 && (await kvGet('daily_' + utcDateMinus(offset + streak)))) streak++;
-      return streak;
+
+    // One-time migration of pre-namespace keys (best_all / daily_<date>) into a
+    // game's namespace. Idempotent: skips if the namespaced best already exists,
+    // and no-ops on a fresh install. Legacy keys are left in place (harmless).
+    async migrate(id) {
+      if ((await kvGet(id + ':best_all')) !== undefined) return;
+      const legacyBest = await kvGet('best_all');
+      if (legacyBest === undefined) return;
+      await kvSet(id + ':best_all', legacyBest);
+      for (let i = 0; i < 90; i++) {
+        const d = utcDateMinus(i);
+        const v = await kvGet('daily_' + d);
+        if (v !== undefined) await kvSet(id + ':daily_' + d, v);
+      }
     },
   };
 })();

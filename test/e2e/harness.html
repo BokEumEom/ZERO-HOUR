@@ -21,6 +21,16 @@
     });
   }
   const visible = (d, id) => d.getElementById(id).classList.contains('visible');
+  // arcade shell boots into the hub; enter Zero Hour by clicking its card
+  async function enterZH(w, d) {
+    d.querySelector('.game-card[data-id="zerohour"]').click();
+    for (let t = 0; t < 3000 && !visible(d, 'screen-menu'); t += 60) await sleep(60);
+  }
+  async function freshGame() {
+    const { w, d } = await freshPage();
+    await enterZH(w, d);
+    return { w, d };
+  }
   const key = (w, code) => w.dispatchEvent(new w.KeyboardEvent('keydown', { code }));
   function stepTo(w, phase, mut) {
     // manually advance the sim (rAF-independent)
@@ -32,8 +42,19 @@
   }
 
   async function run() {
-    // ---------- scenario 1: first-visit how-to gate ----------
+    // ---------- scenario 0: arcade hub ----------
     let { w, d } = await freshPage();
+    check('hub', 'boots into the arcade hub', visible(d, 'screen-arcade'));
+    const card = d.querySelector('.game-card[data-id="zerohour"]');
+    check('hub', 'Zero Hour card is listed', !!card && /ZERO HOUR/.test(card.textContent));
+    await enterZH(w, d);
+    check('hub', 'tapping the card enters Zero Hour (menu)', visible(d, 'screen-menu') && !visible(d, 'screen-arcade'));
+    d.getElementById('btn-arcade').click();
+    await sleep(150);
+    check('hub', 'ARCADE button returns to the hub', visible(d, 'screen-arcade') && !visible(d, 'screen-menu'));
+
+    // ---------- scenario 1: first-visit how-to gate ----------
+    ({ w, d } = await freshGame());
     d.getElementById('btn-daily').click();
     await sleep(100);
     check('howto', 'first start opens HOW TO PLAY instead of the game', visible(d, 'screen-howto') && w.SY.game.phase === 'menu');
@@ -42,7 +63,7 @@
     check('howto', 'START begins the chosen mode and hides the overlay', !visible(d, 'screen-howto') && w.SY.game.phase === 'ready' && w.SY.game.mode === 'daily');
 
     // ---------- scenario 2: pause + quit discards the run ----------
-    ({ w, d } = await freshPage());
+    ({ w, d } = await freshGame());
     d.getElementById('btn-free').click(); // seenHowto persisted -> starts directly
     await sleep(100);
     check('quit', 'second visit skips the how-to gate', w.SY.game.phase === 'ready');
@@ -62,11 +83,11 @@
     await sleep(150);
     check('quit', 'QUIT returns to menu', visible(d, 'screen-menu') && w.SY.game.phase === 'menu');
     check('quit', 'no game-over event fired for a discarded run', overFired === 0);
-    const recs = await w.SY.store.loadAll();
+    const recs = await w.SY.store.forGame("zerohour").loadAll();
     check('quit', 'no records were written (best stays null)', recs.bestAll === null && recs.dailyBest === null);
 
     // ---------- scenario 3: pause via button, resume via key ----------
-    ({ w, d } = await freshPage());
+    ({ w, d } = await freshGame());
     d.getElementById('btn-free').click();
     await sleep(100);
     stepTo(w, 'playing', (g) => { if (g.state) g.state.readyT = 0.01; });
@@ -80,7 +101,7 @@
     check('pause', 'P resumes back to playing', w.SY.game.phase === 'playing' && !visible(d, 'screen-pause'));
 
     // ---------- scenario 4: game over screen (breakdown/sparkline/countdown) ----------
-    ({ w, d } = await freshPage());
+    ({ w, d } = await freshGame());
     let overRes = null;
     const orig = w.SY.game.events.onGameOver;
     w.SY.game.events.onGameOver = (res) => { overRes = res; if (orig) orig(res); };
@@ -113,7 +134,7 @@
     const spark = d.getElementById('over-spark');
     const px = spark.getContext('2d').getImageData(0, 0, spark.width, spark.height).data;
     check('over', 'sparkline canvas is not blank', px.some((v) => v !== 0));
-    check('over', 'daily record was saved this time', !!(await w.SY.store.loadAll()).dailyBest);
+    check('over', 'daily record was saved this time', !!(await w.SY.store.forGame("zerohour").loadAll()).dailyBest);
     d.getElementById('btn-retry').click();
     await sleep(150);
     check('over', 'RETRY hides countdown (interval cleaned up)', cd.style.display === 'none' && !visible(d, 'screen-over'));
@@ -140,7 +161,7 @@
     stepTo(w, 'over', (g) => { if (g.state) g.state.timeLeft = 0.04; });
     await sleep(900);
     check('rollover', 'result carries the seed date', rollRes && rollRes.seedStr === 'daily-2099-01-01');
-    const rolled = await w.SY.store.loadAll(); // loadAll reads daily_<todayUTC()>
+    const rolled = await w.SY.store.forGame("zerohour").loadAll(); // loadAll reads daily_<todayUTC()>
     check('rollover', 'record saved under the NEW day key, streak intact',
       rolled.dailyBest && rolled.dailyBest.score === rollRes.score,
       JSON.stringify(rolled.dailyBest));
