@@ -359,7 +359,9 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
 .medal.earned { border-color: var(--teal); box-shadow: 0 0 10px rgba(45,226,198,0.25); }
 .medal.locked { border-color: rgba(159,245,232,0.18); color: rgba(159,245,232,0.3); }
 .medal.is-new { border-color: var(--amber); color: var(--amber); box-shadow: 0 0 14px rgba(255,195,77,0.6); animation: bestGlow 1s ease-in-out infinite alternate; }
-.medal-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+/* RECORDS achievements: equal-width 2-col grid so the badges align cleanly */
+.medal-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width: 100%; }
+.medal-grid .medal { justify-content: center; }
 
 /* ---------- pause / how-to ---------- */
 .pause-title {
@@ -391,12 +393,14 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
 #btn-mute { right: calc(var(--safe-right) + 10px); }
 #btn-fullscreen { right: calc(var(--safe-right) + 58px); display: none; }
 #btn-fullscreen.available { display: block; }
-#btn-pause { right: calc(var(--safe-right) + 106px); display: none; font-family: var(--mono); font-weight: 700; }
+/* pause shows only during play (mute/fullscreen are then hidden), so it takes
+   the flush corner slot — no floating gap. They never co-display. */
+#btn-pause { right: calc(var(--safe-right) + 10px); display: none; font-family: var(--mono); font-weight: 700; }
 @media (max-width: 600px) {
   #btn-mute, #btn-pause, #btn-fullscreen { width: 38px; height: 38px; font-size: 16px; }
   #btn-mute { right: calc(var(--safe-right) + 8px); }
   #btn-fullscreen { right: calc(var(--safe-right) + 52px); }
-  #btn-pause { right: calc(var(--safe-right) + 96px); }
+  #btn-pause { right: calc(var(--safe-right) + 8px); }
   #hud { padding-right: calc(var(--safe-right) + 138px); }
 }
 
