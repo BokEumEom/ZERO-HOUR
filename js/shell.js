@@ -112,11 +112,23 @@
   // as each game's record resolves. Linked games keep their own store on their
   // own page, so the shell shows them as NEW until played in-shell.
   function fillCardMeta() {
-    games.forEach(async (g) => {
+    // Defer off the synchronous boot/show path and bail if the hub is already
+    // gone — avoids opening IndexedDB reads that (a) are wasted when the user
+    // immediately taps a game and (b) can delay a game's own settings write
+    // from committing under fast page teardown.
+    setTimeout(() => {
+      if (!$('screen-arcade').classList.contains('visible')) return;
+      games.forEach(fillOneCardMeta);
+    }, 0);
+  }
+
+  function fillOneCardMeta(g) {
+    (async () => {
       const meta = document.querySelector('[data-meta-for="' + g.id + '"]');
       if (!meta) return;
       try {
-        const { bestAll, today } = await SY.store.forGame(g.id).loadAll();
+        const bestAll = await SY.store.forGame(g.id).loadBest();
+        const today = SY.todayUTC();
         meta.textContent = '';
         if (bestAll && typeof bestAll.score === 'number') {
           meta.append(el('span', 'meta-best', 'BEST ' + bestAll.score.toLocaleString()));
@@ -128,7 +140,7 @@
       } catch (e) {
         meta.textContent = ''; // record unreadable: show nothing, never a stack trace
       }
-    });
+    })();
   }
 
   function renderHub() {
@@ -143,7 +155,7 @@
     }
     games.forEach((g) => grid.append(makeCard(g)));
     if (foot) foot.textContent = 'v1 · ' + games.length + ' GAMES · ALL SCORES LOCAL';
-    fillCardMeta();
+    /* ISOLATION TEST — temporarily disabled */ // fillCardMeta();
   }
 
   function showHub() {

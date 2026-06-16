@@ -101,6 +101,8 @@
           const [bestAll, daily] = await Promise.all([kvGet(k('best_all')), kvGet(k('daily_' + today))]);
           return { bestAll: bestAll || null, dailyBest: daily || null, today };
         },
+        // lighter than loadAll() for the hub card scent: one read, best only
+        async loadBest() { return (await kvGet(k('best_all'))) || null; },
         saveBestAll(rec) { return kvSet(k('best_all'), rec); },
         saveDaily(date, rec) { return kvSet(k('daily_' + date), rec); },
         async loadRecentDailies(n) {
