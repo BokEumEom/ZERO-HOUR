@@ -2,7 +2,8 @@
 
 이 프로젝트의 기술 설계 개요. 흩어진 결정 기록([docs/adr/](docs/adr/))을 하나의
 아키텍처 그림으로 묶는다. 빠른 규칙은 [AGENT.md](AGENT.md), 평가 기준은
-[rubric.md](rubric.md), 함정 모음은 [LEARNINGS.md](LEARNINGS.md) 참조.
+[rubric.md](rubric.md), 함정 모음은 [LEARNINGS.md](LEARNINGS.md),
+디자인 시스템(토큰·컴포넌트·접근성)은 [docs/design-system.md](docs/design-system.md) 참조.
 
 ---
 
@@ -23,22 +24,26 @@
 ## 2. 아키텍처 개요
 
 모든 JS 모듈은 IIFE로 `window.SY` 네임스페이스에 붙는다. `index.html`의 스크립트 로드
-순서가 의존성 순서다: **`store → audio → game → render → main`**.
+순서가 의존성 순서다: **`store → audio → shell → game → render → medals → main`**.
+공용 플랫폼(`js/`)과 게임별 모듈(`js/games/<id>/`)을 분리한다 ([ADR-0008](docs/adr/0008-arcade-platform-shell.md)).
 
 ```
-                      window.SY
-   ┌──────────┬──────────┬──────────┬──────────┬──────────┐
-   │ store    │ audio    │ game     │ render   │ main      │
-   │ (RNG +   │ (WebAudio│ (engine: │ (Canvas  │ (UI glue: │
-   │  Indexed │  SFX +   │  state/  │  2D draw,│  loop·HUD·│
-   │  DB)     │  haptics)│  sim/AI) │  hot path)│  screens) │
-   └────┬─────┴────┬─────┴────┬─────┴────┬─────┴─────┬─────┘
-        │          │          │          │           │
-        └── SY.makeRng    SY.audio   SY.game     SY.render   (+ DOM,
-            SY.store                 SY.tweaks                  css/style.css)
-                                     SY.input
+                                 window.SY
+   ── 공용 플랫폼 (js/) ──────────────┐   ── 게임별 (js/games/zerohour/) ──────────────┐
+   ┌──────────┬──────────┬──────────┐ │ ┌──────────┬──────────┬──────────┬──────────┐
+   │ store    │ audio    │ shell    │ │ │ game     │ render   │ medals   │ main      │
+   │ (RNG +   │ (WebAudio│ (레지스트리│ │ │ (engine: │ (Canvas  │ (티어 +  │ (등록·UI  │
+   │  Indexed │  SFX +   │ ·rAF 루프│ │ │  state/  │  2D draw,│  배지)   │  글루:HUD·│
+   │  DB)     │  haptics)│ ·fit·허브)│ │ │  sim/AI) │  hot path)│         │  화면)    │
+   └────┬─────┴────┬─────┴────┬─────┘ │ └────┬─────┴────┬─────┴────┬─────┴────┬─────┘
+        │          │   활성 게임의   │      │          │          │          │
+        │          │   frame(dt,ctx)─┼──────┘          │          │          │
+        └ SY.makeRng/SY.store  SY.audio          SY.game     SY.render   SY.tweaks/SY.input
+                                                 (+ DOM, css/{tokens,style}.css)
 ```
 
+- **공용 vs 게임별**: `store`·`audio`·`shell`은 게임 무관(`js/`). `shell`이 레지스트리·rAF
+  루프·레이아웃·게임 선택 허브·라우팅을 소유하고 매 틱 활성 게임의 `frame(dt,ctx)`만 호출한다.
 - **레이어 경계**: `game.js`는 순수 시뮬레이션(DOM·canvas 무지). `render.js`는 읽기 전용
   그리기(상태 변경 안 함). `main.js`만 DOM·IndexedDB·입력을 만진다. UI 차트(스파크라인)는
   game 캔버스가 아니므로 `main.js` 소속이다.
@@ -49,15 +54,16 @@
 
 ## 3. 런타임 모델
 
-### 게임 루프 (`main.js`)
+### 게임 루프 (rAF는 `shell.js`, 프레임 작업은 게임의 `frame`)
 ```
-requestAnimationFrame(loop):
-  dt = min(1/30, elapsed)      // 탭 복귀 시 시간 점프 방지 클램프
-  G.update(dt)                 // 시뮬레이션 1틱
-  SY.render(ctx)               // 프레임 그리기
-  updateHud()                  // HUD DOM 갱신
+shell.js  requestAnimationFrame(loop):
+  dt = min(1/30, elapsed)         // 탭 복귀 시 시간 점프 방지 클램프
+  active.frame(dt, ctx)           // 활성 게임에 위임 (zerohour/main.js):
+    G.update(dt)                  //   시뮬레이션 1틱
+    SY.render(ctx)                //   프레임 그리기
+    updateHud()                   //   HUD DOM 갱신
 ```
-루프는 항상 돈다. 멈춤은 phase로 표현한다(루프 중단이 아님).
+셸 루프는 항상 돈다. 멈춤은 phase로 표현한다(루프 중단이 아님).
 
 ### Phase 상태머신 (`G.phase`) — [ADR-0003](docs/adr/0003-pause-system-and-quit-semantics.md)
 ```
@@ -92,7 +98,15 @@ requestAnimationFrame(loop):
 - **햅틱**(모바일): `buzz(pattern)`이 `navigator.vibrate` 가드 + 설정 게이트.
   hit/shieldPop/bossDown/gameOver에 연결. `setHaptics/hapticsOn`.
 
-### `js/game.js` — 엔진 (시뮬레이션의 단일 출처)
+### `js/shell.js` — 아케이드 셸 (게임 무관) — [ADR-0008](docs/adr/0008-arcade-platform-shell.md)
+- **레지스트리**: `SY.registerGame({id,title,blurb,accent,enter,exit,frame})`. 허브
+  (`renderHub`)가 등록 게임을 카드로 렌더 — 카드 정보(BEST·플레이 상태)는 `SY.store`에서
+  읽고, 게임 미등록/로드 실패 시 빈 상태 패널을 띄운다.
+- **공용 rAF 루프**: 매 틱 활성 게임의 `frame(dt,ctx)`만 호출. **반응형 `fit()`**(스케일 +
+  세로 90° 회전, `SY.layout`)도 셸 소속. 링크 게임 진입은 `#viewport` 페이드아웃 후 이동.
+- **라우팅**: `enterGame/exitToHub`. 링크 게임(`href`)은 자체 페이지로 이동.
+
+### `js/games/zerohour/game.js` — 엔진 (시뮬레이션의 단일 출처)
 - `freshState(mode, seed)`가 런 상태 전체를 생성(§5). `G.update(dt)`가 한 틱.
 - 스폰/드랍/확률은 **전부 `s.rng()`** — 공정성 핵심. `Math.random()`은 코스메틱 전용
   (파티클·흔들림·보스 사망 연출). tripwire 테스트가 baseline 고정.
@@ -101,17 +115,22 @@ requestAnimationFrame(loop):
   불변식 유지(§6).
 - 보스 AI: 등장(`bossWarnT`) → 진입 → 스웨이/사격 → 격파 시 `dying` 타이머 → 폭발+1500.
 
-### `js/render.js` — Canvas 2D 렌더러 (60fps 핫패스)
+### `js/games/zerohour/render.js` — Canvas 2D 렌더러 (60fps 핫패스)
 - `SY.render(ctx)`가 매 프레임 호출. 그리기 순서: 배경/그리드 → 웨이브 → 크리스털/바위/
   파워업/기뢰 → 총알 → 보스/플레이어 → 파티클 → 플로팅 텍스트 → 배너/카운트다운.
 - 화면 흔들림은 `ctx.translate`로, slow-mo 틴트는 배경 오버레이로.
 - **성능 규칙**: 프레임 루프 내 신규 할당(객체/배열/클로저) 금지. 변경 후
   `performance-analyzer` 에이전트로 점검.
 
-### `js/main.js` — UI 글루
-- 게임 루프, HUD DOM 갱신, 화면 전환(`show()` — 인터벌 정리 중앙화), 기록 저장,
-  공유 텍스트, 결과 스파크라인, 카운트다운, 터치 조이스틱, **반응형 레이아웃 `fit()`**.
+### `js/games/zerohour/medals.js` — 메달 & 점수 티어 — [ADR-0009](docs/adr/0009-medals-and-tiers.md)
+- 런 결과 → 랭크(Recruit/Pilot/Ace/Legend) + 달성 메달 판정. `SY.store.forGame(id)`의
+  `loadMedals/addMedals`로 평생 메달 누적(타임스탬프 없이 id 집합).
+
+### `js/games/zerohour/main.js` — UI 글루
+- HUD DOM 갱신, 화면 전환(`show()` — 인터벌 정리 중앙화), 기록 저장,
+  공유 텍스트, 결과 스파크라인, 카운트다운, 터치 조이스틱.
 - 화면 단축키는 phase가 아닌 **DOM visibility**로 가드(over 화면은 650ms 지연 표시).
+- 셸이 호출하는 `enter/exit/frame`을 등록(`SY.registerGame`).
 
 ---
 
@@ -225,3 +244,6 @@ push → Vercel (https://zero-hour-seven.vercel.app), dev 파일은 `.verceligno
 | [0004](docs/adr/0004-daily-records-filed-by-seed-date.md) | 시드 날짜 기반 기록 귀속 |
 | [0005](docs/adr/0005-zero-dependency-test-strategy.md) | 의존성 0 테스트 전략 |
 | [0006](docs/adr/0006-mobile-first-scaled-canvas-unscaled-ui.md) | 모바일 First — 스케일 캔버스/비스케일 UI |
+| [0007](docs/adr/0007-records-screen-and-arena-hud.md) | RECORDS 화면 + 아레나 HUD를 DOM 오버레이로 |
+| [0008](docs/adr/0008-arcade-platform-shell.md) | 아케이드 플랫폼 — 게임 레지스트리 + 공용 셸 |
+| [0009](docs/adr/0009-medals-and-tiers.md) | Zero Hour 메달 & 점수 티어 |

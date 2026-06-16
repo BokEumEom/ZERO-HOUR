@@ -69,6 +69,7 @@
 | `Process.WaitForExit(timeout)` 후 `ExitCode`가 null | `HasExited` 확인 후 **인자 없는** `WaitForExit()` 한 번 더 |
 | `$profile`은 자동 변수 — 대입 시 부작용 | 변수명 회피 (`$edgeProfile`) |
 | **`Start-Process -PassThru`의 `.ExitCode`가 `$null`** → `exit $null` = exit 0. E2E가 실패해도 스위트가 ALL PASS로 통과되는 침묵 버그(여러 커밋 동안 게이트가 무력) | Start-Process 직후 `$server.Handle \| Out-Null`로 핸들 캐시 후 `WaitForExit()` → `.ExitCode` 신뢰 가능. null이면 명시적 실패 처리 |
+| **대소문자 미구분 파일시스템(`/mnt/c`, Windows): `DESIGN.md` ≡ `design.md`가 같은 파일** — 디자인 시스템 문서를 `DESIGN.md`로 만들면 아키텍처 개요(`design.md`)를 통째로 덮어씀 | 디자인 시스템 문서는 `docs/design-system.md`로 분리. 새 문서 생성 전 대소문자만 다른 기존 파일이 있는지 확인 |
 
 ## 7. Playwright / headless 검증
 

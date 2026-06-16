@@ -30,8 +30,13 @@ There is nothing to install or compile. Deployed to Vercel as a static site
 
 ## Architecture
 
-UI styles live in `css/style.css`. All JS modules are IIFEs on the `window.SY`
-namespace. Shared platform vs per-game ([ADR-0008](docs/adr/0008-arcade-platform-shell.md)):
+UI styles live in `css/style.css`; shared design tokens (palette, fonts,
+safe-area) in `css/tokens.css` — the single source of truth, loaded first. The
+design contract (tokens, components, a11y floor, new-game checklist) is
+[docs/design-system.md](docs/design-system.md). A game may keep its own art
+direction (e.g. Shepherd's Dog) while sharing platform chrome. All JS modules
+are IIFEs on the `window.SY` namespace. Shared platform vs per-game
+([ADR-0008](docs/adr/0008-arcade-platform-shell.md)):
 
 Shared (`js/`):
 - `js/store.js` — IndexedDB persistence + seeded RNG (`SY.makeRng`). Records are

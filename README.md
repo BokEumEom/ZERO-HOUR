@@ -74,7 +74,8 @@ Retro Arcade Shooter/
 ├── index.html                # 메인 진입점 (HTML/화면 마크업)
 ├── standalone.html           # 단일 파일 번들 버전 (생성 산출물 — 직접 수정 금지)
 ├── css/
-│   └── style.css             # 전체 UI 스타일
+│   ├── tokens.css            # 플랫폼 디자인 토큰 (팔레트·폰트·safe-area) — 단일 출처
+│   └── style.css             # 전체 UI 스타일 (tokens.css의 변수 사용)
 └── js/
     ├── store.js              # IndexedDB(게임별 네임스페이스) + 시드 RNG (xmur3 → mulberry32)
     ├── audio.js              # 사운드 효과 (Web Audio) + 햅틱

@@ -28,7 +28,8 @@
 | 파일 | 책임 | 주의 |
 |---|---|---|
 | `index.html` | 마크업·화면 DOM | 인라인 `<style>` 금지, 인라인 `style=` 예산 ≤6 |
-| `css/style.css` | 전체 UI 스타일 단일 출처 | 기본 `display:none` 요소는 JS에서 `'block'` 명시 토글 |
+| `css/tokens.css` | 플랫폼 디자인 토큰 (팔레트·폰트·safe-area) | 단일 출처. `style.css`보다 먼저 로드. 게임별 정체성은 자체 `:root`로 오버라이드 가능 ([docs/design-system.md](docs/design-system.md)) |
+| `css/style.css` | 전체 UI 스타일 | 토큰은 `tokens.css`. 기본 `display:none` 요소는 JS에서 `'block'` 명시 토글 |
 | `js/store.js` | IndexedDB + 시드 RNG + 날짜 유틸 | 기록은 게임별 `SY.store.forGame(id)`; 공용 `settings`만 전역. UTC 경계는 `Date.UTC` |
 | `js/audio.js` | Web Audio SFX + 햅틱 | 게임 무관 공용 |
 | `js/shell.js` | 아케이드 셸: 레지스트리·rAF 루프·`fit`·허브·라우팅 | 게임 무관. 활성 게임의 `frame(dt,ctx)`만 호출 |
