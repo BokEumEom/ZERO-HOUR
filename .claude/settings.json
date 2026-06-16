@@ -18,6 +18,10 @@
           {
             "type": "command",
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/remind-standalone-stale.ps1"
+          },
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/check-js-syntax.ps1"
           }
         ]
       }
