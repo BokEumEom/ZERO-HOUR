@@ -10,7 +10,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const read = (f) => readFileSync(path.join(root, f), 'utf8');
 
 const ZH = 'js/games/zerohour';
-const CORE = ['js/store.js', 'js/audio.js', 'js/shell.js', `${ZH}/game.js`, `${ZH}/render.js`, `${ZH}/main.js`];
+const CORE = ['js/store.js', 'js/audio.js', 'js/shell.js', `${ZH}/game.js`, `${ZH}/render.js`, `${ZH}/medals.js`, `${ZH}/main.js`];
 
 test('game core stays React-free', () => {
   for (const f of CORE) {
@@ -58,9 +58,9 @@ test('sparkline stays out of render.js (render.js is game-canvas only)', () => {
 test('innerHTML sinks in main.js only receive fmt()/fixed-format values', () => {
   const src = read(`${ZH}/main.js`);
   const sinkLines = src.split('\n').filter((l) => l.includes('.innerHTML'));
-  // exactly the known sinks (fx badges, over-stats, menu-week, records-body);
-  // adding a new one forces a review here
-  assert.equal(sinkLines.length, 4, `innerHTML sinks changed: ${JSON.stringify(sinkLines)}`);
+  // known sinks: fx badges, over-stats, over-medals (reset + set), menu-week,
+  // records-body — all fed constants/fmt(); adding a new one forces a review here
+  assert.equal(sinkLines.length, 6, `innerHTML sinks changed: ${JSON.stringify(sinkLines)}`);
   // the day-cell title only embeds d.date (toISOString slice) and a coerced number
   assert.match(src, /title="' \+ d\.date \+ \(d\.rec \? ' · ' \+ fmt\(Number\(d\.rec\.score\) \|\| 0\) : ''\)/);
 });
@@ -69,5 +69,5 @@ test('script load order in index.html is store -> audio -> game -> render -> mai
   const html = read('index.html');
   // match basenames regardless of folder (zerohour modules live under js/games/zerohour/)
   const order = [...html.matchAll(/<script src="js[^"]*\/([a-z-]+)\.js">/g)].map((m) => m[1]);
-  assert.deepEqual(order, ['store', 'audio', 'shell', 'game', 'render', 'main']);
+  assert.deepEqual(order, ['store', 'audio', 'shell', 'game', 'render', 'medals', 'main']);
 });

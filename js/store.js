@@ -118,6 +118,14 @@
           while (streak < 365 && (await kvGet(k('daily_' + utcDateMinus(offset + streak))))) streak++;
           return streak;
         },
+        // lifetime medals: set of unlocked ids (no stored timestamps)
+        async loadMedals() { return (await kvGet(k('medals'))) || []; },
+        async addMedals(ids) {
+          const set = new Set((await kvGet(k('medals'))) || []);
+          const added = ids.filter((id) => !set.has(id));
+          if (added.length) { added.forEach((id) => set.add(id)); await kvSet(k('medals'), [...set]); }
+          return added; // newly unlocked this call
+        },
       };
     },
 

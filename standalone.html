@@ -334,6 +334,33 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
 .rec-day.empty .rec-day-score { color: rgba(234,246,255,0.25); }
 .rec-day .boss { color: var(--amber); margin-left: 6px; }
 
+/* ---------- rank + medals ---------- */
+#over-rank {
+  font-family: var(--pixel);
+  font-size: clamp(13px, 3.6vw, 17px);
+  letter-spacing: 0.12em;
+  color: var(--amber);
+  text-shadow: 0 0 14px rgba(255,195,77,0.6);
+}
+#over-rank.rank-recruit { color: var(--teal-soft); text-shadow: 0 0 12px rgba(159,245,232,0.5); }
+#over-rank.rank-pilot { color: var(--teal); text-shadow: 0 0 12px rgba(45,226,198,0.6); }
+#over-rank.rank-ace { color: var(--amber); text-shadow: 0 0 14px rgba(255,195,77,0.7); }
+#over-rank.rank-legend { color: var(--pink); text-shadow: 0 0 18px rgba(255,90,120,0.9); }
+
+#over-medals { display: none; flex-wrap: wrap; justify-content: center; gap: 8px; width: min(340px, 90vw); }
+.medal {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid rgba(45,226,198,0.5);
+  font-size: 11px; letter-spacing: 0.06em;
+  color: var(--teal-soft);
+}
+.medal-glyph { font-size: 13px; }
+.medal.earned { border-color: var(--teal); box-shadow: 0 0 10px rgba(45,226,198,0.25); }
+.medal.locked { border-color: rgba(159,245,232,0.18); color: rgba(159,245,232,0.3); }
+.medal.is-new { border-color: var(--amber); color: var(--amber); box-shadow: 0 0 14px rgba(255,195,77,0.6); animation: bestGlow 1s ease-in-out infinite alternate; }
+.medal-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
 /* ---------- pause / how-to ---------- */
 .pause-title {
   font-family: var(--pixel);
@@ -495,7 +522,9 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
           <p class="hud-label" style="font-size: 10px; margin-bottom: 8px;">FINAL SCORE</p>
           <p id="over-score">0</p>
         </div>
+        <div id="over-rank"></div>
         <span id="over-best-banner"><span id="over-best-label">NEW BEST!</span> ★</span>
+        <div id="over-medals"></div>
         <div id="over-stats"></div>
         <canvas id="over-spark" width="320" height="60"></canvas>
         <div class="btn-row">
@@ -677,6 +706,14 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
           let streak = 0;
           while (streak < 365 && (await kvGet(k('daily_' + utcDateMinus(offset + streak))))) streak++;
           return streak;
+        },
+        // lifetime medals: set of unlocked ids (no stored timestamps)
+        async loadMedals() { return (await kvGet(k('medals'))) || []; },
+        async addMedals(ids) {
+          const set = new Set((await kvGet(k('medals'))) || []);
+          const added = ids.filter((id) => !set.has(id));
+          if (added.length) { added.forEach((id) => set.add(id)); await kvSet(k('medals'), [...set]); }
+          return added; // newly unlocked this call
         },
       };
     },
@@ -1023,6 +1060,7 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
       lastWholeSec: duration,
       collected: 0,
       breakdown: { crystals: 0, combo: 0, destruction: 0, boss: 0 },
+      tookDamage: false, // for the NO HIT medal (shield blocks don't count as damage)
     };
   }
 
@@ -1141,6 +1179,7 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
       return;
     }
     p.hp -= 1;
+    s.tookDamage = true; // a hull was actually lost (NO HIT medal forfeited)
     p.inv = 1.5;
     s.combo = 0; s.comboT = 0;
     s.freeze = Math.max(s.freeze, 0.18);
@@ -1225,6 +1264,7 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
       collected: s.collected, duration: s.duration,
       breakdown: { ...s.breakdown },
       seedStr: s.seedStr, // daily runs record under their seed's date, not "now"
+      noHit: !s.tookDamage,
     };
     SY.audio.gameOver();
     if (G.events.onGameOver) G.events.onGameOver(res);
@@ -1863,6 +1903,54 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
 
 </script>
   <script>
+// --- inlined: js/games/zerohour/medals.js ---
+// Zero Hour — score tiers (ranks) + medals. Pure logic, no DOM, so it is
+// unit-testable in isolation. Attaches to SY.zh.medals.
+(function () {
+  const SY = (window.SY = window.SY || {});
+
+  // Ranks by final score, highest first. Thresholds are tunable.
+  const TIERS = [
+    { id: 'legend', name: 'LEGEND', min: 5000 },
+    { id: 'ace', name: 'ACE', min: 3000 },
+    { id: 'pilot', name: 'PILOT', min: 1500 },
+    { id: 'recruit', name: 'RECRUIT', min: 0 },
+  ];
+  function rank(score) {
+    for (const t of TIERS) if (score >= t.min) return t;
+    return TIERS[TIERS.length - 1];
+  }
+
+  // Lean lifetime medal set. `cond` is pure: (res, ctx) -> bool.
+  const MEDALS = [
+    { id: 'boss', name: 'CORE WARDEN', glyph: '✦', desc: 'Defeat the Core Warden' },
+    { id: 'nohit', name: 'NO HIT', glyph: '◇', desc: 'Finish without taking a hit' },
+    { id: 'flawless', name: 'FLAWLESS', glyph: '★', desc: 'No hit + boss defeated' },
+    { id: 'combo25', name: 'COMBO ×25', glyph: '⚡', desc: 'Reach a ×25 combo' },
+    { id: 'legend', name: 'LEGEND', glyph: '♛', desc: 'Score 5,000+' },
+    { id: 'streak7', name: 'WEEK STREAK', glyph: '🔥', desc: '7-day daily streak' },
+  ];
+
+  // Returns the medal ids earned by a finished run. ctx carries cross-run state
+  // the result object doesn't (e.g., the current daily streak).
+  function evalRun(res, ctx) {
+    const streak = (ctx && ctx.streak) || 0;
+    const ids = [];
+    if (res.bossDown) ids.push('boss');
+    if (res.noHit) ids.push('nohit');
+    if (res.noHit && res.bossDown) ids.push('flawless');
+    if (res.maxCombo >= 25) ids.push('combo25');
+    if (rank(res.score).id === 'legend') ids.push('legend');
+    if (streak >= 7) ids.push('streak7');
+    return ids;
+  }
+
+  SY.zh = SY.zh || {};
+  SY.zh.medals = { TIERS, MEDALS, rank, evalRun };
+})();
+
+</script>
+  <script>
 // --- inlined: js/games/zerohour/main.js ---
 // Scoreyard — UI glue: loop, HUD, screens, records, share, touch
 (function () {
@@ -2007,12 +2095,36 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
     if (screenId !== 'screen-over') stopCountdown();
   }
 
+  // streak + medal persistence + result badges (async; doesn't block the screen)
+  async function applyMedals(res, isNewBest) {
+    const streak = await gameStore.computeStreak();
+    const earned = SY.zh.medals.evalRun(res, { streak });
+    const newly = await gameStore.addMedals(earned);
+    renderEarnedMedals(earned, newly);
+    if (newly.length && !isNewBest) SY.audio.powerup(); // new-medal jingle (newBest has its own)
+  }
+  // earned-medal badges on the result screen (newly-unlocked ones glow)
+  function renderEarnedMedals(earned, newly) {
+    const el = $('over-medals');
+    if (!earned.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
+    el.style.display = 'flex';
+    const isNew = new Set(newly);
+    el.innerHTML = earned.map((id) => {
+      const m = SY.zh.medals.MEDALS.find((x) => x.id === id);
+      return m ? '<span class="medal earned' + (isNew.has(id) ? ' is-new' : '') + '">' +
+        '<span class="medal-glyph">' + m.glyph + '</span>' +
+        '<span class="medal-name">' + m.name + (isNew.has(id) ? ' • NEW' : '') + '</span></span>' : '';
+    }).join('');
+  }
+
   // ---------- records screen ----------
   async function renderRecords() {
-    const [days, streak] = await Promise.all([
+    const [days, streak, owned] = await Promise.all([
       gameStore.loadRecentDailies(14),
       gameStore.computeStreak(),
+      gameStore.loadMedals(),
     ]);
+    const ownedSet = new Set(owned);
     const b = recs.bestAll;
     let html = '<div><div class="rec-section-title">ALL-TIME BEST</div>';
     if (b) {
@@ -2026,6 +2138,11 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
     if (streak > 0) {
       html += '<div class="rec-streak">🔥 STREAK ' + streak + (streak === 1 ? ' DAY' : ' DAYS') + '</div>';
     }
+    html += '<div><div class="rec-section-title">ACHIEVEMENTS</div><div class="medal-grid">' +
+      SY.zh.medals.MEDALS.map((m) =>
+        '<span class="medal ' + (ownedSet.has(m.id) ? 'earned' : 'locked') + '" title="' + m.desc + '">' +
+        '<span class="medal-glyph">' + m.glyph + '</span>' +
+        '<span class="medal-name">' + m.name + '</span></span>').join('') + '</div></div>';
     html += '<div><div class="rec-section-title">LAST 14 DAYS (UTC)</div>';
     for (const d of days) { // newest first
       if (d.rec) {
@@ -2160,6 +2277,14 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
     $('btn-share').style.display = res.mode === 'daily' ? '' : 'none';
     $('btn-share').textContent = 'COPY RESULT';
     $('over-mode').textContent = res.mode === 'daily' ? 'DAILY \u00b7 ' + recs.today : 'FREE PLAY';
+
+    // rank is synchronous (deterministic); medals persist asynchronously so the
+    // IndexedDB round-trip never delays the result screen / countdown
+    const r = SY.zh.medals.rank(res.score);
+    $('over-rank').textContent = 'RANK \u00b7 ' + r.name;
+    $('over-rank').className = 'rank-' + r.id;
+    $('over-medals').style.display = 'none';
+    applyMedals(res, isNewBest);
 
     renderMenuStats();
     renderDailyHistory();

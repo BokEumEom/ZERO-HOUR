@@ -60,6 +60,7 @@
       lastWholeSec: duration,
       collected: 0,
       breakdown: { crystals: 0, combo: 0, destruction: 0, boss: 0 },
+      tookDamage: false, // for the NO HIT medal (shield blocks don't count as damage)
     };
   }
 
@@ -178,6 +179,7 @@
       return;
     }
     p.hp -= 1;
+    s.tookDamage = true; // a hull was actually lost (NO HIT medal forfeited)
     p.inv = 1.5;
     s.combo = 0; s.comboT = 0;
     s.freeze = Math.max(s.freeze, 0.18);
@@ -262,6 +264,7 @@
       collected: s.collected, duration: s.duration,
       breakdown: { ...s.breakdown },
       seedStr: s.seedStr, // daily runs record under their seed's date, not "now"
+      noHit: !s.tookDamage,
     };
     SY.audio.gameOver();
     if (G.events.onGameOver) G.events.onGameOver(res);

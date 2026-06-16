@@ -2,7 +2,7 @@
 # prints results, exits with the server's pass/fail code.
 $ErrorActionPreference = 'Stop'
 $root = Resolve-Path "$PSScriptRoot\..\.."
-$port = 8419
+$port = Get-Random -Minimum 8500 -Maximum 8999 # random to avoid bind races on rapid reruns
 
 $server = Start-Process node -ArgumentList "`"$root\test\e2e\server.mjs`"", $port -NoNewWindow -PassThru
 $server.Handle | Out-Null # PS 5.1: cache the handle now, or .ExitCode reads back $null later

@@ -141,12 +141,36 @@
     if (screenId !== 'screen-over') stopCountdown();
   }
 
+  // streak + medal persistence + result badges (async; doesn't block the screen)
+  async function applyMedals(res, isNewBest) {
+    const streak = await gameStore.computeStreak();
+    const earned = SY.zh.medals.evalRun(res, { streak });
+    const newly = await gameStore.addMedals(earned);
+    renderEarnedMedals(earned, newly);
+    if (newly.length && !isNewBest) SY.audio.powerup(); // new-medal jingle (newBest has its own)
+  }
+  // earned-medal badges on the result screen (newly-unlocked ones glow)
+  function renderEarnedMedals(earned, newly) {
+    const el = $('over-medals');
+    if (!earned.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
+    el.style.display = 'flex';
+    const isNew = new Set(newly);
+    el.innerHTML = earned.map((id) => {
+      const m = SY.zh.medals.MEDALS.find((x) => x.id === id);
+      return m ? '<span class="medal earned' + (isNew.has(id) ? ' is-new' : '') + '">' +
+        '<span class="medal-glyph">' + m.glyph + '</span>' +
+        '<span class="medal-name">' + m.name + (isNew.has(id) ? ' • NEW' : '') + '</span></span>' : '';
+    }).join('');
+  }
+
   // ---------- records screen ----------
   async function renderRecords() {
-    const [days, streak] = await Promise.all([
+    const [days, streak, owned] = await Promise.all([
       gameStore.loadRecentDailies(14),
       gameStore.computeStreak(),
+      gameStore.loadMedals(),
     ]);
+    const ownedSet = new Set(owned);
     const b = recs.bestAll;
     let html = '<div><div class="rec-section-title">ALL-TIME BEST</div>';
     if (b) {
@@ -160,6 +184,11 @@
     if (streak > 0) {
       html += '<div class="rec-streak">🔥 STREAK ' + streak + (streak === 1 ? ' DAY' : ' DAYS') + '</div>';
     }
+    html += '<div><div class="rec-section-title">ACHIEVEMENTS</div><div class="medal-grid">' +
+      SY.zh.medals.MEDALS.map((m) =>
+        '<span class="medal ' + (ownedSet.has(m.id) ? 'earned' : 'locked') + '" title="' + m.desc + '">' +
+        '<span class="medal-glyph">' + m.glyph + '</span>' +
+        '<span class="medal-name">' + m.name + '</span></span>').join('') + '</div></div>';
     html += '<div><div class="rec-section-title">LAST 14 DAYS (UTC)</div>';
     for (const d of days) { // newest first
       if (d.rec) {
@@ -294,6 +323,14 @@
     $('btn-share').style.display = res.mode === 'daily' ? '' : 'none';
     $('btn-share').textContent = 'COPY RESULT';
     $('over-mode').textContent = res.mode === 'daily' ? 'DAILY \u00b7 ' + recs.today : 'FREE PLAY';
+
+    // rank is synchronous (deterministic); medals persist asynchronously so the
+    // IndexedDB round-trip never delays the result screen / countdown
+    const r = SY.zh.medals.rank(res.score);
+    $('over-rank').textContent = 'RANK \u00b7 ' + r.name;
+    $('over-rank').className = 'rank-' + r.id;
+    $('over-medals').style.display = 'none';
+    applyMedals(res, isNewBest);
 
     renderMenuStats();
     renderDailyHistory();

@@ -125,3 +125,22 @@ test('migrate is a no-op on a fresh install (no legacy keys)', async () => {
   await flushMicrotasks();
   assert.equal((await gs(sb).loadAll()).bestAll, null);
 });
+
+test('addMedals merges, dedups, and reports only newly unlocked ids', async () => {
+  const sb = freshStore();
+  let added = await gs(sb).addMedals(['boss', 'nohit']);
+  await flushMicrotasks();
+  assert.deepEqual(Array.from(added).sort(), ['boss', 'nohit'], 'first call unlocks both');
+  added = await gs(sb).addMedals(['nohit', 'legend']); // nohit already owned
+  await flushMicrotasks();
+  assert.deepEqual(Array.from(added), ['legend'], 'only the new one is reported');
+  const all = await gs(sb).loadMedals();
+  assert.deepEqual(Array.from(all).sort(), ['boss', 'legend', 'nohit']);
+});
+
+test('medals are isolated per game id', async () => {
+  const sb = freshStore();
+  await sb.SY.store.forGame('zerohour').addMedals(['boss']);
+  await flushMicrotasks();
+  assert.equal((await sb.SY.store.forGame('shepherd').loadMedals()).length, 0);
+});
