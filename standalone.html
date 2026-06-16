@@ -975,9 +975,12 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
 
   SY.shell = {
     enterGame(id) {
-      active = games.find((g) => g.id === id) || null;
+      const g = games.find((x) => x.id === id);
+      if (!g) return;
+      if (g.href) { window.location.href = g.href; return; } // linked game: open its own page
+      active = g;
       $('screen-arcade').classList.remove('visible');
-      if (active && active.enter) active.enter();
+      if (active.enter) active.enter();
     },
     exitToHub() {
       if (active && active.exit) active.exit();
@@ -2540,6 +2543,26 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
     accent: '#2de2c6',
     enter, exit, frame,
     pause: pauseGame, resume: resumeGame,
+  });
+})();
+
+</script>
+  <script>
+// --- inlined: js/games/shepards-dog/register.js ---
+// Registers Shepherd's Dog as a "linked" arcade game: the hub card opens its
+// own standalone page (js/games/shepards-dog/index.html). The game keeps its
+// own loop / canvas / persistence — the shell just lists and links it.
+// Skipped when opened as the offline single-file build (file://), where the
+// separate page is unreachable.
+(function () {
+  const SY = (window.SY = window.SY || {});
+  if (location.protocol === 'file:') return;
+  SY.registerGame({
+    id: 'shepherd',
+    title: "SHEPHERD'S DOG",
+    blurb: 'A PASTORAL HERDING GAME · HERD THEM HOME',
+    accent: '#e8a33d',
+    href: 'js/games/shepards-dog/index.html',
   });
 })();
 

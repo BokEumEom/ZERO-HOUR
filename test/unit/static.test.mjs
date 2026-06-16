@@ -10,7 +10,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const read = (f) => readFileSync(path.join(root, f), 'utf8');
 
 const ZH = 'js/games/zerohour';
-const CORE = ['js/store.js', 'js/audio.js', 'js/shell.js', `${ZH}/game.js`, `${ZH}/render.js`, `${ZH}/medals.js`, `${ZH}/main.js`];
+const CORE = ['js/store.js', 'js/audio.js', 'js/shell.js', `${ZH}/game.js`, `${ZH}/render.js`, `${ZH}/medals.js`, `${ZH}/main.js`,
+  'js/games/shepards-dog/register.js'];
 
 test('game core stays React-free', () => {
   for (const f of CORE) {
@@ -69,5 +70,5 @@ test('script load order in index.html is store -> audio -> game -> render -> mai
   const html = read('index.html');
   // match basenames regardless of folder (zerohour modules live under js/games/zerohour/)
   const order = [...html.matchAll(/<script src="js[^"]*\/([a-z-]+)\.js">/g)].map((m) => m[1]);
-  assert.deepEqual(order, ['store', 'audio', 'shell', 'game', 'render', 'medals', 'main']);
+  assert.deepEqual(order, ['store', 'audio', 'shell', 'game', 'render', 'medals', 'main', 'register']);
 });

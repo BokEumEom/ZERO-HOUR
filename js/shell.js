@@ -80,9 +80,12 @@
 
   SY.shell = {
     enterGame(id) {
-      active = games.find((g) => g.id === id) || null;
+      const g = games.find((x) => x.id === id);
+      if (!g) return;
+      if (g.href) { window.location.href = g.href; return; } // linked game: open its own page
+      active = g;
       $('screen-arcade').classList.remove('visible');
-      if (active && active.enter) active.enter();
+      if (active.enter) active.enter();
     },
     exitToHub() {
       if (active && active.exit) active.exit();

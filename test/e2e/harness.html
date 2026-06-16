@@ -47,6 +47,8 @@
     check('hub', 'boots into the arcade hub', visible(d, 'screen-arcade'));
     const card = d.querySelector('.game-card[data-id="zerohour"]');
     check('hub', 'Zero Hour card is listed', !!card && /ZERO HOUR/.test(card.textContent));
+    const shep = d.querySelector('.game-card[data-id="shepherd"]'); // linked game (don't click — it navigates away)
+    check('hub', "Shepherd's Dog card is listed (linked)", !!shep && /SHEPHERD/.test(shep.textContent));
     await enterZH(w, d);
     check('hub', 'tapping the card enters Zero Hour (menu)', visible(d, 'screen-menu') && !visible(d, 'screen-arcade'));
     d.getElementById('btn-arcade').click();
