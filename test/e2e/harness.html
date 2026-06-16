@@ -16,7 +16,18 @@
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   function freshPage() {
     return new Promise((resolve) => {
-      f.addEventListener('load', () => setTimeout(() => resolve({ w: f.contentWindow, d: f.contentDocument }), 600), { once: true });
+      f.addEventListener('load', async () => {
+        // Wait until the shell has actually booted the hub, not a fixed delay:
+        // cold filesystem reads (e.g. /mnt/c under WSL) can push boot past any
+        // blind timeout. Cap generously so a genuine boot failure still reports.
+        for (let t = 0; t < 5000; t += 50) {
+          const w = f.contentWindow, d = f.contentDocument;
+          const hub = d && d.getElementById('screen-arcade');
+          if (w && w.SY && w.SY.shell && hub && hub.classList.contains('visible')) break;
+          await sleep(50);
+        }
+        resolve({ w: f.contentWindow, d: f.contentDocument });
+      }, { once: true });
       f.src = '/?' + Math.random();
     });
   }

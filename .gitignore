@@ -17,3 +17,6 @@ __test-harness.html
 .playwright-mcp/
 *.playwright-mcp.png
 portrait-*.png
+
+# WSL e2e Stop-hook pass marker (runtime artifact)
+.claude/.e2e-last-pass
