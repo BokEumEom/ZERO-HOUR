@@ -1,0 +1,22 @@
+/* Scoreyard platform design tokens — the single source of truth for the
+   shared shell + neon/CRT games (Zero Hour, future arcade titles).
+   See DESIGN.md for usage rules. A game MAY define its own :root tokens to
+   carry a distinct art direction (e.g. Shepherd's Dog's pastoral palette) —
+   these are the *platform* defaults, not a mandate. */
+:root {
+  --bg: #04090f;
+  --panel: #081420;
+  --teal: #2de2c6;
+  --teal-soft: #9ff5e8;
+  --teal-dim: #0fae97;
+  --pink: #ff5a78;
+  --amber: #ffc34d;
+  --blue: #5aa7ff;
+  --ink: #eaf6ff;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --pixel: "Press Start 2P", var(--mono);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}

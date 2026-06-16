@@ -14,6 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;family=IBM+Plex+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -65,7 +66,13 @@
       <div id="hit-flash"></div>
 
       <div id="screen-arcade" class="screen" data-screen-label="Arcade">
+        <header id="arcade-head">
+          <h1 class="arcade-wordmark">SCORE<br>YARD</h1>
+          <p class="arcade-tagline">PICK A MACHINE</p>
+          <p class="kr-sub">한 판 하실래요 · 점수는 이 기기에만 저장됩니다</p>
+        </header>
         <div id="arcade-grid"></div>
+        <p id="arcade-foot" class="arcade-foot"></p>
       </div>
 
       <div id="screen-menu" class="screen" data-screen-label="Main Menu">

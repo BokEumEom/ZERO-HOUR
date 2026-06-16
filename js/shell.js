@@ -59,15 +59,91 @@
   document.addEventListener('fullscreenchange', fit);
 
   // ---------- game-select hub ----------
+  // "best set N days ago" as a lightweight last-played proxy (best_all.date),
+  // so no new persistence is needed. Cosmetic only — never gameplay state.
+  function fmtPlayed(dateStr, today) {
+    if (!dateStr) return '';
+    const d = Date.parse(dateStr + 'T00:00:00Z');
+    const t = Date.parse(today + 'T00:00:00Z');
+    if (isNaN(d) || isNaN(t)) return '';
+    const days = Math.round((t - d) / 86400000);
+    if (days <= 0) return '오늘';
+    if (days === 1) return '어제';
+    return days + '일 전';
+  }
+
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
+  function makeCard(g) {
+    const btn = el('button', 'game-card');
+    btn.type = 'button';
+    btn.setAttribute('data-id', g.id);
+    btn.style.setProperty('--c', g.accent || '#2de2c6');
+    btn.append(
+      el('span', 'game-card-title', g.title),
+      el('span', 'game-card-blurb', g.blurb),
+      el('span', 'game-card-meta', '…') // '…' is the loading state until the record resolves
+    );
+    btn.lastChild.setAttribute('data-meta-for', g.id);
+    btn.addEventListener('click', () => SY.shell.enterGame(g.id));
+    return btn;
+  }
+
+  function makeEmptyState() {
+    const box = el('div', 'hub-empty');
+    const reload = el('button', 'arcade-btn primary', '↻ RELOAD');
+    reload.type = 'button';
+    reload.addEventListener('click', () => location.reload());
+    box.append(
+      el('span', 'hub-empty-glyph', '▢'),
+      el('span', 'hub-empty-title', 'NO MACHINES YET'),
+      el('span', 'hub-empty-msg', '게임을 불러오지 못했어요. 연결을 확인하고 새로고침 해보세요.'),
+      reload
+    );
+    return box;
+  }
+
+  // Async card scent: cards render immediately, then BEST / play-status fills in
+  // as each game's record resolves. Linked games keep their own store on their
+  // own page, so the shell shows them as NEW until played in-shell.
+  function fillCardMeta() {
+    games.forEach(async (g) => {
+      const meta = document.querySelector('[data-meta-for="' + g.id + '"]');
+      if (!meta) return;
+      try {
+        const { bestAll, today } = await SY.store.forGame(g.id).loadAll();
+        meta.textContent = '';
+        if (bestAll && typeof bestAll.score === 'number') {
+          meta.append(el('span', 'meta-best', 'BEST ' + bestAll.score.toLocaleString()));
+          const played = fmtPlayed(bestAll.date, today);
+          if (played) meta.append(el('span', 'meta-played', ' · ' + played));
+        } else {
+          meta.append(el('span', 'meta-new', 'NEW · 처음이에요'));
+        }
+      } catch (e) {
+        meta.textContent = ''; // record unreadable: show nothing, never a stack trace
+      }
+    });
+  }
+
   function renderHub() {
-    $('arcade-grid').innerHTML = games.map((g) =>
-      '<button class="game-card" data-id="' + g.id + '" type="button" style="--c:' + (g.accent || '#2de2c6') + '">' +
-      '<span class="game-card-title">' + g.title + '</span>' +
-      '<span class="game-card-blurb">' + g.blurb + '</span>' +
-      '</button>'
-    ).join('');
-    $('arcade-grid').querySelectorAll('.game-card').forEach((el) =>
-      el.addEventListener('click', () => SY.shell.enterGame(el.getAttribute('data-id'))));
+    const grid = $('arcade-grid');
+    const foot = $('arcade-foot');
+    grid.textContent = '';
+    // Fail-safe empty state: games never registered (script/CDN failure) or none.
+    if (!games.length) {
+      grid.append(makeEmptyState());
+      if (foot) foot.textContent = '';
+      return;
+    }
+    games.forEach((g) => grid.append(makeCard(g)));
+    if (foot) foot.textContent = 'v1 · ' + games.length + ' GAMES · ALL SCORES LOCAL';
+    fillCardMeta();
   }
 
   function showHub() {
@@ -82,7 +158,17 @@
     enterGame(id) {
       const g = games.find((x) => x.id === id);
       if (!g) return;
-      if (g.href) { window.location.href = g.href; return; } // linked game: open its own page
+      if (g.href) { // linked game: open its own page, fading out first to avoid a hard cut
+        const vp = $('viewport');
+        const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (vp && !reduce) {
+          vp.classList.add('leaving');
+          setTimeout(() => { window.location.href = g.href; }, 220);
+        } else {
+          window.location.href = g.href;
+        }
+        return;
+      }
       active = g;
       $('screen-arcade').classList.remove('visible');
       if (active.enter) active.enter();

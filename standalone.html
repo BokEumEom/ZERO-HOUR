@@ -15,11 +15,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;family=IBM+Plex+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
 <style>
-/* --- inlined: css/style.css --- */
-/* Scoreyard - all UI styles (game canvas rendering lives in js/render.js)
-   Mobile-first layout (ADR-0006): #stage (canvas+crt) is the ONLY scaled
-   element; HUD / screens / buttons are viewport-level fixed DOM that never
-   scale - they adapt via clamp(), flex-wrap and safe-area insets. */
+/* --- inlined: css/tokens.css --- */
+/* Scoreyard platform design tokens — the single source of truth for the
+   shared shell + neon/CRT games (Zero Hour, future arcade titles).
+   See DESIGN.md for usage rules. A game MAY define its own :root tokens to
+   carry a distinct art direction (e.g. Shepherd's Dog's pastoral palette) —
+   these are the *platform* defaults, not a mandate. */
 :root {
   --bg: #04090f;
   --panel: #081420;
@@ -37,6 +38,16 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
 }
+
+</style>
+<style>
+/* --- inlined: css/style.css --- */
+/* Scoreyard - all UI styles (game canvas rendering lives in js/render.js)
+   Mobile-first layout (ADR-0006): #stage (canvas+crt) is the ONLY scaled
+   element; HUD / screens / buttons are viewport-level fixed DOM that never
+   scale - they adapt via clamp(), flex-wrap and safe-area insets. */
+/* Design tokens live in css/tokens.css (the platform single source of truth),
+   loaded before this file. See DESIGN.md. */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { height: 100%; }
 body {
@@ -50,6 +61,9 @@ body {
 
 /* ---------- stage: the only scaled element (logical 960x600) ---------- */
 #viewport { position: fixed; inset: 0; touch-action: none; }
+/* launch fade: smooth the jump into a linked game's own page (no hard cut).
+   Suppressed under reduced-motion (see the reduced-motion block below). */
+#viewport.leaving { opacity: 0; transition: opacity 0.22s ease; }
 #stage {
   position: absolute;
   left: 0; top: 0;
@@ -222,7 +236,7 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
 #menu-date { font-size: 11px; color: rgba(159,245,232,0.5); letter-spacing: 0.1em; }
 
 .best-line { font-size: 12px; letter-spacing: 0.1em; color: rgba(159,245,232,0.65); }
-.controls-hint { font-size: 11px; letter-spacing: 0.1em; color: rgba(234,246,255,0.35); }
+.controls-hint { font-size: 11px; letter-spacing: 0.1em; color: rgba(234,246,255,0.62); }
 
 /* ---------- arcade hub (game select) ---------- */
 #arcade-grid { display: flex; flex-direction: column; gap: clamp(12px, 3vw, 18px); width: min(360px, 92vw); }
@@ -242,7 +256,31 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
   transform: translateY(-2px); outline: none;
 }
 .game-card-title { font-family: var(--pixel); font-size: clamp(15px, 4.5vw, 20px); color: var(--c, var(--teal-soft)); text-shadow: 0 0 14px var(--c, var(--teal)); }
-.game-card-blurb { font-size: clamp(10px, 2.8vw, 12px); color: rgba(234,246,255,0.55); letter-spacing: 0.04em; line-height: 1.5; }
+.game-card-blurb { font-size: clamp(10px, 2.8vw, 12px); color: rgba(234,246,255,0.62); letter-spacing: 0.04em; line-height: 1.5; }
+/* card scent: personal best + play status (data lives in SY.store, shown read-only) */
+.game-card-meta { font-size: 11px; letter-spacing: 0.06em; color: rgba(159,245,232,0.6); margin-top: 2px; }
+.meta-best { color: var(--ink); font-weight: 600; }
+.meta-played { color: rgba(159,245,232,0.7); }
+.meta-new { color: var(--amber); font-weight: 700; letter-spacing: 0.08em; }
+
+/* hub identity header — the platform front door (was a bare card list) */
+#arcade-head { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.arcade-wordmark {
+  font-family: var(--pixel);
+  font-size: clamp(26px, 8vw, 40px);
+  line-height: 1.25;
+  color: var(--teal);
+  text-shadow: 0 0 24px rgba(45,226,198,0.8), 0 0 60px rgba(45,226,198,0.35);
+  letter-spacing: 0.02em;
+}
+.arcade-tagline { font-size: clamp(10px, 2.6vw, 12px); letter-spacing: 0.22em; color: rgba(159,245,232,0.7); }
+.arcade-foot { font-size: 10px; letter-spacing: 0.12em; color: rgba(234,246,255,0.5); }
+
+/* hub empty / fail-safe state (games failed to register or none) */
+.hub-empty { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; padding: 24px 12px; }
+.hub-empty-glyph { font-family: var(--pixel); font-size: clamp(28px, 9vw, 38px); color: rgba(45,226,198,0.4); }
+.hub-empty-title { font-family: var(--pixel); font-size: clamp(12px, 3.4vw, 14px); color: var(--teal-soft); }
+.hub-empty-msg { font-size: 12px; color: rgba(234,246,255,0.62); line-height: 1.6; max-width: 260px; }
 
 /* back-to-arcade affordance on a game's menu */
 .back-btn {
@@ -437,6 +475,31 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
   box-shadow: 0 0 16px rgba(45,226,198,0.5);
 }
 
+/* ---------- reduced motion (WCAG 2.3.1) ----------
+   Repeated blink/pulse/glow and full-screen hit-flash are a photosensitivity
+   risk. When the user asks for less motion, kill the looping/flashing
+   animations and replace the hit-flash with a single static tint. Gameplay is
+   unaffected — only decorative DOM animation is suppressed. */
+@media (prefers-reduced-motion: reduce) {
+  #hud-time.warn,
+  #hud-hearts.low,
+  #danger-vignette.active,
+  #over-best-banner,
+  .medal.is-new {
+    animation: none !important;
+  }
+  /* keep the low-time warning legible without the blink */
+  #hud-time.warn { opacity: 1; }
+  /* danger stays readable as a steady vignette instead of a pulse */
+  #danger-vignette.active { box-shadow: inset 0 0 90px 24px rgba(255,40,70,0.28); }
+  /* NEW BEST! still appears, just without the pop+glow loop */
+  #over-best-banner.show { animation: none !important; }
+  /* hit feedback becomes a brief static tint, no flash animation */
+  #hit-flash.flash { animation: none !important; background: rgba(255,60,90,0.18); }
+  .mode-card, .game-card, .arcade-btn { transition: none !important; }
+  #viewport.leaving { transition: none !important; opacity: 1; } /* JS also skips the fade under reduce */
+}
+
 </style>
 </head>
 <body>
@@ -488,7 +551,13 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
       <div id="hit-flash"></div>
 
       <div id="screen-arcade" class="screen" data-screen-label="Arcade">
+        <header id="arcade-head">
+          <h1 class="arcade-wordmark">SCORE<br>YARD</h1>
+          <p class="arcade-tagline">PICK A MACHINE</p>
+          <p class="kr-sub">한 판 하실래요 · 점수는 이 기기에만 저장됩니다</p>
+        </header>
         <div id="arcade-grid"></div>
+        <p id="arcade-foot" class="arcade-foot"></p>
       </div>
 
       <div id="screen-menu" class="screen" data-screen-label="Main Menu">
@@ -954,15 +1023,91 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
   document.addEventListener('fullscreenchange', fit);
 
   // ---------- game-select hub ----------
+  // "best set N days ago" as a lightweight last-played proxy (best_all.date),
+  // so no new persistence is needed. Cosmetic only — never gameplay state.
+  function fmtPlayed(dateStr, today) {
+    if (!dateStr) return '';
+    const d = Date.parse(dateStr + 'T00:00:00Z');
+    const t = Date.parse(today + 'T00:00:00Z');
+    if (isNaN(d) || isNaN(t)) return '';
+    const days = Math.round((t - d) / 86400000);
+    if (days <= 0) return '오늘';
+    if (days === 1) return '어제';
+    return days + '일 전';
+  }
+
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
+  function makeCard(g) {
+    const btn = el('button', 'game-card');
+    btn.type = 'button';
+    btn.setAttribute('data-id', g.id);
+    btn.style.setProperty('--c', g.accent || '#2de2c6');
+    btn.append(
+      el('span', 'game-card-title', g.title),
+      el('span', 'game-card-blurb', g.blurb),
+      el('span', 'game-card-meta', '…') // '…' is the loading state until the record resolves
+    );
+    btn.lastChild.setAttribute('data-meta-for', g.id);
+    btn.addEventListener('click', () => SY.shell.enterGame(g.id));
+    return btn;
+  }
+
+  function makeEmptyState() {
+    const box = el('div', 'hub-empty');
+    const reload = el('button', 'arcade-btn primary', '↻ RELOAD');
+    reload.type = 'button';
+    reload.addEventListener('click', () => location.reload());
+    box.append(
+      el('span', 'hub-empty-glyph', '▢'),
+      el('span', 'hub-empty-title', 'NO MACHINES YET'),
+      el('span', 'hub-empty-msg', '게임을 불러오지 못했어요. 연결을 확인하고 새로고침 해보세요.'),
+      reload
+    );
+    return box;
+  }
+
+  // Async card scent: cards render immediately, then BEST / play-status fills in
+  // as each game's record resolves. Linked games keep their own store on their
+  // own page, so the shell shows them as NEW until played in-shell.
+  function fillCardMeta() {
+    games.forEach(async (g) => {
+      const meta = document.querySelector('[data-meta-for="' + g.id + '"]');
+      if (!meta) return;
+      try {
+        const { bestAll, today } = await SY.store.forGame(g.id).loadAll();
+        meta.textContent = '';
+        if (bestAll && typeof bestAll.score === 'number') {
+          meta.append(el('span', 'meta-best', 'BEST ' + bestAll.score.toLocaleString()));
+          const played = fmtPlayed(bestAll.date, today);
+          if (played) meta.append(el('span', 'meta-played', ' · ' + played));
+        } else {
+          meta.append(el('span', 'meta-new', 'NEW · 처음이에요'));
+        }
+      } catch (e) {
+        meta.textContent = ''; // record unreadable: show nothing, never a stack trace
+      }
+    });
+  }
+
   function renderHub() {
-    $('arcade-grid').innerHTML = games.map((g) =>
-      '<button class="game-card" data-id="' + g.id + '" type="button" style="--c:' + (g.accent || '#2de2c6') + '">' +
-      '<span class="game-card-title">' + g.title + '</span>' +
-      '<span class="game-card-blurb">' + g.blurb + '</span>' +
-      '</button>'
-    ).join('');
-    $('arcade-grid').querySelectorAll('.game-card').forEach((el) =>
-      el.addEventListener('click', () => SY.shell.enterGame(el.getAttribute('data-id'))));
+    const grid = $('arcade-grid');
+    const foot = $('arcade-foot');
+    grid.textContent = '';
+    // Fail-safe empty state: games never registered (script/CDN failure) or none.
+    if (!games.length) {
+      grid.append(makeEmptyState());
+      if (foot) foot.textContent = '';
+      return;
+    }
+    games.forEach((g) => grid.append(makeCard(g)));
+    if (foot) foot.textContent = 'v1 · ' + games.length + ' GAMES · ALL SCORES LOCAL';
+    fillCardMeta();
   }
 
   function showHub() {
@@ -977,7 +1122,17 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
     enterGame(id) {
       const g = games.find((x) => x.id === id);
       if (!g) return;
-      if (g.href) { window.location.href = g.href; return; } // linked game: open its own page
+      if (g.href) { // linked game: open its own page, fading out first to avoid a hard cut
+        const vp = $('viewport');
+        const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (vp && !reduce) {
+          vp.classList.add('leaving');
+          setTimeout(() => { window.location.href = g.href; }, 220);
+        } else {
+          window.location.href = g.href;
+        }
+        return;
+      }
       active = g;
       $('screen-arcade').classList.remove('visible');
       if (active.enter) active.enter();
