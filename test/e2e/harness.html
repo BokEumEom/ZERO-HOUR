@@ -23,7 +23,10 @@
         for (let t = 0; t < 5000; t += 50) {
           const w = f.contentWindow, d = f.contentDocument;
           const hub = d && d.getElementById('screen-arcade');
-          if (w && w.SY && w.SY.shell && hub && hub.classList.contains('visible')) break;
+          // wait until the hub is visible AND its game cards have rendered, so a
+          // slow registration/boot can't leave a scenario querying an empty hub
+          if (w && w.SY && w.SY.shell && hub && hub.classList.contains('visible') &&
+              d.querySelector('.game-card')) break;
           await sleep(50);
         }
         resolve({ w: f.contentWindow, d: f.contentDocument });
