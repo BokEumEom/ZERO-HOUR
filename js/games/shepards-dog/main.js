@@ -6,10 +6,13 @@ INPUT — pointer events cover mouse + touch
 ========================================================= */
 function toWorld(e) {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  return {
-    x: (e.clientX * dpr - view.ox) / view.s,
-    y: (e.clientY * dpr - view.oy) / view.s,
-  };
+  const sx = e.clientX * dpr,
+    sy = e.clientY * dpr;
+  // portrait: invert the 90° camera rotation so drags map to the right spot
+  if (view.rot) {
+    return { x: (sy - view.oy) / view.s, y: H - (sx - view.ox) / view.s };
+  }
+  return { x: (sx - view.ox) / view.s, y: (sy - view.oy) / view.s };
 }
 let pDown = null;
 canvas.addEventListener("pointerdown", (e) => {

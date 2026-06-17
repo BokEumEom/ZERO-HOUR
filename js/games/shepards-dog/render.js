@@ -4,17 +4,29 @@
 /* =========================================================
 RENDERING
 ========================================================= */
-let view = { s: 1, ox: 0, oy: 0 };
+let view = { s: 1, ox: 0, oy: 0, rot: false };
 function resize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width = innerWidth * dpr;
   canvas.height = innerHeight * dpr;
   canvas.style.width = innerWidth + "px";
   canvas.style.height = innerHeight + "px";
-  const s = Math.min(canvas.width / W, canvas.height / H);
-  view = { s, ox: (canvas.width - W * s) / 2, oy: (canvas.height - H * s) / 2 };
+  const cw = canvas.width,
+    ch = canvas.height;
+  if (ch > cw) {
+    // portrait: rotate the 1.6:1 pasture 90° CW so its long axis fills the
+    // screen height (the world logic is unchanged — only the camera rotates,
+    // like Zero Hour's ADR-0006). Input is remapped in toWorld().
+    const s = Math.min(cw / H, ch / W);
+    view = { s, rot: true, ox: (cw - H * s) / 2, oy: (ch - W * s) / 2 };
+  } else {
+    const s = Math.min(cw / W, ch / H);
+    view = { s, rot: false, ox: (cw - W * s) / 2, oy: (ch - H * s) / 2 };
+  }
 }
 addEventListener("resize", resize);
+addEventListener("orientationchange", resize);
+if (window.visualViewport) window.visualViewport.addEventListener("resize", resize);
 resize();
 
 /* pre-rendered grass field */
@@ -109,11 +121,13 @@ function nightTint(t) {
 }
 
 function render() {
-  const { s, ox, oy } = view;
+  const { s, ox, oy, rot } = view;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = "#243018";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.setTransform(s, 0, 0, s, ox, oy);
+  // portrait rotates the world 90° CW: world(wx,wy) -> (ox + s(H-wy), oy + s·wx)
+  if (rot) ctx.setTransform(0, s, -s, 0, ox + s * H, oy);
+  else ctx.setTransform(s, 0, 0, s, ox, oy);
   ctx.save();
   ctx.beginPath();
   ctx.rect(0, 0, W, H);
