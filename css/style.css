@@ -194,6 +194,22 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
 /* keep the how-to key as a readable Cabin pill, not a tiny serif */
 .howto-k { font-family: var(--body) !important; font-weight: 700; }
 
+/* hub + lobby now live inside a .panel — game/mode cards become lighter "items"
+   (no nested hard shadow) so it reads as one clean Shepherd-style panel */
+.panel #arcade-grid, .panel .mode-row { width: 100%; }
+.panel .game-card, .panel .mode-card {
+  width: 100%;
+  box-shadow: none;
+  border-width: 1px;
+}
+.panel .game-card:hover, .panel .game-card:focus-visible,
+.panel .mode-card:hover, .panel .mode-card:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 0 16px rgba(45,226,198,0.28);
+}
+.panel .game-card:active, .panel .mode-card:active { transform: translateY(0); box-shadow: none; }
+.mode-sub { font-size: 11px; letter-spacing: 0.04em; color: rgba(159,245,232,0.6); }
+
 .game-title {
   font-family: var(--display);
   font-size: clamp(28px, 8vw, 44px);
