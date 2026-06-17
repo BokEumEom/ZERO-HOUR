@@ -456,7 +456,7 @@
   // ---------- mute (top button + pause-menu toggle share state) ----------
   function updateMuteBtn() {
     const m = SY.audio.isMuted();
-    $('btn-mute').textContent = m ? '\ud83d\udd07' : '\ud83d\udd0a';
+    $('btn-mute').classList.toggle('muted', m); // SVG: show slash / hide waves
     $('btn-mute').setAttribute('aria-label', m ? 'Unmute' : 'Mute');
     $('btn-pause-mute').textContent = 'SOUND: ' + (m ? 'OFF' : 'ON');
   }

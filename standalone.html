@@ -435,6 +435,15 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
   transition: all 0.12s;
 }
 #btn-mute:hover, #btn-pause:hover, #btn-fullscreen:hover { border-color: var(--teal); box-shadow: 0 0 14px rgba(45,226,198,0.3); }
+/* pixel-line SVG glyphs (replace OS-variant emoji) — inherit the button color */
+#btn-mute svg, #btn-pause svg, #btn-fullscreen svg { width: 20px; height: 20px; display: block; margin: auto; }
+#btn-mute .spk, #btn-pause rect { fill: currentColor; }
+#btn-mute .waves path, #btn-mute .slash, #btn-fullscreen path {
+  fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+#btn-mute .slash { display: none; }
+#btn-mute.muted .waves { display: none; }
+#btn-mute.muted .slash { display: inline; }
 #btn-mute { right: calc(var(--safe-right) + 10px); }
 #btn-fullscreen { right: calc(var(--safe-right) + 58px); display: none; }
 #btn-fullscreen.available { display: block; }
@@ -658,9 +667,19 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
       </div>
   </div>
 
-  <button id="btn-mute" type="button" aria-label="Mute">🔊</button>
-  <button id="btn-pause" type="button" aria-label="Pause">II</button>
-  <button id="btn-fullscreen" type="button" aria-label="Fullscreen">⛶</button>
+  <button id="btn-mute" type="button" aria-label="Mute">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path class="spk" d="M4 9 H8 L13 5 V19 L8 15 H4 Z"></path>
+      <g class="waves"><path d="M16 8.5 Q18.5 12 16 15.5"></path><path d="M18.5 6 Q22.5 12 18.5 18"></path></g>
+      <line class="slash" x1="16" y1="8" x2="22" y2="16"></line>
+    </svg>
+  </button>
+  <button id="btn-pause" type="button" aria-label="Pause">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="5" width="3.6" height="14"></rect><rect x="13.4" y="5" width="3.6" height="14"></rect></svg>
+  </button>
+  <button id="btn-fullscreen" type="button" aria-label="Fullscreen">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9 V4 H9 M15 4 H20 V9 M20 15 V20 H15 M9 20 H4 V15"></path></svg>
+  </button>
 
   <div id="joystick">
     <div id="joystick-knob"></div>
@@ -2597,7 +2616,7 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
   // ---------- mute (top button + pause-menu toggle share state) ----------
   function updateMuteBtn() {
     const m = SY.audio.isMuted();
-    $('btn-mute').textContent = m ? '\ud83d\udd07' : '\ud83d\udd0a';
+    $('btn-mute').classList.toggle('muted', m); // SVG: show slash / hide waves
     $('btn-mute').setAttribute('aria-label', m ? 'Unmute' : 'Mute');
     $('btn-pause-mute').textContent = 'SOUND: ' + (m ? 'OFF' : 'ON');
   }

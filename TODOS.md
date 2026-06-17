@@ -12,13 +12,12 @@ Design debt deferred from `/plan-design-review` 2026-06-16 (hub + per-game UI/UX
 - Intentionally NOT done: per-frame score/combo live region (would flood the
   reader). Open follow-up if desired: announce milestone/low-time cues only.
 
-## P3 — Emoji → SVG corner icons
-- **What:** Replace the 🔊 / ⛶ / II corner-button glyphs with pixel-style SVG icons.
-- **Why:** Emoji render differently per OS and break the Press Start 2P pixel aesthetic.
-- **Pros:** Consistent cross-platform look; matches the retro identity.
-- **Cons:** Minor; adds a few inline SVGs to maintain.
-- **Context:** Buttons are functional, not decorative — low urgency.
-- **Depends on:** none.
+## ✅ DONE (2026-06-17) — Emoji → SVG corner icons
+- Replaced the 🔊/🔇 mute, "II" pause, and ⛶ fullscreen glyphs with inline
+  pixel-line SVGs that inherit the button color (`currentColor`). Mute state now
+  toggles a `.muted` class (CSS shows a slash / hides the waves) instead of
+  swapping an emoji. Visually verified at phone viewport (sound-on, muted, and
+  fullscreen icons render consistently); E2E 45/45 unaffected.
 
 ## P3 — Shepherd's Dog full in-shell integration
 - **What:** Convert Shepherd's Dog from a linked page (`href`) into a real

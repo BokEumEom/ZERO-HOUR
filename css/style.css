@@ -391,6 +391,15 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
   transition: all 0.12s;
 }
 #btn-mute:hover, #btn-pause:hover, #btn-fullscreen:hover { border-color: var(--teal); box-shadow: 0 0 14px rgba(45,226,198,0.3); }
+/* pixel-line SVG glyphs (replace OS-variant emoji) — inherit the button color */
+#btn-mute svg, #btn-pause svg, #btn-fullscreen svg { width: 20px; height: 20px; display: block; margin: auto; }
+#btn-mute .spk, #btn-pause rect { fill: currentColor; }
+#btn-mute .waves path, #btn-mute .slash, #btn-fullscreen path {
+  fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+#btn-mute .slash { display: none; }
+#btn-mute.muted .waves { display: none; }
+#btn-mute.muted .slash { display: inline; }
 #btn-mute { right: calc(var(--safe-right) + 10px); }
 #btn-fullscreen { right: calc(var(--safe-right) + 58px); display: none; }
 #btn-fullscreen.available { display: block; }
