@@ -20,3 +20,4 @@ portrait-*.png
 
 # WSL e2e Stop-hook pass marker (runtime artifact)
 .claude/.e2e-last-pass
+.gstack/
