@@ -15,6 +15,10 @@
   --ink: #eaf6ff;
   --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
   --pixel: "Press Start 2P", var(--mono);
+  /* Shepherd's Dog typography, adopted for the hub + Zero Hour screens (the
+     in-arena HUD keeps --pixel/--mono for stable-width live numerals) */
+  --display: "Fraunces", Georgia, "Times New Roman", serif;
+  --body: "Cabin", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);

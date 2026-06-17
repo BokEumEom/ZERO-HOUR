@@ -33,8 +33,10 @@ Single source of truth for the shell + neon games. Loaded before `css/style.css`
 | `--amber` | `#ffc34d` | reward, combo, NEW/best |
 | `--blue` | `#5aa7ff` | reserved |
 | `--ink` | `#eaf6ff` | body text |
-| `--mono` | IBM Plex Mono | body / UI |
-| `--pixel` | Press Start 2P | titles, scores, wordmark |
+| `--display` | Fraunces (serif) | hub + screen titles / scores / wordmark |
+| `--body` | Cabin (sans) | hub + screen body / UI / buttons |
+| `--pixel` | Press Start 2P | **HUD numerals only** (time / score — stable width) |
+| `--mono` | IBM Plex Mono | `--pixel` fallback; legacy |
 | `--safe-*` | env insets | notch/safe-area padding |
 
 Per-game accent: a game card sets `--c` (its `accent`); the card border + glow
@@ -43,10 +45,15 @@ left-bar (an AI-slop tell).
 
 ## Type scale
 
-- **Display / scores / wordmark:** `--pixel`, `clamp()`-sized (hub wordmark
-  `clamp(26px,8vw,40px)`, score `clamp(34px,10vw,52px)`).
-- **Body / UI:** `--mono`. Two typefaces max per surface.
-- Letter-spacing: labels `0.1–0.22em`; pixel titles `~0.02–0.04em`.
+The platform adopts Shepherd's Dog typography (Fraunces + Cabin) for the hub and
+all Zero Hour screens, in the dark/neon tone. The in-arena HUD keeps pixel/mono.
+
+- **Display / titles / wordmark / scores:** `--display` (Fraunces), `font-weight: 900`,
+  tight tracking (`letter-spacing: -0.01em`), `clamp()`-sized.
+- **Body / UI / buttons / kicker:** `--body` (Cabin). Two typefaces max per surface.
+- **HUD numerals (`#hud-time`, `#hud-score`):** stay `--pixel` (Press Start 2P) —
+  monospace avoids width jitter on the live countdown and ties to the kept arena.
+- **Kicker:** Cabin, uppercase, `letter-spacing: 0.26em`, `--pink`.
 
 ## Component patterns
 
