@@ -209,7 +209,7 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
   letter-spacing: 0.04em;
 }
 .game-sub { font-size: clamp(10px, 2.6vw, 13px); letter-spacing: 0.22em; color: rgba(159,245,232,0.6); }
-.kr-sub { font-size: clamp(10px, 2.8vw, 12px); color: rgba(234,246,255,0.45); letter-spacing: 0.02em; }
+.kr-sub { font-size: clamp(10px, 2.8vw, 12px); color: rgba(234,246,255,0.6); letter-spacing: 0.02em; }
 
 .mode-row { display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(10px, 2vw, 18px); margin-top: 8px; }
 .mode-card {
@@ -1078,14 +1078,15 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
   // as each game's record resolves. Linked games keep their own store on their
   // own page, so the shell shows them as NEW until played in-shell.
   function fillCardMeta() {
-    // Defer off the synchronous boot/show path and bail if the hub is already
-    // gone — avoids opening IndexedDB reads that (a) are wasted when the user
-    // immediately taps a game and (b) can delay a game's own settings write
-    // from committing under fast page teardown.
-    setTimeout(() => {
+    // Card scent is non-critical post-paint enrichment: the hub renders
+    // instantly, then BEST/play-status fills in on the next frame. Deferring to
+    // rAF keeps the boot/show path free of IndexedDB reads (so they never
+    // contend with a game's own settings write under fast teardown), and the
+    // visibility guard skips the work entirely if the user already tapped in.
+    requestAnimationFrame(() => {
       if (!$('screen-arcade').classList.contains('visible')) return;
       games.forEach(fillOneCardMeta);
-    }, 0);
+    });
   }
 
   function fillOneCardMeta(g) {
@@ -1121,7 +1122,7 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
     }
     games.forEach((g) => grid.append(makeCard(g)));
     if (foot) foot.textContent = 'v1 · ' + games.length + ' GAMES · ALL SCORES LOCAL';
-    /* ISOLATION TEST — temporarily disabled */ // fillCardMeta();
+    fillCardMeta();
   }
 
   function showHub() {

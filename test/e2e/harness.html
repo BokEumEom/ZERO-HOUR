@@ -74,6 +74,16 @@
     d.getElementById('btn-howto-start').click();
     await sleep(100);
     check('howto', 'START begins the chosen mode and hides the overlay', !visible(d, 'screen-howto') && w.SY.game.phase === 'ready' && w.SY.game.mode === 'daily');
+    // The product persists seenHowto fire-and-forget; scenario 2 reloads the page
+    // and depends on that write being durable. Poll a FRESH read until it lands
+    // (reads resolve under headless virtual-time; awaiting the write directly
+    // would stall). This is the deterministic gate, independent of incidental
+    // IndexedDB contention from the hub's card-scent reads.
+    for (let t = 0; t < 3000; t += 50) {
+      const s = await w.SY.store.loadSettings();
+      if (s && s.seenHowto) break;
+      await sleep(50);
+    }
 
     // ---------- scenario 2: pause + quit discards the run ----------
     ({ w, d } = await freshGame());

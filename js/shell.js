@@ -112,14 +112,15 @@
   // as each game's record resolves. Linked games keep their own store on their
   // own page, so the shell shows them as NEW until played in-shell.
   function fillCardMeta() {
-    // Defer off the synchronous boot/show path and bail if the hub is already
-    // gone — avoids opening IndexedDB reads that (a) are wasted when the user
-    // immediately taps a game and (b) can delay a game's own settings write
-    // from committing under fast page teardown.
-    setTimeout(() => {
+    // Card scent is non-critical post-paint enrichment: the hub renders
+    // instantly, then BEST/play-status fills in on the next frame. Deferring to
+    // rAF keeps the boot/show path free of IndexedDB reads (so they never
+    // contend with a game's own settings write under fast teardown), and the
+    // visibility guard skips the work entirely if the user already tapped in.
+    requestAnimationFrame(() => {
       if (!$('screen-arcade').classList.contains('visible')) return;
       games.forEach(fillOneCardMeta);
-    }, 0);
+    });
   }
 
   function fillOneCardMeta(g) {
@@ -155,7 +156,7 @@
     }
     games.forEach((g) => grid.append(makeCard(g)));
     if (foot) foot.textContent = 'v1 · ' + games.length + ' GAMES · ALL SCORES LOCAL';
-    /* ISOLATION TEST — temporarily disabled */ // fillCardMeta();
+    fillCardMeta();
   }
 
   function showHub() {

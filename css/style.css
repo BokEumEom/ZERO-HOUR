@@ -165,7 +165,7 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
   letter-spacing: 0.04em;
 }
 .game-sub { font-size: clamp(10px, 2.6vw, 13px); letter-spacing: 0.22em; color: rgba(159,245,232,0.6); }
-.kr-sub { font-size: clamp(10px, 2.8vw, 12px); color: rgba(234,246,255,0.45); letter-spacing: 0.02em; }
+.kr-sub { font-size: clamp(10px, 2.8vw, 12px); color: rgba(234,246,255,0.6); letter-spacing: 0.02em; }
 
 .mode-row { display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(10px, 2vw, 18px); margin-top: 8px; }
 .mode-card {
