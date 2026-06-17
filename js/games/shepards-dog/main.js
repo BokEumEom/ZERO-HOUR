@@ -14,30 +14,71 @@ function toWorld(e) {
   }
   return { x: (sx - view.ox) / view.s, y: (sy - view.oy) / view.s };
 }
-let pDown = null;
+// Touch = relative floating joystick (Zero Hour style): a stick appears where
+// you press and you steer the dog by DIRECTION — the finger never has to cover
+// the dog. Mouse keeps the simpler follow-cursor behaviour. Tap = bark.
+const stick = document.getElementById("stick");
+const stickKnob = document.getElementById("stickKnob");
+const STICK_R = 52; // max knob travel (px)
+const LEAD = 360; // how far ahead of the dog we steer (world units)
+let pDown = null; // {mouse:true} | {sx,sy,t,moved}
+let steer = null; // held direction in WORLD space: {wx,wy,mag}
+
+function followMouse(e) {
+  const p = toWorld(e);
+  dog.tx = clamp(p.x, 20, W - 20);
+  dog.ty = clamp(p.y, 20, H - 20);
+}
 canvas.addEventListener("pointerdown", (e) => {
   audio(); // unlock on first gesture
-  const p = toWorld(e);
-  pDown = { x: e.clientX, y: e.clientY, t: performance.now() };
-  dog.tx = clamp(p.x, 20, W - 20);
-  dog.ty = clamp(p.y, 20, H - 20);
+  if (e.pointerType === "mouse") {
+    pDown = { mouse: true };
+    followMouse(e);
+    return;
+  }
+  pDown = { sx: e.clientX, sy: e.clientY, t: performance.now(), moved: 0 };
+  stick.style.left = e.clientX + "px";
+  stick.style.top = e.clientY + "px";
+  stick.classList.add("on");
+  stickKnob.style.transform = "translate(-50%,-50%)";
 });
 canvas.addEventListener("pointermove", (e) => {
-  // mouse: dog always follows. touch: only while pressed.
-  if (e.pointerType !== "mouse" && !pDown) return;
-  const p = toWorld(e);
-  dog.tx = clamp(p.x, 20, W - 20);
-  dog.ty = clamp(p.y, 20, H - 20);
+  if (e.pointerType === "mouse") {
+    if (pDown) followMouse(e);
+    return;
+  }
+  if (!pDown || pDown.mouse) return;
+  const dx = e.clientX - pDown.sx,
+    dy = e.clientY - pDown.sy;
+  const d = Math.hypot(dx, dy);
+  pDown.moved = Math.max(pDown.moved, d);
+  if (d < 8) {
+    steer = null;
+    stickKnob.style.transform = "translate(-50%,-50%)";
+    return;
+  }
+  const k = Math.min(d, STICK_R),
+    nx = dx / d,
+    ny = dy / d;
+  stickKnob.style.transform = "translate(calc(-50% + " + nx * k + "px), calc(-50% + " + ny * k + "px))";
+  // remap screen direction -> world direction (portrait rotates the camera CCW)
+  steer = { wx: view.rot ? -ny : nx, wy: view.rot ? nx : ny, mag: Math.min(d / STICK_R, 1) };
 });
-canvas.addEventListener("pointerup", (e) => {
-  if (pDown) {
+function endTouch() {
+  if (pDown && !pDown.mouse) {
     const dt = performance.now() - pDown.t;
-    const moved = hyp(e.clientX - pDown.x, e.clientY - pDown.y);
-    if (dt < 280 && moved < 14) bark();
+    if (dt < 280 && pDown.moved < 14) bark();
+    stick.classList.remove("on");
   }
   pDown = null;
-});
-canvas.addEventListener("pointercancel", () => (pDown = null));
+  steer = null;
+  if (typeof dog !== "undefined" && dog) {
+    dog.tx = dog.x;
+    dog.ty = dog.y;
+  } // release = stop
+}
+canvas.addEventListener("pointerup", endTouch);
+canvas.addEventListener("pointercancel", endTouch);
 addEventListener("contextmenu", (e) => e.preventDefault());
 
 /* =========================================================
@@ -153,6 +194,11 @@ function frame(now) {
     nowT += dt;
     updateSheep(dt * 0.6);
   } else {
+    // held joystick keeps steering the dog toward a point ahead in its direction
+    if (steer && state === "play") {
+      dog.tx = clamp(dog.x + steer.wx * LEAD * steer.mag, 20, W - 20);
+      dog.ty = clamp(dog.y + steer.wy * LEAD * steer.mag, 20, H - 20);
+    }
     update(dt);
   }
   render();

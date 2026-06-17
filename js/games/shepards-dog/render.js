@@ -8,7 +8,7 @@ let view = { s: 1, ox: 0, oy: 0, rot: false };
 // render-only size bump for the actors (dog/sheep/wolf) so they read clearly on
 // a phone — flock spacing (~95+ units) >> body size, so this never causes
 // overlap and changes no physics.
-const ENT = 1.5;
+const ENT = 2.2;
 function resize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width = innerWidth * dpr;
