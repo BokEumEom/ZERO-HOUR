@@ -5,6 +5,10 @@
 RENDERING
 ========================================================= */
 let view = { s: 1, ox: 0, oy: 0, rot: false };
+// render-only size bump for the actors (dog/sheep/wolf) so they read clearly on
+// a phone — flock spacing (~95+ units) >> body size, so this never causes
+// overlap and changes no physics.
+const ENT = 1.5;
 function resize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width = innerWidth * dpr;
@@ -125,8 +129,9 @@ function render() {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = "#243018";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  // portrait rotates the world 90° CW: world(wx,wy) -> (ox + s(H-wy), oy + s·wx)
-  if (rot) ctx.setTransform(0, s, -s, 0, ox + s * H, oy);
+  // portrait rotates the world 90° CCW so the pen (world-right) sits at the TOP
+  // and you herd upward: world(wx,wy) -> (ox + s·wy, oy + s(W-wx))
+  if (rot) ctx.setTransform(0, -s, s, 0, ox, oy + s * W);
   else ctx.setTransform(s, 0, 0, s, ox, oy);
   ctx.save();
   ctx.beginPath();
@@ -443,6 +448,7 @@ function drawSheep(s) {
   const bob = Math.sin(s.phase + nowT * (4 + sp * 0.18)) * (sp > 8 ? 1.4 : 0.5);
   ctx.save();
   ctx.translate(s.x, s.y);
+  ctx.scale(ENT, ENT);
   // shadow
   ctx.fillStyle = "rgba(50,60,25,.3)";
   ctx.beginPath();
@@ -487,6 +493,7 @@ function drawDog() {
   const sp = hyp(dog.vx, dog.vy);
   ctx.save();
   ctx.translate(dog.x, dog.y);
+  ctx.scale(ENT, ENT);
   ctx.fillStyle = "rgba(50,60,25,.35)";
   ctx.beginPath();
   ctx.ellipse(0, 6, 14, 7, 0, 0, TAU);
@@ -549,6 +556,7 @@ function drawDog() {
 function drawWolf(wf) {
   ctx.save();
   ctx.translate(wf.x, wf.y);
+  ctx.scale(ENT, ENT);
   ctx.fillStyle = "rgba(20,25,15,.4)";
   ctx.beginPath();
   ctx.ellipse(0, 6, 16, 7, 0, 0, TAU);
