@@ -2,15 +2,15 @@
 
 Design debt deferred from `/plan-design-review` 2026-06-16 (hub + per-game UI/UX).
 
-## P3 — Accessibility depth (ARIA / focus)
-- **What:** Add ARIA live regions for score/time/combo, `role` + labels on `.screen`
-  overlays, and move focus to the primary action when a screen appears (e.g. game-over → RETRY).
-- **Why:** Screen-reader users get no announcement of score changes, and after a game
-  ends focus stays trapped on the dead canvas.
-- **Pros:** Real keyboard/SR usability; rounds out the a11y work started this round.
-- **Cons:** Live regions can be chatty on a 60fps counter — needs throttling/debounce.
-- **Context:** Reduced-motion + contrast already landed (2026-06-16). This is the deeper half.
-- **Depends on:** none.
+## ✅ DONE (2026-06-17) — Accessibility depth (ARIA / focus)
+- Done instead of live-spamming the 60fps HUD: a visually-hidden
+  `#a11y-live` (`role=status` / `aria-live=polite`) announces the **game-over
+  result** (score + rank); `show()` moves focus to each modal screen's primary
+  action (game-over → RETRY, etc.); `role="dialog"`/`aria-label` on the modal
+  screens + region/group labels on the hub and HUD. Verified by E2E (focus,
+  aria-live, dialog assertions in scenario 4).
+- Intentionally NOT done: per-frame score/combo live region (would flood the
+  reader). Open follow-up if desired: announce milestone/low-time cues only.
 
 ## P3 — Emoji → SVG corner icons
 - **What:** Replace the 🔊 / ⛶ / II corner-button glyphs with pixel-style SVG icons.

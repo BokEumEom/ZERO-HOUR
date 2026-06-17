@@ -159,6 +159,15 @@
     const spark = d.getElementById('over-spark');
     const px = spark.getContext('2d').getImageData(0, 0, spark.width, spark.height).data;
     check('over', 'sparkline canvas is not blank', px.some((v) => v !== 0));
+    check('over', 'focus moves to RETRY when game-over opens (a11y)',
+      d.activeElement === d.getElementById('btn-retry'),
+      'activeElement=' + (d.activeElement && d.activeElement.id));
+    check('over', 'game-over result announced via aria-live (a11y)',
+      /\d/.test(d.getElementById('a11y-live').textContent),
+      JSON.stringify(d.getElementById('a11y-live').textContent));
+    check('over', 'game-over screen is a labelled dialog (a11y)',
+      d.getElementById('screen-over').getAttribute('role') === 'dialog' &&
+      !!d.getElementById('screen-over').getAttribute('aria-label'));
     check('over', 'daily record was saved this time', !!(await w.SY.store.forGame("zerohour").loadAll()).dailyBest);
     d.getElementById('btn-retry').click();
     await sleep(150);

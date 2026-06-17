@@ -134,11 +134,28 @@
   }
 
   // ---------- screens ----------
+  // a11y: move focus to each modal screen's primary action when it opens, so
+  // keyboard/screen-reader users aren't stranded on the (now-dead) canvas.
+  const PRIMARY_ACTION = {
+    'screen-over': 'btn-retry',
+    'screen-pause': 'btn-resume',
+    'screen-howto': 'btn-howto-start',
+    'screen-records': 'btn-records-back',
+  };
   function show(screenId) {
     for (const id of ['screen-menu', 'screen-over', 'screen-pause', 'screen-howto', 'screen-records']) {
       $(id).classList.toggle('visible', id === screenId);
     }
     if (screenId !== 'screen-over') stopCountdown();
+    const focusId = PRIMARY_ACTION[screenId];
+    if (focusId) { const btn = $(focusId); if (btn) btn.focus(); }
+  }
+
+  // screen-reader announcement sink (#a11y-live); used for one-shot moments like
+  // the game-over result — NOT the per-frame HUD, which would flood the reader.
+  function announce(msg) {
+    const live = $('a11y-live');
+    if (live) live.textContent = msg;
   }
 
   // streak + medal persistence + result badges (async; doesn't block the screen)
@@ -336,6 +353,7 @@
     renderDailyHistory();
     setTimeout(() => {
       show('screen-over');
+      announce('게임 오버. 점수 ' + fmt(res.score) + '점, 랭크 ' + r.name + (isNewBest ? ', 신기록!' : '') + '.');
       if (res.mode === 'daily') startCountdown();
       if (isNewBest) setTimeout(() => SY.audio.newBest(), 350);
     }, 650);

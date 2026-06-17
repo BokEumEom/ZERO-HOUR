@@ -5,6 +5,13 @@
 /* Design tokens live in css/tokens.css (the platform single source of truth),
    loaded before this file. See DESIGN.md. */
 * { margin: 0; padding: 0; box-sizing: border-box; }
+/* visually hidden but available to screen readers (aria-live announcements) */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%);
+  white-space: nowrap;
+}
 html, body { height: 100%; }
 body {
   background: #02050a;
