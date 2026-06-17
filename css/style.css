@@ -164,6 +164,23 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
 /* flex spacers: center content when there is room, scroll cleanly when there is not */
 .screen::before, .screen::after { content: ''; flex: 1 0 0; }
 
+/* ===== sticker panels — Shepherd's Dog structure (rounded, thick border, hard
+   offset shadow, kicker label) translated to Zero Hour's dark/neon tone ===== */
+.panel {
+  position: relative;
+  width: min(440px, 92vw);
+  background: var(--panel);
+  border: 2px solid var(--teal);
+  border-radius: 18px;
+  box-shadow: 6px 6px 0 rgba(45,226,198,0.3), inset 0 0 28px rgba(45,226,198,0.05);
+  padding: clamp(20px, 5vw, 30px) clamp(16px, 5vw, 28px);
+  display: flex; flex-direction: column; align-items: center;
+  gap: clamp(9px, 2vh, 16px);
+  max-height: 88vh; overflow-y: auto;
+}
+/* small pink tracked label that sits above a title (Shepherd's .kicker) */
+.kicker { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.28em; text-transform: uppercase; color: var(--pink); }
+
 .game-title {
   font-family: var(--pixel);
   font-size: clamp(28px, 8vw, 44px);
@@ -178,21 +195,23 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
 .mode-card {
   width: min(280px, 88vw);
   background: var(--panel);
-  border: 2px solid rgba(45,226,198,0.4);
+  border: 2px solid var(--teal);
+  border-radius: 16px;
+  box-shadow: 5px 5px 0 rgba(45,226,198,0.22); /* sticker offset */
   padding: 20px 18px 16px 18px;
   cursor: pointer;
   display: flex; flex-direction: column; gap: 8px;
-  transition: border-color 0.12s, box-shadow 0.12s, transform 0.12s;
+  transition: transform 0.1s, box-shadow 0.1s;
   font-family: var(--mono);
   color: var(--ink);
   text-align: center;
 }
 .mode-card:hover, .mode-card:focus-visible {
-  border-color: var(--teal);
-  box-shadow: 0 0 22px rgba(45,226,198,0.35), inset 0 0 18px rgba(45,226,198,0.08);
-  transform: translateY(-2px);
+  transform: translate(-1px, -3px);
+  box-shadow: 7px 8px 0 rgba(45,226,198,0.42), inset 0 0 18px rgba(45,226,198,0.08);
   outline: none;
 }
+.mode-card:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 rgba(45,226,198,0.32); }
 .mode-name { font-family: var(--pixel); font-size: clamp(12px, 3.2vw, 14px); color: var(--teal-soft); }
 .mode-desc { font-size: 12px; color: rgba(234,246,255,0.55); line-height: 1.5; }
 .mode-meta { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: var(--amber); }
@@ -208,16 +227,22 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
   padding: clamp(18px, 5vw, 24px) 20px;
   background: var(--panel);
   border: 2px solid var(--c, var(--teal));
+  border-radius: 16px;
   color: var(--ink);
   font-family: var(--mono);
   text-align: left;
   cursor: pointer;
-  transition: box-shadow 0.12s, transform 0.12s;
+  /* hard-offset shadow in the game's own accent (color-mix degrades to none on
+     very old engines — acceptable) */
+  box-shadow: 5px 5px 0 color-mix(in srgb, var(--c, var(--teal)) 38%, transparent);
+  transition: transform 0.1s, box-shadow 0.1s;
 }
 .game-card:hover, .game-card:focus-visible {
-  box-shadow: 0 0 22px var(--c, var(--teal)), inset 0 0 18px rgba(45,226,198,0.08);
-  transform: translateY(-2px); outline: none;
+  transform: translate(-1px, -3px);
+  box-shadow: 7px 8px 0 color-mix(in srgb, var(--c, var(--teal)) 55%, transparent), inset 0 0 18px rgba(45,226,198,0.08);
+  outline: none;
 }
+.game-card:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 color-mix(in srgb, var(--c, var(--teal)) 45%, transparent); }
 .game-card-title { font-family: var(--pixel); font-size: clamp(15px, 4.5vw, 20px); color: var(--c, var(--teal-soft)); text-shadow: 0 0 14px var(--c, var(--teal)); }
 .game-card-blurb { font-size: clamp(10px, 2.8vw, 12px); color: rgba(234,246,255,0.62); letter-spacing: 0.04em; line-height: 1.5; }
 /* card scent: personal best + play status (data lives in SY.store, shown read-only) */
@@ -287,6 +312,7 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
   aspect-ratio: 320 / 60;
   height: auto;
   border: 1px dashed rgba(45,226,198,0.25);
+  border-radius: 10px;
   background: rgba(8,20,32,0.6);
 }
 #over-countdown { display: none; letter-spacing: 0.08em; }
@@ -298,20 +324,23 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
   font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--teal-soft);
-  background: transparent;
-  border: 2px solid rgba(45,226,198,0.5);
+  background: var(--panel);
+  border: 2px solid var(--teal);
+  border-radius: 12px;
   padding: 12px 22px;
   cursor: pointer;
-  transition: all 0.12s;
+  box-shadow: 4px 4px 0 rgba(45,226,198,0.35); /* hard-offset neon "sticker" shadow */
+  transition: transform 0.09s, box-shadow 0.09s, background 0.12s;
   min-height: 44px;
 }
 .arcade-btn:hover, .arcade-btn:focus-visible {
-  border-color: var(--teal);
-  background: rgba(45,226,198,0.1);
-  box-shadow: 0 0 18px rgba(45,226,198,0.3);
+  background: rgba(45,226,198,0.12);
+  transform: translate(-1px, -2px);
+  box-shadow: 6px 7px 0 rgba(45,226,198,0.45);
   outline: none;
 }
-.arcade-btn.primary { background: rgba(45,226,198,0.14); border-color: var(--teal); }
+.arcade-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(45,226,198,0.35); }
+.arcade-btn.primary { background: rgba(45,226,198,0.18); }
 .settings-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 4px; }
 .settings-btn { font-size: 11px; min-height: 38px; padding: 8px 14px; border-color: rgba(45,226,198,0.3); }
 .haptic-toggle { display: none; }
@@ -353,6 +382,7 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
   display: inline-flex; align-items: center; gap: 6px;
   padding: 5px 10px;
   border: 1px solid rgba(45,226,198,0.5);
+  border-radius: 999px;
   font-size: 11px; letter-spacing: 0.06em;
   color: var(--teal-soft);
 }
@@ -372,9 +402,15 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
   text-shadow: 0 0 18px rgba(45,226,198,0.7);
 }
 #screen-howto .pause-title { color: var(--teal); }
-.howto-list { display: flex; flex-direction: column; gap: 10px; width: min(460px, 92vw); text-align: left; }
-.howto-row { display: flex; gap: clamp(8px, 2vw, 14px); font-size: clamp(11px, 3vw, 13px); align-items: baseline; }
-.howto-k { font-family: var(--pixel); font-size: clamp(8px, 2.2vw, 10px); color: var(--teal); min-width: clamp(86px, 24vw, 120px); text-align: right; }
+.howto-list { display: flex; flex-direction: column; gap: 10px; width: min(420px, 90vw); text-align: left; }
+.howto-row { display: flex; gap: clamp(8px, 2vw, 12px); font-size: clamp(11px, 3vw, 13px); align-items: center; }
+/* Shepherd-style pill chip for the key (was a right-aligned label column) */
+.howto-k {
+  flex: 0 0 auto;
+  font-family: var(--pixel); font-size: clamp(7px, 2vw, 9px); color: var(--teal-soft);
+  border: 1px solid var(--teal); border-radius: 999px;
+  background: rgba(45,226,198,0.1); padding: 5px 11px;
+}
 .howto-v { color: rgba(234,246,255,0.75); line-height: 1.5; }
 
 /* ---------- corner buttons (outside the scaled stage) ---------- */

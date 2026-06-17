@@ -107,42 +107,49 @@
       </div>
 
       <div id="screen-over" class="screen" data-screen-label="Game Over" role="dialog" aria-modal="true" aria-label="Game over — result">
-        <span id="over-mode">DAILY</span>
-        <span id="over-reason">TIME UP</span>
-        <div>
-          <p class="hud-label" style="font-size: 10px; margin-bottom: 8px;">FINAL SCORE</p>
-          <p id="over-score">0</p>
+        <div class="panel">
+          <span id="over-mode" class="kicker">DAILY</span>
+          <span id="over-reason">TIME UP</span>
+          <div>
+            <p class="hud-label" style="font-size: 10px; margin-bottom: 8px;">FINAL SCORE</p>
+            <p id="over-score">0</p>
+          </div>
+          <div id="over-rank"></div>
+          <span id="over-best-banner"><span id="over-best-label">NEW BEST!</span> ★</span>
+          <div id="over-medals"></div>
+          <div id="over-stats"></div>
+          <canvas id="over-spark" width="320" height="60"></canvas>
+          <div class="btn-row">
+            <button id="btn-retry" class="arcade-btn primary" type="button">RETRY</button>
+            <button id="btn-share" class="arcade-btn" type="button">COPY RESULT</button>
+            <button id="btn-menu" class="arcade-btn" type="button">MENU</button>
+          </div>
+          <p id="over-countdown" class="kr-sub"></p>
+          <p class="kr-sub">결과 복사에는 개인정보가 포함되지 않습니다 · R — RETRY · M — MENU</p>
         </div>
-        <div id="over-rank"></div>
-        <span id="over-best-banner"><span id="over-best-label">NEW BEST!</span> ★</span>
-        <div id="over-medals"></div>
-        <div id="over-stats"></div>
-        <canvas id="over-spark" width="320" height="60"></canvas>
-        <div class="btn-row">
-          <button id="btn-retry" class="arcade-btn primary" type="button">RETRY</button>
-          <button id="btn-share" class="arcade-btn" type="button">COPY RESULT</button>
-          <button id="btn-menu" class="arcade-btn" type="button">MENU</button>
-        </div>
-        <p id="over-countdown" class="kr-sub"></p>
-        <p class="kr-sub">결과 복사에는 개인정보가 포함되지 않습니다 · R — RETRY · M — MENU</p>
       </div>
 
       <div id="screen-pause" class="screen" data-screen-label="Paused" role="dialog" aria-modal="true" aria-label="Paused">
-        <span class="pause-title">PAUSED</span>
-        <div class="btn-row">
-          <button id="btn-resume" class="arcade-btn primary" type="button">RESUME</button>
-          <button id="btn-pause-restart" class="arcade-btn" type="button">RESTART</button>
-          <button id="btn-pause-quit" class="arcade-btn" type="button">QUIT TO MENU</button>
+        <div class="panel">
+          <span class="kicker">ZERO HOUR</span>
+          <span class="pause-title">PAUSED</span>
+          <div class="btn-row">
+            <button id="btn-resume" class="arcade-btn primary" type="button">RESUME</button>
+            <button id="btn-pause-restart" class="arcade-btn" type="button">RESTART</button>
+            <button id="btn-pause-quit" class="arcade-btn" type="button">QUIT TO MENU</button>
+          </div>
+          <div class="settings-row">
+            <button id="btn-pause-mute" class="arcade-btn settings-btn" type="button">SOUND: ON</button>
+            <button id="btn-haptic" class="arcade-btn settings-btn haptic-toggle" type="button">VIBRATION: ON</button>
+            <button id="btn-pause-fs" class="arcade-btn settings-btn" type="button">FULLSCREEN</button>
+          </div>
+          <p class="controls-hint">ESC / P — RESUME · 나가면 이번 런은 기록되지 않습니다</p>
         </div>
-        <div class="settings-row">
-          <button id="btn-pause-mute" class="arcade-btn settings-btn" type="button">SOUND: ON</button>
-          <button id="btn-haptic" class="arcade-btn settings-btn haptic-toggle" type="button">VIBRATION: ON</button>
-          <button id="btn-pause-fs" class="arcade-btn settings-btn" type="button">FULLSCREEN</button>
-        </div>
-        <p class="controls-hint">ESC / P — RESUME · 나가면 이번 런은 기록되지 않습니다</p>
       </div>
 
       <div id="screen-howto" class="screen" data-screen-label="How To Play" role="dialog" aria-modal="true" aria-label="How to play">
+        <div class="panel">
+        <span class="kicker">ZERO HOUR</span>
         <span class="pause-title">HOW TO PLAY</span>
         <div class="howto-list">
           <div class="howto-row"><span class="howto-k">MOVE</span><span class="howto-v">WASD / ARROW KEYS · 모바일: 화면 드래그</span></div>
@@ -155,13 +162,17 @@
         <div class="btn-row">
           <button id="btn-howto-start" class="arcade-btn primary" type="button">START</button>
         </div>
+        </div>
       </div>
 
       <div id="screen-records" class="screen" data-screen-label="Records" role="dialog" aria-modal="true" aria-label="Records">
-        <span class="pause-title">RECORDS</span>
-        <div id="records-body"></div>
-        <div class="btn-row">
-          <button id="btn-records-back" class="arcade-btn primary" type="button">BACK</button>
+        <div class="panel">
+          <span class="kicker">ZERO HOUR</span>
+          <span class="pause-title">RECORDS</span>
+          <div id="records-body"></div>
+          <div class="btn-row">
+            <button id="btn-records-back" class="arcade-btn primary" type="button">BACK</button>
+          </div>
         </div>
       </div>
   </div>
