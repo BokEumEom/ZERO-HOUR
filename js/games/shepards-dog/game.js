@@ -224,7 +224,7 @@ function inPen(px, py, inset) {
 /* ---------- game state ---------- */
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-let state = "menu"; // menu | intro | play | win | lose | final
+let state = "menu"; // menu | intro | play | paused | win | lose | final
 let level = 0;
 let sheep = [],
   wolves = [],

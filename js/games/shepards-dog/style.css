@@ -106,7 +106,16 @@ body {
   font-size: 16px;
   line-height: 1;
 }
-#muteBtn {
+/* control cluster — sound + pause, fenced off from the read-only stats */
+.hud-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 12px;
+  margin-left: 2px;
+  border-left: 2px solid rgba(43, 38, 32, 0.18);
+}
+.hud-btn {
   pointer-events: auto;
   cursor: pointer;
   border: 2px solid var(--ink);
@@ -117,9 +126,15 @@ body {
   height: 30px;
   font-weight: 700;
   color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-#muteBtn:active {
+.hud-btn:active {
   transform: translateY(1px);
+}
+#pauseBtn {
+  letter-spacing: -2px;
 }
 #barkHint {
   position: fixed;

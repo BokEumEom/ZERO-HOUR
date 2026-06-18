@@ -33,7 +33,10 @@
           <div id="timeWrap"><div id="timeFill"></div></div>
         </div>
         <div class="hud-item"><span class="hud-label">Score</span><span class="hud-num" id="hudScore">0</span></div>
-        <button id="muteBtn" title="Toggle sound">♪</button>
+        <div class="hud-controls">
+          <button id="muteBtn" class="hud-btn" title="Toggle sound">♪</button>
+          <button id="pauseBtn" class="hud-btn" title="Pause (Esc)">❚❚</button>
+        </div>
       </div>
     </div>
     <div id="barkHint">Drag to steer the dog · tap to <b>bark</b></div>
@@ -124,6 +127,19 @@
         <div class="rule"></div>
         <button class="btn gold" id="btnRetry">Try again</button>
         <button class="btn ghost" id="btnLoseMenu">Menu</button>
+      </div>
+    </div>
+
+    <!-- PAUSE -->
+    <div class="screen" id="screen-pause">
+      <div class="panel compact">
+        <div class="kicker">Paused</div>
+        <h2>Take a breath</h2>
+        <p class="sub">The flock will wait for you. Nothing stirs while the dog rests.</p>
+        <div class="rule"></div>
+        <button class="btn gold" id="btnResume">Resume</button>
+        <button class="btn ghost" id="btnPauseRestart">Restart level</button>
+        <button class="btn ghost" id="btnPauseMenu">Quit to menu</button>
       </div>
     </div>
 

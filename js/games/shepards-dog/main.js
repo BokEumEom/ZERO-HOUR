@@ -168,6 +168,45 @@ muteBtn.addEventListener("click", () => {
 });
 syncMute();
 
+/* ---------- pause / quit ---------- */
+// Drop any held input so a steer/bark can't survive a state transition (ADR-0003).
+function resetInput() {
+  pDown = null;
+  steer = null;
+  stick.classList.remove("on");
+  stickKnob.style.transform = "translate(-50%,-50%)";
+  if (typeof dog !== "undefined" && dog) {
+    dog.tx = dog.x;
+    dog.ty = dog.y;
+  }
+}
+function pauseGame() {
+  if (state !== "play") return;
+  state = "paused";
+  resetInput();
+  barkHint.classList.remove("on");
+  show("screen-pause");
+}
+function resumeGame() {
+  if (state !== "paused") return;
+  state = "play";
+  resetInput();
+  last = performance.now(); // avoid a dt spike from the paused interval
+  show(null);
+  if (barks < 3) barkHint.classList.add("on");
+}
+$("pauseBtn").addEventListener("click", pauseGame);
+$("btnResume").addEventListener("click", resumeGame);
+$("btnPauseRestart").addEventListener("click", () => openIntro(level));
+$("btnPauseMenu").addEventListener("click", toMenu);
+// keyboard: Esc / P toggles pause during play
+addEventListener("keydown", (e) => {
+  if (e.key === "Escape" || e.key === "p" || e.key === "P") {
+    if (state === "play") pauseGame();
+    else if (state === "paused") resumeGame();
+  }
+});
+
 /* attract-mode scene behind the start menu */
 function buildAttract() {
   startLevel(0);

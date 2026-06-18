@@ -175,10 +175,11 @@ function render() {
   }
 
   /* --- day/night --- */
-  const dayT = state === "play" || state === "win" || state === "lose" ? 1 - timeLeft / timeTotal : 0.15;
+  const dayT =
+    state === "play" || state === "paused" || state === "win" || state === "lose" ? 1 - timeLeft / timeTotal : 0.15;
   const c = nightTint(dayT);
   if (c.a > 0.005) {
-    if (c.a > 0.2 && state === "play") {
+    if (c.a > 0.2 && (state === "play" || state === "paused")) {
       // lantern glow around the dog
       const g = ctx.createRadialGradient(dog.x, dog.y, 40, dog.x, dog.y, 520);
       g.addColorStop(0, `rgba(${c.r},${c.g},${c.b},${c.a * 0.25})`);
