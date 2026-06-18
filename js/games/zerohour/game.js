@@ -164,10 +164,13 @@
     const p = s.player;
     if (pattern === 'RING') {
       const R = 280, baseA = s.rng() * Math.PI * 2;
+      // clamp outside the player hitbox (mine 11 + player 13 + 2) so a corner-hugging
+      // player never takes an undodgeable hit the frame the ring spawns
+      const PAD = 26;
       for (let i = 0; i < size; i++) {
         const a = baseA + (i / size) * Math.PI * 2;
-        const x = Math.min(W - 20, Math.max(20, p.x + Math.cos(a) * R));
-        const y = Math.min(H - 20, Math.max(20, p.y + Math.sin(a) * R));
+        const x = Math.min(W - PAD, Math.max(PAD, p.x + Math.cos(a) * R));
+        const y = Math.min(H - PAD, Math.max(PAD, p.y + Math.sin(a) * R));
         pushFormMine(s, x, y, p.x - x, p.y - y, 70); // converge inward
       }
     } else if (pattern === 'PINCER') {

@@ -8,8 +8,8 @@
   (`floor(fieldLen/16)`, fired between an 8s warmup and the boss window),
   each spawning a **choreographed mine formation** (LINE / RING / PINCER) with a
   scripted `entryT` entry that reverts to the existing homing behaviour. A
-  **HEAT** multiplier rises while collecting during a surge (`×1 → ×2`, capped
-  `×4` with X2) and resets on hit, isolated into its own score-breakdown bucket.
+  **HEAT** multiplier rises while collecting during a surge (`×1 → ×1.25 → ×1.5 → ×2`,
+  capped `×4` with X2) and resets on hit, isolated into its own score-breakdown bucket.
   No new entity types, no new JS modules, no new art.
 - **Consequences**:
   - All surge/formation/HEAT randomness uses `s.rng()` → daily fairness intact
