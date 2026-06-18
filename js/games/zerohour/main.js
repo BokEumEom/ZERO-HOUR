@@ -329,6 +329,7 @@
     $('over-stats').innerHTML =
       statRow('CRYSTAL PTS', '+' + fmt(bd.crystals)) +
       statRow('COMBO BONUS', '+' + fmt(bd.combo)) +
+      statRow('HEAT BONUS', '+' + fmt(bd.heat || 0)) +
       statRow('DESTRUCTION', '+' + fmt(bd.destruction)) +
       statRow('BOSS PTS', '+' + fmt(bd.boss)) +
       statRow('MAX COMBO', '\u00d7' + res.maxCombo) +

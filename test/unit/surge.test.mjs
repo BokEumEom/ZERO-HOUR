@@ -1,7 +1,7 @@
 // Surge Director + HEAT multiplier — engine-level tests.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadModules } from './helpers.mjs';
+import { loadModules, runToGameOver } from './helpers.mjs';
 
 function freshGame(nowIso = '2026-03-01T00:30:00Z') {
   return loadModules(['js/store.js', 'js/games/zerohour/game.js'], { nowIso });
@@ -141,4 +141,11 @@ test('HEAT_X2_CAP caps combined X2 × HEAT at 4', () => {
   // v = round(11*4) = 44; vBase = round(11*2) = 22; heatBonus = 22
   assert.equal(G.state.score - before, 44);
   assert.equal(G.state.breakdown.heat, 22);
+});
+
+test('game-over result carries a heat breakdown bucket', () => {
+  const sb = freshGame();
+  const res = runToGameOver(sb, 'free', { dt: 1 / 30 });
+  assert.ok(res, 'run ended');
+  assert.equal(typeof res.breakdown.heat, 'number', 'heat bucket present in result');
 });
