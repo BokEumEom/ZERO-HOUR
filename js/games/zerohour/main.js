@@ -48,7 +48,7 @@
   // ---------- HUD ----------
   const POWER_DUR = { MAGNET: 7, SLOW: 5, X2: 7, BOOST: 6, SPREAD: 7 }; // for effect timer bars
   const hudEls = {
-    time: $('hud-time'), score: $('hud-score'), combo: $('hud-combo'),
+    time: $('hud-time'), score: $('hud-score'), combo: $('hud-combo'), heat: $('hud-heat'),
     hearts: $('hud-hearts'), pace: $('hud-pace'), fx: $('hud-fx'), mode: $('hud-mode'),
     pauseBtn: $('btn-pause'), muteBtn: $('btn-mute'), fsBtn: $('btn-fullscreen'),
     bossHp: $('boss-hp'), bossHpFill: $('boss-hp-fill'),
@@ -95,6 +95,9 @@
     hudEls.time.classList.toggle('warn', tl <= 5.5);
     hudEls.score.textContent = fmt(s.score);
     hudEls.combo.textContent = s.combo > 1 ? '×' + s.combo : '';
+    const heatOn = s.inSurge && s.heatMul > 1;
+    hudEls.heat.textContent = heatOn ? 'HEAT ×' + s.heatMul : '';
+    hudEls.heat.classList.toggle('on', heatOn);
     hudEls.mode.textContent = s.mode === 'daily' ? 'DAILY ' + recs.today : 'FREE PLAY';
 
     // hearts

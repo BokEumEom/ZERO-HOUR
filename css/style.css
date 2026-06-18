@@ -84,6 +84,17 @@ body.portrait #hud { background: var(--panel); border-bottom: 1px solid rgba(45,
   min-width: 4.5em;
 }
 #hud-combo { font-weight: 700; font-size: clamp(13px, 3vw, 16px); color: var(--amber); min-width: 2.2em; text-shadow: 0 0 8px rgba(255,195,77,0.6); }
+#hud-heat {
+  font: 700 13px "IBM Plex Mono", ui-monospace, monospace;
+  color: #ffc34d;
+  text-shadow: 0 0 8px rgba(255, 195, 77, 0.6);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  letter-spacing: 0.5px;
+}
+#hud-heat.on {
+  opacity: 1;
+}
 #hud-hearts { color: var(--pink); font-size: clamp(12px, 3vw, 15px); letter-spacing: 0.1em; }
 #hud-hearts.low { animation: blink 0.7s steps(2) infinite; }
 #hud-pace { font-size: 13px; font-weight: 600; padding: 3px 8px; border: 1px solid; }
