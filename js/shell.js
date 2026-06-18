@@ -194,6 +194,28 @@
     activeId() { return active ? active.id : null; },
   };
 
+  // ---------- decorative ASCII-art banner motion (hub + Zero Hour panels) ----------
+  // Frame-cycles the sheep/dog mascots so the glyphs themselves move (sheep blink,
+  // dog blink + pant, tail wag). Each frame keeps identical line lengths so the art
+  // never jitters horizontally. Skipped entirely under prefers-reduced-motion; the
+  // static art in index.html is frame 0, so no-JS / reduced-motion still looks right.
+  function animateAsciiBanners() {
+    const els = document.querySelectorAll('.ascii-banner');
+    if (!els.length) return;
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const frames = [
+      '   __               ___\n  (oo)__           /o o\\\n  (____)__         \\_w_/\n   \'\'  \'\' ~         ^ ^',
+      '   __               ___\n  (--)__           /o o\\\n  (____)__         \\_w_/\n   \'\'  \'\' ~         ^ ^',
+      '   __               ___\n  (oo)__           /o o\\\n  (____)__         \\_u_/\n   \'\'  \'\' \\         ^ ^',
+      '   __               ___\n  (oo)__           /- -\\\n  (____)__         \\_w_/\n   \'\'  \'\' /         ^ ^',
+    ];
+    let i = 0;
+    setInterval(() => {
+      i = (i + 1) % frames.length;
+      for (const el of els) el.textContent = frames[i];
+    }, 480);
+  }
+
   // ---------- boot ----------
   (async function boot() {
     const settings = await SY.store.loadSettings();
@@ -202,6 +224,7 @@
     SY.audio.setHaptics(settings.haptics !== false);
     fit();
     showHub(); // games registered synchronously before this microtask resumes
+    animateAsciiBanners();
     requestAnimationFrame(loop);
   })();
 })();
