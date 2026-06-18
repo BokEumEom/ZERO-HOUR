@@ -29,6 +29,24 @@ test('buildSurges is deterministic for the same daily seed', () => {
   assert.equal(JSON.stringify(a), JSON.stringify(b), 'same seed → identical schedule');
 });
 
+// Fairness hardening: schedule equality alone would miss a stray rng draw in the
+// spawn path. Drive two same-seed dailies through the first surge and assert the
+// resulting formation coordinates are byte-identical (positions affect play).
+test('same daily seed → identical formation coordinates', () => {
+  const fireFirstSurge = () => {
+    const G = toPlaying(freshGame(), 'daily');
+    G.state.t = G.state.surges[0].at - 0.001;
+    G.update(0.01); // crosses surges[0].at → spawnFormation fires off the seeded stream
+    return G.state.mines
+      .filter((m) => m.entryT > 0)
+      .map((m) => ({ x: m.x, y: m.y, vx: m.vx, vy: m.vy, phase: m.phase }));
+  };
+  const a = fireFirstSurge();
+  const b = fireFirstSurge();
+  assert.ok(a.length > 0, 'a formation actually spawned');
+  assert.equal(JSON.stringify(a), JSON.stringify(b), 'same seed → identical formation geometry');
+});
+
 test('freshState seeds HEAT fields and a heat breakdown bucket', () => {
   const G = toPlaying(freshGame(), 'free');
   assert.equal(G.state.heat, 0);
