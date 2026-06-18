@@ -36,3 +36,29 @@ test('freshState seeds HEAT fields and a heat breakdown bucket', () => {
   assert.equal(G.state.heatMul, 1);
   assert.equal(G.state.breakdown.heat, 0);
 });
+
+// Helper: force a crystal onto the player and step one frame so the real
+// collect → addScore path runs with whatever inSurge/heat we set.
+function collectOneOnPlayer(G) {
+  const p = G.state.player;
+  G.state.crystals.push({ x: p.x, y: p.y, vx: 0, vy: 0, r: 7, phase: 0 });
+  G.update(1 / 60);
+}
+
+test('HEAT bonus is isolated into breakdown.heat during a surge', () => {
+  const G = toPlaying(freshGame(), 'free');
+  G.state.inSurge = true; G.state.surgeActiveT = 10; G.state.heat = 26; // tier ×2
+  const before = G.state.score;
+  collectOneOnPlayer(G);
+  // base = 10 + combo(→1) = 11; x2 off → x2=1; tier=2 → mul=2
+  // v = round(11*2)=22; vBase = round(11*1)=11; heatBonus = 11
+  assert.equal(G.state.breakdown.heat, 11, 'heat bonus = v - vBase');
+  assert.equal(G.state.score - before, 22, 'full multiplied value added to score');
+});
+
+test('HEAT does not apply outside a surge (tier = 1)', () => {
+  const G = toPlaying(freshGame(), 'free');
+  G.state.inSurge = false; G.state.heat = 26; // high heat, but not in surge
+  collectOneOnPlayer(G);
+  assert.equal(G.state.breakdown.heat, 0, 'no heat bonus outside surge');
+});

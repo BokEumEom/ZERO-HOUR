@@ -186,20 +186,30 @@
   function floatText(s, x, y, text, color) {
     s.floats.push({ x, y, text, color, life: 1 });
   }
+  function heatTier(s) {
+    if (!s.inSurge) return 1;
+    for (const t of HEAT_TIERS) if (s.heat >= t.at) return t.mul;
+    return 1;
+  }
+
   function addScore(s, base, x, y, label, bucket) {
-    const mul = s.fx.X2 > 0 ? 2 : 1;
-    const v = base * mul;
+    const x2 = s.fx.X2 > 0 ? 2 : 1;
+    const mul = Math.min(HEAT_X2_CAP, x2 * heatTier(s));
+    const v = Math.round(base * mul);
+    const vBase = Math.round(base * x2);      // value without the HEAT boost
+    const heatBonus = v - vBase;              // isolated HEAT contribution
     s.score += v;
     if (bucket === 'crystal') {
-      // base is 10 + combo: split the combo part into its own bucket
-      s.breakdown.crystals += 10 * mul;
-      s.breakdown.combo += (base - 10) * mul;
+      const combo = Math.round((base - 10) * x2); // combo part keeps integer split
+      s.breakdown.crystals += vBase - combo;
+      s.breakdown.combo += combo;
     } else if (bucket === 'destroy') {
-      s.breakdown.destruction += v;
+      s.breakdown.destruction += vBase;
     } else if (bucket === 'boss') {
-      s.breakdown.boss += v;
+      s.breakdown.boss += vBase;
     }
-    if (x !== undefined) floatText(s, x, y, '+' + v + (label ? ' ' + label : ''), mul === 2 ? '#ffc34d' : '#9ff5e8');
+    s.breakdown.heat += heatBonus;
+    if (x !== undefined) floatText(s, x, y, '+' + v + (label ? ' ' + label : ''), mul > 1 ? '#ffc34d' : '#9ff5e8');
   }
 
   // ---------- player damage ----------

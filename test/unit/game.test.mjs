@@ -164,7 +164,7 @@ test('breakdown buckets always sum to the final score (3 seeded full runs)', () 
       assert.ok(res, 'run must end');
       const bd = res.breakdown;
       assert.equal(
-        bd.crystals + bd.combo + bd.destruction + bd.boss, res.score,
+        bd.crystals + bd.combo + bd.destruction + bd.boss + bd.heat, res.score,
         `bucket sum must equal score (mode=${mode} run=${run}: ${JSON.stringify(bd)} vs ${res.score})`,
       );
       assert.ok(res.score > 0, 'sanity: an active run should score');
@@ -207,7 +207,7 @@ test('game-over result carries pace[], breakdown and the seed for the UI layer',
   sb.SY.tweaks.duration = 5;
   const res = runToGameOver(sb, 'daily');
   assert.ok(Array.isArray(res.pace) && res.pace.length >= 2, 'pace series for sparkline');
-  assert.deepEqual(Object.keys(res.breakdown).sort(), ['boss', 'combo', 'crystals', 'destruction']);
+  assert.deepEqual(Object.keys(res.breakdown).sort(), ['boss', 'combo', 'crystals', 'destruction', 'heat']);
   assert.equal(typeof res.collected, 'number');
   // daily records must be filed under the seed's date, not "now" (midnight rollover)
   assert.equal(res.seedStr, 'daily-2026-03-01');
