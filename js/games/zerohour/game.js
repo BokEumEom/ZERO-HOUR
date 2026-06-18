@@ -148,6 +148,50 @@
     s.mines.push({ x, y, r: 11, hp: 1, speed: 62 + s.t * 1.1, phase: s.rng() * Math.PI * 2, flash: 0 });
   }
 
+  function pushFormMine(s, x, y, dx, dy, speed) {
+    const d = Math.hypot(dx, dy) || 1;
+    s.mines.push({
+      x, y, r: 11, hp: 1, speed: 62 + s.t * 1.1,
+      phase: s.rng() * Math.PI * 2, flash: 0,
+      vx: (dx / d) * speed, vy: (dy / d) * speed, entryT: 1.5,
+    });
+  }
+
+  // choreographed mine entry — all randomness via s.rng (daily fairness)
+  function spawnFormation(s, pattern, size) {
+    const p = s.player;
+    if (pattern === 'RING') {
+      const R = 280, baseA = s.rng() * Math.PI * 2;
+      for (let i = 0; i < size; i++) {
+        const a = baseA + (i / size) * Math.PI * 2;
+        const x = Math.min(W - 20, Math.max(20, p.x + Math.cos(a) * R));
+        const y = Math.min(H - 20, Math.max(20, p.y + Math.sin(a) * R));
+        pushFormMine(s, x, y, p.x - x, p.y - y, 70); // converge inward
+      }
+    } else if (pattern === 'PINCER') {
+      const flip = s.rng() < 0.5 ? 1 : 0;
+      const half = Math.floor(size / 2) + 1;
+      for (let i = 0; i < size; i++) {
+        const side = (i + flip) % 2;            // alternate opposite edges
+        const t = (Math.floor(i / 2) + 1) / half;
+        const y = 60 + t * (H - 120);
+        const x = side === 0 ? -20 : W + 20;
+        pushFormMine(s, x, y, side === 0 ? 1 : -1, 0, 150);
+      }
+    } else { // LINE sweep
+      const edge = Math.floor(s.rng() * 4); // 0 top, 1 right, 2 bottom, 3 left
+      for (let i = 0; i < size; i++) {
+        const t = (i + 1) / (size + 1);
+        let x, y, vx, vy;
+        if (edge === 0) { x = t * W; y = -20; vx = 0; vy = 1; }
+        else if (edge === 2) { x = t * W; y = H + 20; vx = 0; vy = -1; }
+        else if (edge === 1) { x = W + 20; y = t * H; vx = -1; vy = 0; }
+        else { x = -20; y = t * H; vx = 1; vy = 0; }
+        pushFormMine(s, x, y, vx, vy, 130);
+      }
+    }
+  }
+
   function spawnPow(s, x, y) {
     const type = nextPowType(s);
     s.pows.push({

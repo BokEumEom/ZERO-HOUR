@@ -83,3 +83,20 @@ test('taking a hit resets heat to 0', () => {
   assert.equal(G.state.heat, 0, 'hit clears HEAT');
   assert.equal(G.state.tookDamage, true);
 });
+
+test('spawnFormation (via a forced surge) adds `size` scripted-entry mines, deterministically', () => {
+  const G = toPlaying(freshGame(), 'daily');
+  // jump the clock to just before the first surge and let the director fire it
+  const first = G.state.surges[0];
+  G.state.t = first.at - 0.001;
+  const before = G.state.mines.length;
+  G.update(0.01); // crosses first.at → surge starts → formation spawns
+  const added = G.state.mines.length - before;
+  assert.equal(added, first.size, 'formation adds exactly `size` mines');
+  const formMines = G.state.mines.slice(before);
+  for (const m of formMines) {
+    assert.ok(m.entryT > 0, 'formation mines enter on a scripted path');
+    assert.ok(typeof m.vx === 'number' && typeof m.vy === 'number');
+  }
+  assert.equal(G.state.inSurge, true);
+});
