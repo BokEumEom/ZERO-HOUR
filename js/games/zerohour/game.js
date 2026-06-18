@@ -145,7 +145,9 @@
     else if (edge === 1) { x = W + 20; y = s.rng() * H; }
     else if (edge === 2) { x = s.rng() * W; y = H + 20; }
     else { x = -20; y = s.rng() * H; }
-    s.mines.push({ x, y, r: 11, hp: 1, speed: 62 + s.t * 1.1, phase: s.rng() * Math.PI * 2, flash: 0 });
+    // unified mine shape: vx/vy/entryT keep standard + formation mines monomorphic
+    // (entryT: 0 → the entry branch is skipped, so standard mines home as before)
+    s.mines.push({ x, y, r: 11, hp: 1, speed: 62 + s.t * 1.1, phase: s.rng() * Math.PI * 2, flash: 0, vx: 0, vy: 0, entryT: 0 });
   }
 
   function pushFormMine(s, x, y, dx, dy, speed) {
@@ -419,7 +421,7 @@
     }
     if (s.surgeWarnT > 0) s.surgeWarnT -= dt;
     if (s.inSurge) { s.surgeActiveT -= dt; if (s.surgeActiveT <= 0) s.inSurge = false; }
-    s.heatMul = heatTier(s);
+    s.heatMul = heatTier(s); // cached for the HUD heat badge (read by main.js)
 
     // effect timers
     for (const k in s.fx) if (s.fx[k] > 0) s.fx[k] -= dt;

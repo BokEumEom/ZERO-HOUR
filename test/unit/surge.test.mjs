@@ -47,9 +47,10 @@ function collectOneOnPlayer(G) {
 
 test('HEAT bonus is isolated into breakdown.heat during a surge', () => {
   const G = toPlaying(freshGame(), 'free');
-  G.state.inSurge = true; G.state.surgeActiveT = 10; G.state.heat = 26; // tier ×2
+  G.state.inSurge = true; G.state.surgeActiveT = 10; G.state.heat = 26; // starts at tier ×2
   const before = G.state.score;
   collectOneOnPlayer(G);
+  // collect runs s.heat += 1 (26 → 27) BEFORE heatTier samples it; heatTier(27) → ×2 (at ≥ 26)
   // base = 10 + combo(→1) = 11; x2 off → x2=1; tier=2 → mul=2
   // v = round(11*2)=22; vBase = round(11*1)=11; heatBonus = 11
   assert.equal(G.state.breakdown.heat, 11, 'heat bonus = v - vBase');
@@ -128,4 +129,16 @@ test('formation mines move along their scripted vector during entry', () => {
   G.update(1 / 60);
   assert.ok(Math.sign(m.x - x0) === Math.sign(vx) || vx === 0, 'x follows scripted vx');
   assert.ok(Math.sign(m.y - y0) === Math.sign(vy) || vy === 0, 'y follows scripted vy');
+});
+
+test('HEAT_X2_CAP caps combined X2 × HEAT at 4', () => {
+  const G = toPlaying(freshGame(), 'free');
+  G.state.inSurge = true; G.state.surgeActiveT = 10; G.state.heat = 26; // tier ×2
+  G.state.fx.X2 = 5; // X2 active
+  const before = G.state.score;
+  collectOneOnPlayer(G);
+  // base=11, x2=2, tier=2 → 2*2=4 (== HEAT_X2_CAP, not 5+)
+  // v = round(11*4) = 44; vBase = round(11*2) = 22; heatBonus = 22
+  assert.equal(G.state.score - before, 44);
+  assert.equal(G.state.breakdown.heat, 22);
 });
