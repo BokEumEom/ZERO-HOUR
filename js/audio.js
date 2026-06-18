@@ -138,6 +138,11 @@
 
     timeWarn() { tone('square', 980, 980, 0.06, 0.12); },
 
+    surgeWarn() {
+      tone('square', 720, 480, 0.16, 0.18, 0, 'exp');
+      noise(0.1, 0.12, 0, 800, 0.8);
+    },
+
     gameOver() {
       tone('sawtooth', 220, 110, 0.4, 0.2, 0, 'exp');
       tone('sawtooth', 165, 82, 0.5, 0.18, 0.15, 'exp');
