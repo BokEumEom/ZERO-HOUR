@@ -193,7 +193,10 @@ const LEVELS = [
     blurb: "Everything the hills can throw at you. Bring them all home.",
   },
 ];
-const needFor = (lv) => Math.ceil(LEVELS[lv].sheep * 0.8);
+// win threshold ramps from a gentle 70% (tutorial) up to 80% (late game),
+// so the first levels leave more margin for stray sheep.
+const WIN_RATIO = [0.7, 0.72, 0.74, 0.76, 0.78, 0.8, 0.8, 0.8, 0.8, 0.8];
+const needFor = (lv) => Math.ceil(LEVELS[lv].sheep * (WIN_RATIO[lv] ?? 0.8));
 
 /* ---------- pen geometry ---------- */
 const PEN = { x: 1290, y: 365, w: 250, h: 270, t: 14, gate: 150 };
