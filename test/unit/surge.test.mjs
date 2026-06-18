@@ -100,3 +100,32 @@ test('spawnFormation (via a forced surge) adds `size` scripted-entry mines, dete
   }
   assert.equal(G.state.inSurge, true);
 });
+
+test('a full free run passes through at least one surge and back to calm', () => {
+  const sb = freshGame();
+  const G = sb.SY.game;
+  let sawSurge = false, sawCalmAfter = false;
+  G.events.onGameOver = () => {};
+  G.start('free');
+  for (let i = 0; i < 30 && G.phase === 'ready'; i++) G.update(0.1);
+  for (let i = 0; i < 60 * 60 && G.phase === 'playing'; i++) {
+    G.update(1 / 60);
+    if (G.state.inSurge) sawSurge = true;
+    if (sawSurge && !G.state.inSurge && G.state.surgeIdx >= 1) sawCalmAfter = true;
+  }
+  assert.ok(sawSurge, 'run entered a surge');
+  assert.ok(sawCalmAfter, 'run returned to calm after a surge');
+});
+
+test('formation mines move along their scripted vector during entry', () => {
+  const G = toPlaying(freshGame(), 'daily');
+  const first = G.state.surges[0];
+  G.state.t = first.at - 0.001;
+  G.update(0.01);
+  const m = G.state.mines.find((x) => x.entryT > 0);
+  assert.ok(m, 'a scripted-entry mine exists');
+  const x0 = m.x, y0 = m.y, vx = m.vx, vy = m.vy;
+  G.update(1 / 60);
+  assert.ok(Math.sign(m.x - x0) === Math.sign(vx) || vx === 0, 'x follows scripted vx');
+  assert.ok(Math.sign(m.y - y0) === Math.sign(vy) || vy === 0, 'y follows scripted vy');
+});

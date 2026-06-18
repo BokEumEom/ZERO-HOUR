@@ -401,6 +401,26 @@
     if (!s.boss && !s.bossDown && s.duration >= 40 && s.timeLeft <= 20) spawnBoss(s);
     if (s.bossWarnT > 0) s.bossWarnT -= dt;
 
+    // ---------- surge director ----------
+    const sd = s.surges[s.surgeIdx];
+    if (sd) {
+      if (!s.inSurge && s.surgeWarnT <= 0 && s.t >= sd.at - SURGE_WARN && s.t < sd.at) {
+        s.surgeWarnT = SURGE_WARN;
+        SY.audio.surgeWarn();
+      }
+      if (s.t >= sd.at) {
+        s.inSurge = true;
+        s.surgeActiveT = SURGE_DUR;
+        s.heat = 0;                       // each surge builds fresh
+        spawnFormation(s, sd.pattern, sd.size);
+        s.shake = Math.max(s.shake, 4);
+        s.surgeIdx++;
+      }
+    }
+    if (s.surgeWarnT > 0) s.surgeWarnT -= dt;
+    if (s.inSurge) { s.surgeActiveT -= dt; if (s.surgeActiveT <= 0) s.inSurge = false; }
+    s.heatMul = heatTier(s);
+
     // effect timers
     for (const k in s.fx) if (s.fx[k] > 0) s.fx[k] -= dt;
     if (s.comboT > 0) { s.comboT -= dt; if (s.comboT <= 0) s.combo = 0; }
@@ -457,7 +477,8 @@
     s.spawnT.mine -= dt;
     if (s.spawnT.mine <= 0) {
       const ramp = Math.max(0.45, 1 - s.t * 0.007);
-      s.spawnT.mine = (2.7 * ramp) / Math.max(0.2, SY.tweaks.spawnRate);
+      const calmEase = s.inSurge ? 1 : 1.6; // fewer ambient mines between surges
+      s.spawnT.mine = (2.7 * ramp * calmEase) / Math.max(0.2, SY.tweaks.spawnRate);
       if (s.mines.length < 12) spawnMine(s);
     }
     s.spawnT.pow -= dt;
@@ -497,9 +518,16 @@
       const m = s.mines[i];
       m.phase += dt * 5;
       if (m.flash > 0) m.flash -= dt;
+      if (m.entryT > 0) {
+        m.entryT -= dt;                              // scripted formation entry
+        m.x += m.vx * slowMul * dt;
+        m.y += m.vy * slowMul * dt;
+      } else {
+        const dh = Math.sqrt(dist2(m, p)) || 1;      // homing
+        m.x += ((p.x - m.x) / dh) * m.speed * slowMul * dt;
+        m.y += ((p.y - m.y) / dh) * m.speed * slowMul * dt;
+      }
       const d = Math.sqrt(dist2(m, p)) || 1;
-      m.x += ((p.x - m.x) / d) * m.speed * slowMul * dt;
-      m.y += ((p.y - m.y) / d) * m.speed * slowMul * dt;
       if (d < m.r + p.r) {
         s.mines.splice(i, 1);
         burst(s, m.x, m.y, '#ff5a78', 14, 200, 3);
