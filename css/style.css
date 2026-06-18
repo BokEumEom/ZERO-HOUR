@@ -195,6 +195,27 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
 /* small pink tracked label that sits above a title (Shepherd's .kicker) */
 .kicker { font-family: var(--body); font-size: 11px; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase; color: var(--pink); }
 
+/* ASCII-art mascots (sheep + dog) — a terminal banner atop the hub + Zero Hour
+   panels. Decorative (aria-hidden); the wordmark below carries the meaning. */
+.ascii-banner {
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.15;
+  white-space: pre;
+  color: var(--teal-soft);
+  text-shadow: 0 0 7px rgba(45, 226, 198, 0.45);
+  width: max-content;
+  max-width: 100%;
+  margin: 0;
+  user-select: none;
+  overflow: hidden;
+}
+@media (max-width: 380px) { .ascii-banner { font-size: 9px; } }
+@media (prefers-reduced-motion: no-preference) {
+  .ascii-banner { animation: ascii-bob 3.4s ease-in-out infinite; }
+}
+@keyframes ascii-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+
 /* Fraunces is a variable font — display headings need an explicit heavy weight
    and tight tracking (the old pixel tracking looks wrong on a serif) */
 .arcade-wordmark, .game-title, .pause-title, #over-reason, #over-score,
