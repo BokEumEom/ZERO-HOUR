@@ -15,6 +15,40 @@
     TIME:   { glyph: '+5', color: '#eaf6ff', label: '+5 SEC' },
   };
 
+  // ---- surge director tuning ----
+  const SURGE_WARMUP = 8;     // calm intro before the first surge (s)
+  const SURGE_GAP_DIV = 16;   // field seconds per surge (count = floor(fieldLen / this))
+  const SURGE_DUR = 6;        // how long a surge stays "hot" (s)
+  const SURGE_WARN = 1.2;     // telegraph lead time (s)
+  const SURGE_PATTERNS = ['LINE', 'RING', 'PINCER'];
+
+  // ---- HEAT multiplier tuning (checked high → low) ----
+  const HEAT_X2_CAP = 4;      // ceiling on combined X2 × HEAT multiplier
+  const HEAT_TIERS = [ { at: 26, mul: 2 }, { at: 14, mul: 1.5 }, { at: 6, mul: 1.25 } ];
+
+  function buildSurges(s) {
+    const fieldEnd = s.duration >= 40 ? s.duration - 20 : s.duration; // boss owns the last 20s
+    const fieldStart = SURGE_WARMUP;
+    const fieldLen = fieldEnd - fieldStart;
+    if (fieldLen <= 0) return [];
+    const n = Math.max(1, Math.floor(fieldLen / SURGE_GAP_DIV));
+    // seeded pattern bag (Fisher–Yates with s.rng — daily fairness)
+    const bag = SURGE_PATTERNS.slice();
+    for (let i = bag.length - 1; i > 0; i--) {
+      const j = Math.floor(s.rng() * (i + 1));
+      [bag[i], bag[j]] = [bag[j], bag[i]];
+    }
+    const surges = [];
+    for (let k = 1; k <= n; k++) {
+      surges.push({
+        at: fieldStart + fieldLen * (k / (n + 1)), // even spacing, margins both ends
+        size: 6 + 3 * k,
+        pattern: bag[(k - 1) % bag.length],
+      });
+    }
+    return surges;
+  }
+
   // tweakable knobs (written by tweaks UI)
   SY.tweaks = SY.tweaks || { duration: 60, spawnRate: 1.0, particles: 1.0, shake: 1.0 };
   SY.input = { ax: 0, ay: 0 }; // touch joystick axis, merged with keyboard
@@ -41,7 +75,7 @@
   function freshState(mode, seedStr) {
     const rng = SY.makeRng(seedStr);
     const duration = Math.round(SY.tweaks.duration);
-    return {
+    const st = {
       rng, seedStr, mode, duration,
       t: 0,                       // elapsed sim time
       timeLeft: duration,
@@ -55,13 +89,17 @@
       fx: { MAGNET: 0, SLOW: 0, X2: 0, BOOST: 0, SPREAD: 0 },
       shield: false,
       freeze: 0, shake: 0,
+      surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
+      heat: 0, heatMul: 1,
       spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6 },
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
-      breakdown: { crystals: 0, combo: 0, destruction: 0, boss: 0 },
+      breakdown: { crystals: 0, combo: 0, destruction: 0, boss: 0, heat: 0 },
       tookDamage: false, // for the NO HIT medal (shield blocks don't count as damage)
     };
+    st.surges = buildSurges(st);
+    return st;
   }
 
   function nextPowType(s) {
