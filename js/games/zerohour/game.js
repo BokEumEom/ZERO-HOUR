@@ -230,6 +230,7 @@
     s.tookDamage = true; // a hull was actually lost (NO HIT medal forfeited)
     p.inv = 1.5;
     s.combo = 0; s.comboT = 0;
+    s.heat = 0;
     s.freeze = Math.max(s.freeze, 0.18);
     s.shake = Math.max(s.shake, 11);
     wave(s, x, y, 70, '#ff5a78');
@@ -437,6 +438,7 @@
         s.combo += 1; s.comboT = 2.6;
         s.maxCombo = Math.max(s.maxCombo, s.combo);
         s.collected += 1;
+        if (s.inSurge) s.heat += 1;
         addScore(s, 10 + s.combo, c.x, c.y, undefined, 'crystal');
         burst(s, c.x, c.y, '#2de2c6', 7, 150, 2.2);
         SY.audio.collect(s.combo);

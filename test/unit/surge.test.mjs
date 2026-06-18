@@ -62,3 +62,24 @@ test('HEAT does not apply outside a surge (tier = 1)', () => {
   collectOneOnPlayer(G);
   assert.equal(G.state.breakdown.heat, 0, 'no heat bonus outside surge');
 });
+
+test('collecting during a surge raises heat; collecting in calm does not', () => {
+  const G = toPlaying(freshGame(), 'free');
+  G.state.inSurge = true; G.state.surgeActiveT = 10; G.state.heat = 0;
+  collectOneOnPlayer(G);
+  assert.equal(G.state.heat, 1, 'one crystal in surge → heat +1');
+  G.state.inSurge = false;
+  collectOneOnPlayer(G);
+  assert.equal(G.state.heat, 1, 'crystal in calm → heat unchanged');
+});
+
+test('taking a hit resets heat to 0', () => {
+  const G = toPlaying(freshGame(), 'free');
+  G.state.inSurge = true; G.state.surgeActiveT = 10; G.state.heat = 20;
+  G.state.shield = false; G.state.player.inv = 0;
+  const p = G.state.player;
+  G.state.mines.push({ x: p.x, y: p.y, r: 11, hp: 1, speed: 60, phase: 0, flash: 0 });
+  G.update(1 / 60); // mine on the player → hurtPlayer → heat reset
+  assert.equal(G.state.heat, 0, 'hit clears HEAT');
+  assert.equal(G.state.tookDamage, true);
+});
