@@ -72,3 +72,9 @@ test('script load order in index.html is store -> audio -> game -> render -> mai
   const order = [...html.matchAll(/<script src="js[^"]*\/([a-z-]+)\.js">/g)].map((m) => m[1]);
   assert.deepEqual(order, ['store', 'audio', 'shell', 'game', 'render', 'medals', 'main', 'register']);
 });
+
+test('render.js reacts to surge state (telegraph + tint)', () => {
+  const src = read(`${ZH}/render.js`);
+  assert.ok(src.includes('surgeWarnT'), 'render draws the surge telegraph');
+  assert.ok(src.includes('inSurge'), 'render tints during a surge');
+});

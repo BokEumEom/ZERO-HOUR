@@ -40,6 +40,11 @@
       ctx.fillStyle = 'rgba(120,80,255,0.07)';
       ctx.fillRect(-20, -20, W + 40, H + 40);
     }
+    // surge tint — warm pulse so the high-pressure window reads at a glance
+    if (s && s.inSurge) {
+      ctx.fillStyle = 'rgba(255,90,120,0.05)';
+      ctx.fillRect(-20, -20, W + 40, H + 40);
+    }
     // arena frame
     ctx.strokeStyle = 'rgba(45,226,198,0.35)';
     ctx.lineWidth = 2;
@@ -289,6 +294,20 @@
       ctx.fillText(f.text, f.x, f.y);
     }
     ctx.globalAlpha = 1;
+
+    // surge warning banner (counter-rotated to read upright in portrait)
+    if (s.surgeWarnT > 0 && Math.floor(s.surgeWarnT * 6) % 2 === 0) {
+      ctx.save();
+      ctx.translate(W / 2, H / 2);
+      ctx.rotate(-rot);
+      ctx.fillStyle = 'rgba(255,154,90,0.12)';
+      ctx.fillRect(-W, -30, W * 2, 60);
+      ctx.fillStyle = '#ff9a5a';
+      ctx.font = 'bold 24px ' + MONO;
+      ctx.textAlign = 'center';
+      ctx.fillText('▲ SURGE INCOMING ▲', 0, 8);
+      ctx.restore();
+    }
 
     // boss warning banner (counter-rotated so text reads upright in portrait)
     if (s.bossWarnT > 0 && Math.floor(s.bossWarnT * 5) % 2 === 0) {
