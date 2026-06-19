@@ -2657,6 +2657,203 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   text-shadow: none;
 }
 
+/* ===== DAILY CHALLENGE briefing (display-only; no gameplay effect) ===== */
+#neonvortex-screen-challenge {
+  background: color-mix(in srgb, var(--nv-bg) 88%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+#neonvortex-screen-challenge .nv-chal-shell {
+  width: min(460px, 94vw);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: left;
+  color: var(--nv-on-surface);
+}
+/* header: back control left, mono terminal tag right, hairline base */
+#neonvortex-screen-challenge .nv-chal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--nv-primary) 20%, transparent);
+}
+#neonvortex-screen-challenge .nv-chal-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-primary) 78%, transparent);
+  transition: color 0.15s ease, transform 0.1s ease;
+}
+#neonvortex-screen-challenge .nv-chal-back:hover,
+#neonvortex-screen-challenge .nv-chal-back:focus-visible {
+  color: var(--nv-primary-bright);
+  outline: none;
+}
+#neonvortex-screen-challenge .nv-chal-back:active { transform: scale(0.96); }
+#neonvortex-screen-challenge .nv-chal-back-icon { width: 14px; height: 14px; }
+#neonvortex-screen-challenge .nv-chal-status {
+  font-family: var(--nv-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--nv-primary);
+}
+/* title: small Sora uppercase kicker + big Sora extrabold italic cyan-glow */
+#neonvortex-screen-challenge .nv-chal-title-wrap { display: flex; flex-direction: column; gap: 4px; }
+#neonvortex-screen-challenge .nv-chal-kicker {
+  margin: 0;
+  font-family: var(--nv-font-display);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--nv-primary);
+}
+#neonvortex-screen-challenge .nv-chal-title {
+  margin: 0;
+  font-family: var(--nv-font-display);
+  font-size: clamp(20px, 6vw, 28px);
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--nv-primary);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--nv-primary) 50%, transparent);
+}
+#neonvortex-screen-challenge .nv-chal-rule {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(to right,
+    color-mix(in srgb, var(--nv-primary) 45%, transparent), transparent);
+}
+/* MISSION INTEL card: amber-accented, display-only */
+#neonvortex-screen-challenge .nv-chal-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--nv-value) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-value) 32%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--nv-value) 10%, transparent);
+}
+#neonvortex-screen-challenge .nv-chal-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--nv-value);
+}
+#neonvortex-screen-challenge .nv-chal-card-head h3 {
+  margin: 0;
+  font-family: var(--nv-font-display);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+#neonvortex-screen-challenge .nv-chal-icon { width: 15px; height: 15px; }
+#neonvortex-screen-challenge .nv-chal-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+#neonvortex-screen-challenge .nv-chal-row-divider {
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--nv-value) 14%, transparent);
+}
+#neonvortex-screen-challenge .nv-chal-row-label {
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 80%, transparent);
+}
+#neonvortex-screen-challenge .nv-chal-row-val {
+  font-family: var(--nv-font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: right;
+  color: var(--nv-on-surface);
+}
+#neonvortex-screen-challenge .nv-chal-row-val-cyan { color: var(--nv-primary-bright); }
+#neonvortex-screen-challenge .nv-chal-note {
+  margin: 0;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 65%, transparent);
+}
+/* STREAK: cosmetic progress bar (capped at 7 days) — decoration, not a multiplier */
+#neonvortex-screen-challenge .nv-chal-streak {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#neonvortex-screen-challenge .nv-chal-streak-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+#neonvortex-screen-challenge .nv-chal-streak .nv-chal-row-val { color: var(--nv-value); }
+#neonvortex-screen-challenge .nv-chal-streak-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--nv-value) 14%, transparent);
+  overflow: hidden;
+}
+#neonvortex-screen-challenge .nv-chal-streak-bar > i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: 3px;
+  background: var(--nv-value);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--nv-value) 60%, transparent);
+  transition: width 0.3s ease;
+}
+/* LAUNCH SEQUENCE: prominent primary/cyan CTA */
+#neonvortex-screen-challenge .nv-chal-launch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  color: var(--nv-primary-bright);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 85%, transparent);
+  background: rgba(0,219,231,0.09);
+  font-family: var(--nv-font-display);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+#neonvortex-screen-challenge .nv-chal-launch-label { text-shadow: 0 0 10px rgba(0,219,231,0.5); }
+#neonvortex-screen-challenge .nv-chal-launch:hover,
+#neonvortex-screen-challenge .nv-chal-launch:focus-visible {
+  background: rgba(0,219,231,0.16);
+  box-shadow: 0 0 20px rgba(0,219,231,0.4);
+  outline: none;
+}
+#neonvortex-screen-challenge .nv-chal-launch:active { transform: scale(0.98); }
+
 </style>
 <link rel="preload" as="image" href="assets/illustrations/ship_assets.png">
 <link rel="preload" as="image" href="assets/illustrations/zero-hour-keyart.png">
@@ -3056,6 +3253,58 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
               </div>
             </div>
           </div>
+        </div>
+      </div>
+      <div id="neonvortex-screen-challenge" class="screen" data-screen-label="NEON VORTEX — Daily Briefing" role="dialog" aria-modal="true" aria-label="Daily Challenge Briefing">
+        <div class="nv-chal-shell">
+          <header class="nv-chal-head">
+            <button id="neonvortex-btn-challenge-back" class="nv-chal-back" type="button">
+              <svg class="nv-chal-back-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>메인으로 // LOBBY</span>
+            </button>
+            <span class="nv-chal-status">DAILY_ROUTER_ONLINE</span>
+          </header>
+
+          <div class="nv-chal-title-wrap">
+            <h2 class="nv-chal-kicker">DAILY THREAT SIMULATION</h2>
+            <h1 class="nv-chal-title">오늘의 작전</h1>
+            <div class="nv-chal-rule"></div>
+          </div>
+
+          <section class="nv-chal-card">
+            <div class="nv-chal-card-head">
+              <svg class="nv-chal-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              <h3>MISSION INTEL</h3>
+            </div>
+
+            <div class="nv-chal-row">
+              <span class="nv-chal-row-label">DATE / SEED</span>
+              <span class="nv-chal-row-val" id="neonvortex-chal-seed">—</span>
+            </div>
+            <p class="nv-chal-note" id="neonvortex-chal-seed-note">모든 파일럿이 동일한 시드로 플레이합니다 · All pilots fly the same seed</p>
+
+            <div class="nv-chal-row nv-chal-row-divider">
+              <span class="nv-chal-row-label">TODAY’S BEST</span>
+              <span class="nv-chal-row-val nv-chal-row-val-cyan" id="neonvortex-chal-daily-best">—</span>
+            </div>
+            <div class="nv-chal-row">
+              <span class="nv-chal-row-label">ALL-TIME BEST</span>
+              <span class="nv-chal-row-val nv-chal-row-val-cyan" id="neonvortex-chal-all-best">—</span>
+            </div>
+
+            <div class="nv-chal-streak nv-chal-row-divider">
+              <div class="nv-chal-streak-head">
+                <span class="nv-chal-row-label">STREAK</span>
+                <span class="nv-chal-row-val" id="neonvortex-chal-streak">—</span>
+              </div>
+              <div class="nv-chal-streak-bar"><i id="neonvortex-chal-streak-fill"></i></div>
+              <p class="nv-chal-note" id="neonvortex-chal-streak-note">연속 출격 기록입니다 · 점수에는 영향을 주지 않습니다</p>
+            </div>
+          </section>
+
+          <button id="neonvortex-btn-challenge-launch" class="nv-chal-launch" type="button">
+            <span class="nv-chal-launch-label">▶ 작전 개시 (LAUNCH SEQUENCE)</span>
+          </button>
         </div>
       </div>
   </div>
@@ -6687,9 +6936,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     'screen-howto': 'btn-howto-start',
     'screen-records': 'btn-records-back',
     'screen-settings': 'btn-settings-back',
+    'screen-challenge': 'btn-challenge-launch', // a11y: focus the CTA on open
   };
   function show(screenId) {
-    for (const id of ['screen-menu', 'screen-over', 'screen-pause', 'screen-howto', 'screen-records', 'screen-settings']) {
+    for (const id of ['screen-menu', 'screen-over', 'screen-pause', 'screen-howto', 'screen-records', 'screen-settings', 'screen-challenge']) {
       $(id).classList.toggle('visible', id === screenId);
     }
     if (screenId !== 'screen-over') stopCountdown();
@@ -6919,6 +7169,21 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     const maxBand = tiers[tiers.length - 1].min || 150000;
     const pct = Math.max(0, Math.min(100, (lt.score / maxBand) * 100));
     $('menu-career').style.width = pct.toFixed(1) + '%';
+  }
+
+  // ---------- daily challenge briefing (display-only; no gameplay effect) ----------
+  // Mirrors the menu stats but framed as a mission briefing. Every field reads
+  // existing records — nothing here re-seeds, rerolls, or multiplies the run.
+  async function renderChallenge() {
+    $('chal-seed').textContent = 'daily-' + recs.today + ' (UTC)';
+    $('chal-daily-best').textContent = recs.dailyBest ? fmt(recs.dailyBest.score) : '아직 기록 없음';
+    $('chal-all-best').textContent = recs.bestAll ? fmt(recs.bestAll.score) : '—';
+
+    const streak = await gameStore.computeStreak();
+    $('chal-streak').textContent = streak > 0 ? '🔥 ' + streak + '일 연속' : '0';
+    // cosmetic bar capped at 7 days — labels streak only, grants no bonus
+    const streakPct = Math.max(0, Math.min(100, (streak / 7) * 100));
+    $('chal-streak-fill').style.width = streakPct.toFixed(0) + '%';
   }
 
   let pendingMode = null;
@@ -7215,7 +7480,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     show('screen-menu');
   }
   $('btn-start').addEventListener('click', () => startGame('daily')); // headline action → today's daily
-  $('btn-daily').addEventListener('click', () => startGame('daily'));
+  $('btn-daily').addEventListener('click', () => { renderChallenge(); show('screen-challenge'); });
   $('btn-free').addEventListener('click', () => startGame('free'));
   $('btn-retry').addEventListener('click', () => startGame(lastResult ? lastResult.mode : 'daily'));
   $('btn-menu').addEventListener('click', quitToMenu);
@@ -7235,6 +7500,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   });
   $('btn-records').addEventListener('click', () => { renderRecords(); show('screen-records'); });
   $('btn-records-back').addEventListener('click', () => show('screen-menu'));
+  $('btn-challenge-launch').addEventListener('click', () => startGame('daily'));
+  $('btn-challenge-back').addEventListener('click', () => show('screen-menu'));
 
   // ---------- settings screen (gear-opened; reuses the pause-menu toggle logic) ----------
   function openSettings() {
@@ -7265,6 +7532,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       if (e.code === 'Escape' || e.code === 'KeyM') $('btn-records-back').click();
     } else if ($('screen-settings').classList.contains('visible')) {
       if (e.code === 'Escape' || e.code === 'KeyM') $('btn-settings-back').click();
+    } else if ($('screen-challenge').classList.contains('visible')) {
+      if (e.code === 'Escape' || e.code === 'KeyM') $('btn-challenge-back').click();
     } else if (G.phase === 'paused') {
       if (e.code === 'Escape' || e.code === 'KeyP') resumeGame();
     } else if (G.phase === 'playing' || G.phase === 'ready') {

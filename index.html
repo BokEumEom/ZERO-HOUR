@@ -417,6 +417,58 @@
           </div>
         </div>
       </div>
+      <div id="neonvortex-screen-challenge" class="screen" data-screen-label="NEON VORTEX — Daily Briefing" role="dialog" aria-modal="true" aria-label="Daily Challenge Briefing">
+        <div class="nv-chal-shell">
+          <header class="nv-chal-head">
+            <button id="neonvortex-btn-challenge-back" class="nv-chal-back" type="button">
+              <svg class="nv-chal-back-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>메인으로 // LOBBY</span>
+            </button>
+            <span class="nv-chal-status">DAILY_ROUTER_ONLINE</span>
+          </header>
+
+          <div class="nv-chal-title-wrap">
+            <h2 class="nv-chal-kicker">DAILY THREAT SIMULATION</h2>
+            <h1 class="nv-chal-title">오늘의 작전</h1>
+            <div class="nv-chal-rule"></div>
+          </div>
+
+          <section class="nv-chal-card">
+            <div class="nv-chal-card-head">
+              <svg class="nv-chal-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              <h3>MISSION INTEL</h3>
+            </div>
+
+            <div class="nv-chal-row">
+              <span class="nv-chal-row-label">DATE / SEED</span>
+              <span class="nv-chal-row-val" id="neonvortex-chal-seed">—</span>
+            </div>
+            <p class="nv-chal-note" id="neonvortex-chal-seed-note">모든 파일럿이 동일한 시드로 플레이합니다 · All pilots fly the same seed</p>
+
+            <div class="nv-chal-row nv-chal-row-divider">
+              <span class="nv-chal-row-label">TODAY’S BEST</span>
+              <span class="nv-chal-row-val nv-chal-row-val-cyan" id="neonvortex-chal-daily-best">—</span>
+            </div>
+            <div class="nv-chal-row">
+              <span class="nv-chal-row-label">ALL-TIME BEST</span>
+              <span class="nv-chal-row-val nv-chal-row-val-cyan" id="neonvortex-chal-all-best">—</span>
+            </div>
+
+            <div class="nv-chal-streak nv-chal-row-divider">
+              <div class="nv-chal-streak-head">
+                <span class="nv-chal-row-label">STREAK</span>
+                <span class="nv-chal-row-val" id="neonvortex-chal-streak">—</span>
+              </div>
+              <div class="nv-chal-streak-bar"><i id="neonvortex-chal-streak-fill"></i></div>
+              <p class="nv-chal-note" id="neonvortex-chal-streak-note">연속 출격 기록입니다 · 점수에는 영향을 주지 않습니다</p>
+            </div>
+          </section>
+
+          <button id="neonvortex-btn-challenge-launch" class="nv-chal-launch" type="button">
+            <span class="nv-chal-launch-label">▶ 작전 개시 (LAUNCH SEQUENCE)</span>
+          </button>
+        </div>
+      </div>
   </div>
 
   <button id="btn-mute" type="button" aria-label="Mute">

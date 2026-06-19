@@ -151,9 +151,10 @@
     'screen-howto': 'btn-howto-start',
     'screen-records': 'btn-records-back',
     'screen-settings': 'btn-settings-back',
+    'screen-challenge': 'btn-challenge-launch', // a11y: focus the CTA on open
   };
   function show(screenId) {
-    for (const id of ['screen-menu', 'screen-over', 'screen-pause', 'screen-howto', 'screen-records', 'screen-settings']) {
+    for (const id of ['screen-menu', 'screen-over', 'screen-pause', 'screen-howto', 'screen-records', 'screen-settings', 'screen-challenge']) {
       $(id).classList.toggle('visible', id === screenId);
     }
     if (screenId !== 'screen-over') stopCountdown();
@@ -383,6 +384,21 @@
     const maxBand = tiers[tiers.length - 1].min || 150000;
     const pct = Math.max(0, Math.min(100, (lt.score / maxBand) * 100));
     $('menu-career').style.width = pct.toFixed(1) + '%';
+  }
+
+  // ---------- daily challenge briefing (display-only; no gameplay effect) ----------
+  // Mirrors the menu stats but framed as a mission briefing. Every field reads
+  // existing records — nothing here re-seeds, rerolls, or multiplies the run.
+  async function renderChallenge() {
+    $('chal-seed').textContent = 'daily-' + recs.today + ' (UTC)';
+    $('chal-daily-best').textContent = recs.dailyBest ? fmt(recs.dailyBest.score) : '아직 기록 없음';
+    $('chal-all-best').textContent = recs.bestAll ? fmt(recs.bestAll.score) : '—';
+
+    const streak = await gameStore.computeStreak();
+    $('chal-streak').textContent = streak > 0 ? '🔥 ' + streak + '일 연속' : '0';
+    // cosmetic bar capped at 7 days — labels streak only, grants no bonus
+    const streakPct = Math.max(0, Math.min(100, (streak / 7) * 100));
+    $('chal-streak-fill').style.width = streakPct.toFixed(0) + '%';
   }
 
   let pendingMode = null;
@@ -679,7 +695,7 @@
     show('screen-menu');
   }
   $('btn-start').addEventListener('click', () => startGame('daily')); // headline action → today's daily
-  $('btn-daily').addEventListener('click', () => startGame('daily'));
+  $('btn-daily').addEventListener('click', () => { renderChallenge(); show('screen-challenge'); });
   $('btn-free').addEventListener('click', () => startGame('free'));
   $('btn-retry').addEventListener('click', () => startGame(lastResult ? lastResult.mode : 'daily'));
   $('btn-menu').addEventListener('click', quitToMenu);
@@ -699,6 +715,8 @@
   });
   $('btn-records').addEventListener('click', () => { renderRecords(); show('screen-records'); });
   $('btn-records-back').addEventListener('click', () => show('screen-menu'));
+  $('btn-challenge-launch').addEventListener('click', () => startGame('daily'));
+  $('btn-challenge-back').addEventListener('click', () => show('screen-menu'));
 
   // ---------- settings screen (gear-opened; reuses the pause-menu toggle logic) ----------
   function openSettings() {
@@ -729,6 +747,8 @@
       if (e.code === 'Escape' || e.code === 'KeyM') $('btn-records-back').click();
     } else if ($('screen-settings').classList.contains('visible')) {
       if (e.code === 'Escape' || e.code === 'KeyM') $('btn-settings-back').click();
+    } else if ($('screen-challenge').classList.contains('visible')) {
+      if (e.code === 'Escape' || e.code === 'KeyM') $('btn-challenge-back').click();
     } else if (G.phase === 'paused') {
       if (e.code === 'Escape' || e.code === 'KeyP') resumeGame();
     } else if (G.phase === 'playing' || G.phase === 'ready') {
