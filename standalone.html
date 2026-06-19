@@ -1518,84 +1518,94 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   margin-top: 2px;
 }
 
-/* ---- angled-clip menu cards (DAILY / FREE PLAY) + RECORDS button ---- */
-#neonvortex-screen-menu .panel .mode-card,
-#neonvortex-screen-menu .arcade-btn {
+/* ---- main menu — vertical action list ----
+   START GAME / DAILY CHALLENGE / FREE PLAY / RANKING / SETTINGS, matching the
+   NEON VORTEX reference (angled-clip buttons, primary/gold/muted accents). */
+#neonvortex-screen-menu .nv-menu-list {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1.8vw, 12px);
+  margin-top: 4px;
+}
+#neonvortex-screen-menu .nv-menu-item {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: clamp(13px, 3.2vw, 18px) clamp(16px, 4vw, 26px);
   background: rgba(0,219,231,0.04);
-  border: 1px solid color-mix(in srgb, var(--nv-primary) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 60%, transparent);
   border-radius: 0;
-  clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
-  color: var(--nv-primary);
-  box-shadow: none;
-  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
-}
-#neonvortex-screen-menu .panel .mode-card {
-  align-items: flex-start;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  color: var(--nv-on-surface-variant);
+  cursor: pointer;
   text-align: left;
-  padding: 16px 28px;
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease, color 0.15s ease;
 }
-#neonvortex-screen-menu .arcade-btn { padding: 16px 28px; }
+#neonvortex-screen-menu .nv-menu-item:hover,
+#neonvortex-screen-menu .nv-menu-item:focus-visible {
+  background: rgba(0,219,231,0.1);
+  box-shadow: 0 0 16px rgba(0,219,231,0.28);
+  color: var(--nv-primary-bright);
+}
+#neonvortex-screen-menu .nv-menu-item:active { transform: scale(0.98); }
 
-#neonvortex-screen-menu .panel .mode-card:hover,
-#neonvortex-screen-menu .panel .mode-card:focus-visible,
-#neonvortex-screen-menu .arcade-btn:hover,
-#neonvortex-screen-menu .arcade-btn:focus-visible {
-  background: rgba(0,219,231,0.12);
-  box-shadow: 0 0 16px rgba(0,219,231,0.35);
-  transform: none;
-}
-#neonvortex-screen-menu .panel .mode-card:active,
-#neonvortex-screen-menu .arcade-btn:active {
-  transform: scale(0.97);
-  box-shadow: 0 0 10px rgba(0,219,231,0.3);
-}
-
-/* mode-card text colours */
-#neonvortex-screen-menu .mode-name {
+#neonvortex-screen-menu .nv-mi-label {
+  flex: 1 1 auto;
   font-family: var(--nv-font-display);
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  font-size: clamp(15px, 4vw, 18px);
+  line-height: 1.1;
   color: inherit;
   text-shadow: none;
 }
-#neonvortex-screen-menu .mode-sub,
-#neonvortex-screen-menu #neonvortex-menu-date {
-  color: var(--nv-on-surface-variant);
+#neonvortex-screen-menu .nv-mi-icon {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  opacity: 0.85;
 }
-#neonvortex-screen-menu .mode-meta,
-#neonvortex-screen-menu #neonvortex-menu-streak {
+#neonvortex-screen-menu .nv-mi-sub {
+  flex: 0 0 100%;
+  margin-top: 2px;
   font-family: var(--nv-font-mono);
   font-size: 11px;
-  color: var(--nv-primary);
+  letter-spacing: 0.04em;
+  color: var(--nv-on-surface-variant);
+}
+#neonvortex-screen-menu #neonvortex-menu-streak { margin-left: 6px; }
+
+/* START GAME → primary cyan headline action */
+#neonvortex-screen-menu .nv-mi-primary {
+  color: var(--nv-primary-bright);
+  border-color: color-mix(in srgb, var(--nv-primary) 85%, transparent);
+  background: rgba(0,219,231,0.09);
+}
+#neonvortex-screen-menu .nv-mi-primary .nv-mi-label { text-shadow: 0 0 10px rgba(0,219,231,0.5); }
+#neonvortex-screen-menu .nv-mi-primary:hover,
+#neonvortex-screen-menu .nv-mi-primary:focus-visible {
+  background: rgba(0,219,231,0.16);
+  box-shadow: 0 0 20px rgba(0,219,231,0.4);
 }
 
-/* DAILY card → gold accent ("REWARDS_AVAILABLE") */
-#neonvortex-screen-menu #neonvortex-btn-daily {
+/* DAILY CHALLENGE → gold accent */
+#neonvortex-screen-menu .nv-mi-gold {
   color: var(--nv-value);
-  border-color: color-mix(in srgb, var(--nv-value) 70%, transparent);
+  border-color: color-mix(in srgb, var(--nv-value) 60%, transparent);
   background: rgba(255,186,32,0.05);
 }
-#neonvortex-screen-menu #neonvortex-btn-daily:hover,
-#neonvortex-screen-menu #neonvortex-btn-daily:focus-visible {
+#neonvortex-screen-menu .nv-mi-gold:hover,
+#neonvortex-screen-menu .nv-mi-gold:focus-visible {
   background: rgba(255,186,32,0.12);
-  box-shadow: 0 0 16px rgba(255,186,32,0.35);
-}
-#neonvortex-screen-menu #neonvortex-btn-daily:active {
-  box-shadow: 0 0 10px rgba(255,186,32,0.3);
-}
-#neonvortex-screen-menu #neonvortex-btn-daily .mode-meta,
-#neonvortex-screen-menu #neonvortex-btn-daily #neonvortex-menu-streak {
+  box-shadow: 0 0 16px rgba(255,186,32,0.32);
   color: var(--nv-value);
 }
-
-/* RECORDS button → cyan label */
-#neonvortex-screen-menu .arcade-btn {
-  font-family: var(--nv-font-display);
-  font-weight: 800;
-  letter-spacing: 0.06em;
-}
+#neonvortex-screen-menu .nv-mi-gold .nv-mi-sub { color: color-mix(in srgb, var(--nv-value) 80%, transparent); }
 
 /* ===== NEON VORTEX — "Arcade Pilot" menu meta (crystals · rank · career) =====
    Display-only chrome over the existing dark-grid panel. Header row (crystals
@@ -1629,25 +1639,6 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   font-size: 12px;
   color: var(--nv-primary-bright);
 }
-/* cyan icon button */
-#neonvortex-screen-menu .nv-gear {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 30px; height: 30px;
-  padding: 0;
-  border: 1px solid color-mix(in srgb, var(--nv-primary) 28%, transparent);
-  border-radius: 5px;
-  background: rgba(0,219,231,0.04);
-  color: var(--nv-primary);
-  cursor: pointer;
-  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease, color 0.15s ease;
-}
-#neonvortex-screen-menu .nv-gear:hover,
-#neonvortex-screen-menu .nv-gear:focus-visible {
-  background: rgba(0,219,231,0.14);
-  box-shadow: 0 0 12px rgba(0,219,231,0.3);
-  color: var(--nv-primary-bright);
-}
-#neonvortex-screen-menu .nv-gear:active { transform: scale(0.9); }
 
 /* ---- pilot credentials card ---- */
 #neonvortex-screen-menu .nv-pilot-card {
@@ -2436,7 +2427,6 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
             <span class="kicker">ARCADE_PILOT_OS</span>
             <div class="nv-menu-top-right">
               <span class="nv-crystals">◆ <b id="neonvortex-menu-crystals">0</b></span>
-              <button id="neonvortex-btn-settings" class="nv-gear" type="button" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm9 4a7 7 0 00-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 00-2-1.2L16 2H8l-.5 2.6a7 7 0 00-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 003 12c0 .4 0 .8.1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 002 1.2L8 22h8l.5-2.6a7 7 0 002-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
             </div>
           </div>
           <h1 class="game-title nv-logo"><span class="nv-logo-1">NEON</span><span class="nv-logo-2">VORTEX</span><span class="nv-logo-tag">ULTRA</span></h1>
@@ -2451,21 +2441,32 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
             <div class="nv-career-ticks" id="neonvortex-menu-ticks"></div>
             <div class="nv-career-track"><div id="neonvortex-menu-career" class="nv-career-fill"></div></div>
           </div>
-          <div class="mode-row">
-            <button id="neonvortex-btn-daily" class="mode-card" type="button">
-              <span class="mode-name">DAILY</span>
-              <span id="neonvortex-menu-date" class="mode-sub">—</span>
-              <span id="neonvortex-menu-daily-best" class="mode-meta">—</span>
-              <span id="neonvortex-menu-streak" class="mode-meta"></span>
+          <div class="nv-menu-list">
+            <button id="neonvortex-btn-start" class="nv-menu-item nv-mi-primary" type="button">
+              <span class="nv-mi-label">START GAME</span>
+              <svg class="nv-mi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
             </button>
-            <button id="neonvortex-btn-free" class="mode-card" type="button">
-              <span class="mode-name">FREE PLAY</span>
-              <span class="mode-sub">무작위 아레나</span>
+            <button id="neonvortex-btn-daily" class="nv-menu-item nv-mi-gold" type="button">
+              <span class="nv-mi-label">DAILY CHALLENGE</span>
+              <svg class="nv-mi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4.5 13H11l-1 9 8.5-11H12l1-9z" fill="currentColor"/></svg>
+              <span class="nv-mi-sub"><span id="neonvortex-menu-date">—</span> · BEST <span id="neonvortex-menu-daily-best">—</span><span id="neonvortex-menu-streak"></span></span>
+            </button>
+            <button id="neonvortex-btn-free" class="nv-menu-item" type="button">
+              <span class="nv-mi-label">FREE PLAY</span>
+              <svg class="nv-mi-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="9" rx="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7 12.5h3M8.5 11v3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="15.5" cy="11.5" r="1.1" fill="currentColor"/><circle cx="17.6" cy="13.6" r="1.1" fill="currentColor"/></svg>
+              <span class="nv-mi-sub">무작위 시드 아레나</span>
+            </button>
+            <button id="neonvortex-btn-records" class="nv-menu-item" type="button">
+              <span class="nv-mi-label">RANKING</span>
+              <svg class="nv-mi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V11M12 21V4M19 21v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <button id="neonvortex-btn-settings" class="nv-menu-item" type="button">
+              <span class="nv-mi-label">SETTINGS</span>
+              <svg class="nv-mi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm9 4a7 7 0 00-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 00-2-1.2L16 2H8l-.5 2.6a7 7 0 00-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 003 12c0 .4 0 .8.1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 002 1.2L8 22h8l.5-2.6a7 7 0 002-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
             </button>
           </div>
           <p id="neonvortex-menu-all-best" class="best-line">ALL-TIME BEST —</p>
           <p id="neonvortex-menu-week" class="best-line"></p>
-          <button id="neonvortex-btn-records" class="arcade-btn" type="button">RECORDS</button>
           <p class="nv-menu-footer">V_2.0 // PROD</p>
         </div>
       </div>
@@ -2530,10 +2531,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         </div>
       </div>
 
-      <div id="neonvortex-screen-records" class="screen" data-screen-label="NEON VORTEX — Records" role="dialog" aria-modal="true" aria-label="Records">
+      <div id="neonvortex-screen-records" class="screen" data-screen-label="NEON VORTEX — Ranking" role="dialog" aria-modal="true" aria-label="Ranking">
         <div class="panel">
           <span class="kicker">ARCADE_PILOT_OS</span>
-          <span class="pause-title">RECORDS</span>
+          <span class="pause-title">RANKING</span>
           <div id="neonvortex-records-body"></div>
           <div class="btn-row">
             <button id="neonvortex-btn-records-back" class="arcade-btn primary" type="button">BACK</button>
@@ -6562,6 +6563,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     renderDailyHistory();
     show('screen-menu');
   }
+  $('btn-start').addEventListener('click', () => startGame('daily')); // headline action → today's daily
   $('btn-daily').addEventListener('click', () => startGame('daily'));
   $('btn-free').addEventListener('click', () => startGame('free'));
   $('btn-retry').addEventListener('click', () => startGame(lastResult ? lastResult.mode : 'daily'));

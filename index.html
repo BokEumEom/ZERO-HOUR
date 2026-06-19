@@ -200,7 +200,6 @@
             <span class="kicker">ARCADE_PILOT_OS</span>
             <div class="nv-menu-top-right">
               <span class="nv-crystals">◆ <b id="neonvortex-menu-crystals">0</b></span>
-              <button id="neonvortex-btn-settings" class="nv-gear" type="button" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm9 4a7 7 0 00-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 00-2-1.2L16 2H8l-.5 2.6a7 7 0 00-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 003 12c0 .4 0 .8.1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 002 1.2L8 22h8l.5-2.6a7 7 0 002-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
             </div>
           </div>
           <h1 class="game-title nv-logo"><span class="nv-logo-1">NEON</span><span class="nv-logo-2">VORTEX</span><span class="nv-logo-tag">ULTRA</span></h1>
@@ -215,21 +214,32 @@
             <div class="nv-career-ticks" id="neonvortex-menu-ticks"></div>
             <div class="nv-career-track"><div id="neonvortex-menu-career" class="nv-career-fill"></div></div>
           </div>
-          <div class="mode-row">
-            <button id="neonvortex-btn-daily" class="mode-card" type="button">
-              <span class="mode-name">DAILY</span>
-              <span id="neonvortex-menu-date" class="mode-sub">—</span>
-              <span id="neonvortex-menu-daily-best" class="mode-meta">—</span>
-              <span id="neonvortex-menu-streak" class="mode-meta"></span>
+          <div class="nv-menu-list">
+            <button id="neonvortex-btn-start" class="nv-menu-item nv-mi-primary" type="button">
+              <span class="nv-mi-label">START GAME</span>
+              <svg class="nv-mi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
             </button>
-            <button id="neonvortex-btn-free" class="mode-card" type="button">
-              <span class="mode-name">FREE PLAY</span>
-              <span class="mode-sub">무작위 아레나</span>
+            <button id="neonvortex-btn-daily" class="nv-menu-item nv-mi-gold" type="button">
+              <span class="nv-mi-label">DAILY CHALLENGE</span>
+              <svg class="nv-mi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4.5 13H11l-1 9 8.5-11H12l1-9z" fill="currentColor"/></svg>
+              <span class="nv-mi-sub"><span id="neonvortex-menu-date">—</span> · BEST <span id="neonvortex-menu-daily-best">—</span><span id="neonvortex-menu-streak"></span></span>
+            </button>
+            <button id="neonvortex-btn-free" class="nv-menu-item" type="button">
+              <span class="nv-mi-label">FREE PLAY</span>
+              <svg class="nv-mi-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="9" rx="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7 12.5h3M8.5 11v3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="15.5" cy="11.5" r="1.1" fill="currentColor"/><circle cx="17.6" cy="13.6" r="1.1" fill="currentColor"/></svg>
+              <span class="nv-mi-sub">무작위 시드 아레나</span>
+            </button>
+            <button id="neonvortex-btn-records" class="nv-menu-item" type="button">
+              <span class="nv-mi-label">RANKING</span>
+              <svg class="nv-mi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V11M12 21V4M19 21v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <button id="neonvortex-btn-settings" class="nv-menu-item" type="button">
+              <span class="nv-mi-label">SETTINGS</span>
+              <svg class="nv-mi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm9 4a7 7 0 00-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 00-2-1.2L16 2H8l-.5 2.6a7 7 0 00-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 003 12c0 .4 0 .8.1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 002 1.2L8 22h8l.5-2.6a7 7 0 002-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
             </button>
           </div>
           <p id="neonvortex-menu-all-best" class="best-line">ALL-TIME BEST —</p>
           <p id="neonvortex-menu-week" class="best-line"></p>
-          <button id="neonvortex-btn-records" class="arcade-btn" type="button">RECORDS</button>
           <p class="nv-menu-footer">V_2.0 // PROD</p>
         </div>
       </div>
@@ -294,10 +304,10 @@
         </div>
       </div>
 
-      <div id="neonvortex-screen-records" class="screen" data-screen-label="NEON VORTEX — Records" role="dialog" aria-modal="true" aria-label="Records">
+      <div id="neonvortex-screen-records" class="screen" data-screen-label="NEON VORTEX — Ranking" role="dialog" aria-modal="true" aria-label="Ranking">
         <div class="panel">
           <span class="kicker">ARCADE_PILOT_OS</span>
-          <span class="pause-title">RECORDS</span>
+          <span class="pause-title">RANKING</span>
           <div id="neonvortex-records-body"></div>
           <div class="btn-row">
             <button id="neonvortex-btn-records-back" class="arcade-btn primary" type="button">BACK</button>

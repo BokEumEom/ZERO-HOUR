@@ -839,84 +839,94 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   margin-top: 2px;
 }
 
-/* ---- angled-clip menu cards (DAILY / FREE PLAY) + RECORDS button ---- */
-#neonvortex-screen-menu .panel .mode-card,
-#neonvortex-screen-menu .arcade-btn {
+/* ---- main menu — vertical action list ----
+   START GAME / DAILY CHALLENGE / FREE PLAY / RANKING / SETTINGS, matching the
+   NEON VORTEX reference (angled-clip buttons, primary/gold/muted accents). */
+#neonvortex-screen-menu .nv-menu-list {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1.8vw, 12px);
+  margin-top: 4px;
+}
+#neonvortex-screen-menu .nv-menu-item {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: clamp(13px, 3.2vw, 18px) clamp(16px, 4vw, 26px);
   background: rgba(0,219,231,0.04);
-  border: 1px solid color-mix(in srgb, var(--nv-primary) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 60%, transparent);
   border-radius: 0;
-  clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
-  color: var(--nv-primary);
-  box-shadow: none;
-  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
-}
-#neonvortex-screen-menu .panel .mode-card {
-  align-items: flex-start;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  color: var(--nv-on-surface-variant);
+  cursor: pointer;
   text-align: left;
-  padding: 16px 28px;
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease, color 0.15s ease;
 }
-#neonvortex-screen-menu .arcade-btn { padding: 16px 28px; }
+#neonvortex-screen-menu .nv-menu-item:hover,
+#neonvortex-screen-menu .nv-menu-item:focus-visible {
+  background: rgba(0,219,231,0.1);
+  box-shadow: 0 0 16px rgba(0,219,231,0.28);
+  color: var(--nv-primary-bright);
+}
+#neonvortex-screen-menu .nv-menu-item:active { transform: scale(0.98); }
 
-#neonvortex-screen-menu .panel .mode-card:hover,
-#neonvortex-screen-menu .panel .mode-card:focus-visible,
-#neonvortex-screen-menu .arcade-btn:hover,
-#neonvortex-screen-menu .arcade-btn:focus-visible {
-  background: rgba(0,219,231,0.12);
-  box-shadow: 0 0 16px rgba(0,219,231,0.35);
-  transform: none;
-}
-#neonvortex-screen-menu .panel .mode-card:active,
-#neonvortex-screen-menu .arcade-btn:active {
-  transform: scale(0.97);
-  box-shadow: 0 0 10px rgba(0,219,231,0.3);
-}
-
-/* mode-card text colours */
-#neonvortex-screen-menu .mode-name {
+#neonvortex-screen-menu .nv-mi-label {
+  flex: 1 1 auto;
   font-family: var(--nv-font-display);
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  font-size: clamp(15px, 4vw, 18px);
+  line-height: 1.1;
   color: inherit;
   text-shadow: none;
 }
-#neonvortex-screen-menu .mode-sub,
-#neonvortex-screen-menu #neonvortex-menu-date {
-  color: var(--nv-on-surface-variant);
+#neonvortex-screen-menu .nv-mi-icon {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  opacity: 0.85;
 }
-#neonvortex-screen-menu .mode-meta,
-#neonvortex-screen-menu #neonvortex-menu-streak {
+#neonvortex-screen-menu .nv-mi-sub {
+  flex: 0 0 100%;
+  margin-top: 2px;
   font-family: var(--nv-font-mono);
   font-size: 11px;
-  color: var(--nv-primary);
+  letter-spacing: 0.04em;
+  color: var(--nv-on-surface-variant);
+}
+#neonvortex-screen-menu #neonvortex-menu-streak { margin-left: 6px; }
+
+/* START GAME → primary cyan headline action */
+#neonvortex-screen-menu .nv-mi-primary {
+  color: var(--nv-primary-bright);
+  border-color: color-mix(in srgb, var(--nv-primary) 85%, transparent);
+  background: rgba(0,219,231,0.09);
+}
+#neonvortex-screen-menu .nv-mi-primary .nv-mi-label { text-shadow: 0 0 10px rgba(0,219,231,0.5); }
+#neonvortex-screen-menu .nv-mi-primary:hover,
+#neonvortex-screen-menu .nv-mi-primary:focus-visible {
+  background: rgba(0,219,231,0.16);
+  box-shadow: 0 0 20px rgba(0,219,231,0.4);
 }
 
-/* DAILY card → gold accent ("REWARDS_AVAILABLE") */
-#neonvortex-screen-menu #neonvortex-btn-daily {
+/* DAILY CHALLENGE → gold accent */
+#neonvortex-screen-menu .nv-mi-gold {
   color: var(--nv-value);
-  border-color: color-mix(in srgb, var(--nv-value) 70%, transparent);
+  border-color: color-mix(in srgb, var(--nv-value) 60%, transparent);
   background: rgba(255,186,32,0.05);
 }
-#neonvortex-screen-menu #neonvortex-btn-daily:hover,
-#neonvortex-screen-menu #neonvortex-btn-daily:focus-visible {
+#neonvortex-screen-menu .nv-mi-gold:hover,
+#neonvortex-screen-menu .nv-mi-gold:focus-visible {
   background: rgba(255,186,32,0.12);
-  box-shadow: 0 0 16px rgba(255,186,32,0.35);
-}
-#neonvortex-screen-menu #neonvortex-btn-daily:active {
-  box-shadow: 0 0 10px rgba(255,186,32,0.3);
-}
-#neonvortex-screen-menu #neonvortex-btn-daily .mode-meta,
-#neonvortex-screen-menu #neonvortex-btn-daily #neonvortex-menu-streak {
+  box-shadow: 0 0 16px rgba(255,186,32,0.32);
   color: var(--nv-value);
 }
-
-/* RECORDS button → cyan label */
-#neonvortex-screen-menu .arcade-btn {
-  font-family: var(--nv-font-display);
-  font-weight: 800;
-  letter-spacing: 0.06em;
-}
+#neonvortex-screen-menu .nv-mi-gold .nv-mi-sub { color: color-mix(in srgb, var(--nv-value) 80%, transparent); }
 
 /* ===== NEON VORTEX — "Arcade Pilot" menu meta (crystals · rank · career) =====
    Display-only chrome over the existing dark-grid panel. Header row (crystals
@@ -950,25 +960,6 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   font-size: 12px;
   color: var(--nv-primary-bright);
 }
-/* cyan icon button */
-#neonvortex-screen-menu .nv-gear {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 30px; height: 30px;
-  padding: 0;
-  border: 1px solid color-mix(in srgb, var(--nv-primary) 28%, transparent);
-  border-radius: 5px;
-  background: rgba(0,219,231,0.04);
-  color: var(--nv-primary);
-  cursor: pointer;
-  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease, color 0.15s ease;
-}
-#neonvortex-screen-menu .nv-gear:hover,
-#neonvortex-screen-menu .nv-gear:focus-visible {
-  background: rgba(0,219,231,0.14);
-  box-shadow: 0 0 12px rgba(0,219,231,0.3);
-  color: var(--nv-primary-bright);
-}
-#neonvortex-screen-menu .nv-gear:active { transform: scale(0.9); }
 
 /* ---- pilot credentials card ---- */
 #neonvortex-screen-menu .nv-pilot-card {

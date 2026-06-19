@@ -534,6 +534,7 @@
     renderDailyHistory();
     show('screen-menu');
   }
+  $('btn-start').addEventListener('click', () => startGame('daily')); // headline action → today's daily
   $('btn-daily').addEventListener('click', () => startGame('daily'));
   $('btn-free').addEventListener('click', () => startGame('free'));
   $('btn-retry').addEventListener('click', () => startGame(lastResult ? lastResult.mode : 'daily'));
