@@ -18,6 +18,7 @@
   // ---------- lifecycle (shell-driven; registered via SY.registerGame below) ----------
   function enter() {
     recs.settings = SY.settings; // shared settings, loaded by the shell at boot
+    SY.nvSprites.setPaint(paintValue()); // cosmetic hull coating from persisted settings
     applyVolume(volumeValue());  // cosmetic SFX level from persisted settings
     applyCrt(crtOn());           // cosmetic CRT overlay from persisted settings
     updateMuteBtn();
@@ -453,7 +454,8 @@
     ctx.save();
     ctx.shadowBlur = 28;
     ctx.shadowColor = 'rgba(0, 219, 231, 0.55)'; // cyan hologram glow
-    ctx.drawImage(sheet, r.x, r.y, r.w, r.h, w / 2 - dw / 2, h / 2 - dh / 2, dw, dh);
+    // routes through the active coating's cached tinted canvas (cosmetic)
+    SP.drawPlayer(ctx, w / 2 - dw / 2, h / 2 - dh / 2, dw, dh);
     ctx.restore();
     return true;
   }
@@ -489,13 +491,35 @@
     canvas.height = 230;
     plinth.appendChild(canvas);
     show.appendChild(plinth);
-    // model name + EQUIPPED COATING chip (display only)
+    // model name + functional EQUIPPED COATING selector (cosmetic paint)
     const model = nvEl('div', 'nv-hgr-model');
     model.appendChild(nvEl('span', 'nv-hgr-model-name', 'MODEL: X-77 STRIKER INTERCEPTOR'));
-    const coating = nvEl('span', 'nv-hgr-coating');
-    coating.appendChild(nvEl('span', 'nv-hgr-coating-dot', '◆'));
-    coating.appendChild(document.createTextNode(' EQUIPPED COATING · NEON MATRIX'));
-    model.appendChild(coating);
+    model.appendChild(nvEl('span', 'nv-hgr-coat-label', 'EQUIPPED COATING · 기체 도장'));
+    const coatRow = nvEl('div', 'nv-hgr-coats');
+    const active = paintValue();
+    for (const c of NV_COATINGS) {
+      const chip = nvEl('button', 'nv-coat-chip' + (c.id === active ? ' is-active' : ''));
+      chip.type = 'button';
+      chip.dataset.paint = c.id;
+      chip.setAttribute('aria-pressed', c.id === active ? 'true' : 'false');
+      chip.setAttribute('aria-label', c.nameEN + ' // ' + c.nameKR);
+      chip.appendChild(nvEl('span', 'nv-coat-chip-glyph', c.glyph));
+      const names = nvEl('span', 'nv-coat-chip-names');
+      names.appendChild(nvEl('span', 'nv-coat-chip-en', c.nameEN));
+      names.appendChild(nvEl('span', 'nv-coat-chip-kr', c.nameKR));
+      chip.appendChild(names);
+      chip.addEventListener('click', () => {
+        setPaint(c.id);                          // persist + apply to live ship
+        for (const el of coatRow.children) {
+          const on = el.dataset.paint === c.id;
+          el.classList.toggle('is-active', on);
+          el.setAttribute('aria-pressed', on ? 'true' : 'false');
+        }
+        drawHangarShip(canvas);                   // refresh preview immediately
+      });
+      coatRow.appendChild(chip);
+    }
+    model.appendChild(coatRow);
     show.appendChild(model);
     body.appendChild(show);
 
@@ -577,24 +601,17 @@
     body.appendChild(pilot);
   }
 
-  // SYSTEM OVERHAUL — 신디케이트 오버홀 (DISPLAY-ONLY PREVIEW). This page is a
-  // non-functional mock of the reference shop: it READS recs.lifetime.crystals
-  // for the bank readout but NEVER decrements it, spends nothing, writes no
-  // ship/gameplay stat, and persists no upgrade or paint. Every UPGRADE/EQUIP
-  // control is rendered disabled and labelled 표시 전용 // PREVIEW. All levels
-  // show LV 0 because nothing is (or can be) purchased here.
+  // SYSTEM OVERHAUL — 신디케이트 오버홀. The UPGRADE shop is a DISPLAY-ONLY mock:
+  // it READS recs.lifetime.crystals for the bank readout but NEVER decrements it,
+  // spends nothing, writes no gameplay stat, and persists no upgrade. Every
+  // UPGRADE control is disabled and labelled 표시 전용 // PREVIEW (all LV 0). The
+  // one exception is the HULL FINISH selector, which sets the cosmetic ship
+  // coating (purely visual) and stays in sync with the HANGAR selector.
   const NV_OVH_UPGRADES = [
     { icon: 'M13 2 4.5 13H11l-1 9 8.5-11H12z', titleEN: 'LASER DAMAGE', titleKR: '레이저 출력', cost: 800 },
     { icon: 'M12 3 5 6v5c0 4.2 2.9 8.1 7 9 4.1-.9 7-4.8 7-9V6z', titleEN: 'SHIELD CAPACITY', titleKR: '보호막 용량', cost: 500 },
     { icon: 'M7 4v6a5 5 0 0 0 10 0V4M7 4H4m3 0h3m7 0h-3m3 0h3M12 15v5', titleEN: 'CRYSTAL MAGNET', titleKR: '크리스탈 자석', cost: 300 },
     { icon: 'M13 2 4.5 13H11l-1 9 8.5-11H12zM5 5l-2 2m18-2 2 2', titleEN: 'BOOST SPEED', titleKR: '부스트 속도', cost: 5000 },
-  ];
-  // hull coatings — cosmetic preview only; NEON is shown ACTIVE (default), the
-  // others are inert preview chips. No persistence, no gameplay effect.
-  const NV_OVH_PAINTS = [
-    { glyph: '◆', nameEN: 'NEON MATRIX', nameKR: '네온 매트릭스', active: true },
-    { glyph: '◈', nameEN: 'STEALTH', nameKR: '공허 스텔스', active: false },
-    { glyph: '✦', nameEN: 'SOLAR FORGE', nameKR: '태양 용광로', active: false },
   ];
 
   function renderOverhaul() {
@@ -678,22 +695,27 @@
     paintHead.appendChild(nvEl('span', 'nv-ovh-paint-title-kr', '전술 편대 기체 도장'));
     paintSec.appendChild(paintHead);
     paintSec.appendChild(nvEl('p', 'nv-ovh-paint-desc',
-      '특수 파장 제어 반사 코팅 — 미리보기 전용, 적용되지 않습니다.'));
+      '특수 파장 제어 반사 코팅 — 선택 시 기체에 즉시 적용됩니다 (외형 전용).'));
 
+    // functional coating selector, synced with the HANGAR selector
+    const active = paintValue();
     const gallery = nvEl('div', 'nv-ovh-gallery');
-    for (const p of NV_OVH_PAINTS) {
-      const swatch = nvEl('div', 'nv-ovh-swatch' + (p.active ? ' is-active' : ''));
-      swatch.appendChild(nvEl('span', 'nv-ovh-swatch-glyph', p.glyph));
-      swatch.appendChild(nvEl('span', 'nv-ovh-swatch-name', p.nameKR));
-      if (p.active) {
-        swatch.appendChild(nvEl('span', 'nv-ovh-swatch-chip', 'ACTIVE'));
-      } else {
-        const eq = nvEl('button', 'nv-ovh-swatch-btn', '표시 전용');
-        eq.type = 'button';
-        eq.disabled = true;
-        eq.setAttribute('aria-label', '표시 전용 // PREVIEW');
-        swatch.appendChild(eq);
-      }
+    for (const c of NV_COATINGS) {
+      const swatch = nvEl('button', 'nv-ovh-swatch nv-coat-chip' + (c.id === active ? ' is-active' : ''));
+      swatch.type = 'button';
+      swatch.dataset.paint = c.id;
+      swatch.setAttribute('aria-pressed', c.id === active ? 'true' : 'false');
+      swatch.setAttribute('aria-label', c.nameEN + ' // ' + c.nameKR);
+      swatch.appendChild(nvEl('span', 'nv-ovh-swatch-glyph', c.glyph));
+      swatch.appendChild(nvEl('span', 'nv-ovh-swatch-name', c.nameKR));
+      swatch.addEventListener('click', () => {
+        setPaint(c.id);
+        for (const el of gallery.children) {
+          const on = el.dataset.paint === c.id;
+          el.classList.toggle('is-active', on);
+          el.setAttribute('aria-pressed', on ? 'true' : 'false');
+        }
+      });
       gallery.appendChild(swatch);
     }
     paintSec.appendChild(gallery);
@@ -1192,6 +1214,25 @@
     return Math.max(0, Math.min(100, v));
   }
   function applyVolume(v0to100) { SY.audio.setVolume(v0to100 / 100); }
+
+  // ---------- hull coating (cosmetic ship paint) ----------
+  // Persisted under recs.settings.nvPaint (neonvortex-scoped). Purely visual:
+  // sets the cached tint in SY.nvSprites — no gameplay/seed effect.
+  const NV_COATINGS = [
+    { id: 'neon',    nameEN: 'NEON MATRIX',  nameKR: '네온 매트릭스', glyph: '◆' },
+    { id: 'stealth', nameEN: 'VOID STEALTH', nameKR: '공허 스텔스',   glyph: '◈' },
+    { id: 'solar',   nameEN: 'SOLAR FORGE',  nameKR: '태양 용광로',   glyph: '✦' },
+  ];
+  const paintValue = () => {
+    const id = recs.settings && recs.settings.nvPaint;
+    return NV_COATINGS.some((c) => c.id === id) ? id : 'neon';
+  };
+  function setPaint(id) {
+    const next = NV_COATINGS.some((c) => c.id === id) ? id : 'neon';
+    recs.settings.nvPaint = next;
+    SY.nvSprites.setPaint(next);
+    SY.store.saveSettings(recs.settings);
+  }
   function updateVolumeUi() {
     const v = volumeValue();
     volSlider.value = String(v);

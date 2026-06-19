@@ -2884,6 +2884,71 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 }
 #neonvortex-screen-hangar .nv-hgr-coating-dot { font-size: 9px; }
 
+/* functional hull-coating selector (HANGAR) */
+#neonvortex-screen-hangar .nv-hgr-coat-label {
+  font-family: var(--nv-font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-primary) 55%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-coats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+  margin-top: 2px;
+}
+#neonvortex-screen-hangar .nv-coat-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 9px 6px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--nv-on-surface) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-on-surface-variant) 18%, transparent);
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 80%, transparent);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+#neonvortex-screen-hangar .nv-coat-chip:hover {
+  border-color: color-mix(in srgb, var(--nv-primary) 30%, transparent);
+}
+#neonvortex-screen-hangar .nv-coat-chip.is-active {
+  background: color-mix(in srgb, var(--nv-primary) 8%, transparent);
+  border-color: color-mix(in srgb, var(--nv-primary) 50%, transparent);
+  color: var(--nv-primary);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--nv-primary) 18%, transparent);
+}
+#neonvortex-screen-hangar .nv-coat-chip-glyph { font-size: 16px; line-height: 1; }
+#neonvortex-screen-hangar .nv-coat-chip-names {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+#neonvortex-screen-hangar .nv-coat-chip-en {
+  font-family: var(--nv-font-display);
+  font-size: 7.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+#neonvortex-screen-hangar .nv-coat-chip-kr {
+  font-family: var(--nv-font-mono);
+  font-size: 7px;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 60%, transparent);
+}
+#neonvortex-screen-hangar .nv-coat-chip.is-active .nv-coat-chip-kr {
+  color: color-mix(in srgb, var(--nv-primary) 70%, transparent);
+}
+
+/* OVERHAUL hull-finish swatches are now functional buttons (synced selector) */
+#neonvortex-screen-overhaul .nv-ovh-swatch.nv-coat-chip { cursor: pointer; }
+
 /* SYSTEM SPECS card */
 #neonvortex-screen-hangar .nv-hgr-card {
   display: flex;
