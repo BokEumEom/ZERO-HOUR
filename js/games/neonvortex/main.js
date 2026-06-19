@@ -599,9 +599,9 @@
   $('btn-arcade').addEventListener('click', () => SY.shell.exitToHub());
   SY.registerGame({
     id: 'neonvortex',
-    title: 'SHIP',
-    blurb: 'NEON INTERCEPTOR · BEAT THE CORE WARDEN',
-    accent: '#ff5a78',
+    title: 'NEON VORTEX',
+    blurb: 'ARCADE_PILOT_OS · BEAT THE CORE WARDEN',
+    accent: '#00dbe7',
     enter, exit, frame,
     pause: pauseGame, resume: resumeGame,
   });

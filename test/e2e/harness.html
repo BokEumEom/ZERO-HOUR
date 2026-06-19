@@ -63,6 +63,14 @@
     check('hub', 'Zero Hour card is listed', !!card && /ZERO HOUR/.test(card.textContent));
     const shep = d.querySelector('.game-card[data-id="shepherd"]'); // linked game (don't click — it navigates away)
     check('hub', "Shepherd's Dog card is listed (linked)", !!shep && /SHEPHERD/.test(shep.textContent));
+    const shipc = d.querySelector('.game-card[data-id="neonvortex"]');
+    check('hub', 'NEON VORTEX card is listed', !!shipc && /NEON VORTEX/.test(shipc.textContent));
+    shipc.click();
+    await sleep(150);
+    check('hub', 'tapping the card enters NEON VORTEX (menu)', visible(d, 'neonvortex-screen-menu') && !visible(d, 'screen-arcade'));
+    d.getElementById('neonvortex-btn-arcade').click();
+    await sleep(150);
+    check('hub', 'ARCADE button returns from NEON VORTEX', visible(d, 'screen-arcade') && !visible(d, 'neonvortex-screen-menu'));
     await enterZH(w, d);
     check('hub', 'tapping the card enters Zero Hour (menu)', visible(d, 'screen-menu') && !visible(d, 'screen-arcade'));
     d.getElementById('btn-arcade').click();
