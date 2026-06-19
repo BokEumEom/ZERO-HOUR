@@ -1371,21 +1371,124 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 #neonvortex-screen-records .rec-best-meta {
   color: var(--nv-on-surface-variant);
 }
-#neonvortex-screen-records .rec-section-title,
-#neonvortex-screen-records .rec-day-date {
+#neonvortex-screen-records .rec-section-title {
   font-family: var(--nv-font-mono);
   color: color-mix(in srgb, var(--nv-on-surface-variant) 70%, transparent);
 }
-#neonvortex-screen-records .rec-best {
-  font-family: var(--nv-font-display);
+#neonvortex-screen-records .rec-streak { color: var(--nv-value); }
+
+/* ---- LEADERBOARD: ranked pilot-file rows (reskin of the records list) ---- */
+#neonvortex-screen-records .nv-lb {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: min(46vh, 360px);
+  overflow-y: auto;
+  padding-right: 2px;
+}
+/* column header: spaced mono eyebrow over the ranked rows */
+#neonvortex-screen-records .nv-lb-head {
+  display: grid;
+  grid-template-columns: 2.6em 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px 6px;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 60%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--nv-primary) 22%, transparent);
+}
+#neonvortex-screen-records .nv-lb-head .nv-lb-score { text-align: right; }
+/* a ranked row: dark glass card with a cyan left accent */
+#neonvortex-screen-records .nv-lb-row {
+  display: grid;
+  grid-template-columns: 2.6em 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 14%, transparent);
+  border-left: 2px solid color-mix(in srgb, var(--nv-primary) 55%, transparent);
+  background: color-mix(in srgb, var(--nv-surface) 60%, transparent);
+}
+#neonvortex-screen-records .nv-lb-row:nth-child(odd) {
+  background: color-mix(in srgb, var(--nv-bg) 50%, transparent);
+}
+/* rank number: mono, dimmed */
+#neonvortex-screen-records .nv-lb-rank {
+  font-family: var(--nv-font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 75%, transparent);
+}
+/* pilot column: name + tier chip + supporting meta */
+#neonvortex-screen-records .nv-lb-pilot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-width: 0;
+}
+#neonvortex-screen-records .nv-lb-name {
+  font-family: var(--nv-font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--nv-on-surface);
+}
+#neonvortex-screen-records .nv-lb-meta {
+  flex-basis: 100%;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 55%, transparent);
+}
+/* tier chip: colored by the pilot rank tier (var supplied inline per row) */
+#neonvortex-screen-records .nv-lb-tier {
+  font-family: var(--nv-font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: var(--nv-tier, var(--nv-primary));
+  border: 1px solid color-mix(in srgb, var(--nv-tier, var(--nv-primary)) 55%, transparent);
+  background: color-mix(in srgb, var(--nv-tier, var(--nv-primary)) 12%, transparent);
+}
+/* score: Space Mono, right-aligned, bright */
+#neonvortex-screen-records .nv-lb-score {
+  font-family: var(--nv-font-mono);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: right;
+  letter-spacing: 0.02em;
   color: var(--nv-primary-bright);
-  text-shadow: 0 0 14px color-mix(in srgb, var(--nv-primary) 50%, transparent);
 }
-#neonvortex-screen-records .rec-day {
-  border-bottom-color: color-mix(in srgb, var(--nv-primary) 16%, transparent);
+/* the user's own / all-time-best row: cyan glow + brighter accent */
+#neonvortex-screen-records .nv-lb-row.is-you {
+  border-color: color-mix(in srgb, var(--nv-primary) 45%, transparent);
+  border-left-color: var(--nv-primary-bright);
+  background: color-mix(in srgb, var(--nv-primary) 14%, transparent);
+  box-shadow: inset 0 0 10px color-mix(in srgb, var(--nv-primary) 22%, transparent);
 }
-#neonvortex-screen-records .rec-streak,
-#neonvortex-screen-records .rec-day .boss { color: var(--nv-value); }
+#neonvortex-screen-records .nv-lb-row.is-you .nv-lb-rank,
+#neonvortex-screen-records .nv-lb-row.is-you .nv-lb-name { color: var(--nv-primary-bright); }
+#neonvortex-screen-records .nv-lb-row.is-you .nv-lb-score {
+  text-shadow: 0 0 12px color-mix(in srgb, var(--nv-primary) 55%, transparent);
+}
+#neonvortex-screen-records .nv-lb-empty {
+  padding: 28px 0;
+  text-align: center;
+  font-family: var(--nv-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 50%, transparent);
+}
 /* ---- SETTINGS screen: toggle rows styled as a console of on/off switches ---- */
 #neonvortex-screen-settings .nv-settings-list {
   flex-direction: column;

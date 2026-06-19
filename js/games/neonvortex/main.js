@@ -195,15 +195,43 @@
     ]);
     const ownedSet = new Set(owned);
     const b = recs.bestAll;
-    let html = '<div><div class="rec-section-title">ALL-TIME BEST</div>';
+
+    // Leaderboard rows from REAL local data only (no invented/fetched entries):
+    // the all-time best plus each played day in the recent history, ranked by
+    // score (desc). The all-time-best row is flagged "you" for highlight. A
+    // display-only pilot rank-tier chip labels each row.
+    const rows = [];
     if (b) {
-      html += '<div class="rec-best">' + fmt(b.score) + '</div>' +
-        '<div class="rec-best-meta">×' + (Number(b.combo) || 0) + ' COMBO · ' + b.date +
-        ' · ' + (b.mode === 'daily' ? 'DAILY' : 'FREE') + '</div>';
+      rows.push({ label: 'ALL-TIME', score: Number(b.score) || 0,
+        meta: (b.mode === 'daily' ? 'DAILY' : 'FREE') + ' · ' + b.date, you: true });
+    }
+    for (const d of days) {
+      if (d.rec) {
+        rows.push({ label: d.date, score: Number(d.rec.score) || 0,
+          meta: 'DAILY' + (d.rec.bossDown ? ' · BOSS' : ''), you: false });
+      }
+    }
+    rows.sort((x, y) => y.score - x.score);
+
+    let html = '<div class="nv-lb">';
+    html += '<div class="nv-lb-head"><span class="nv-lb-rank">RANK</span>' +
+      '<span class="nv-lb-pilot">PILOT_FILE</span>' +
+      '<span class="nv-lb-score">SCORE</span></div>';
+    if (rows.length) {
+      html += rows.map((r, i) => {
+        const tier = SY.nvMeta.rankTier(r.score);
+        return '<div class="nv-lb-row' + (r.you ? ' is-you' : '') + '">' +
+          '<span class="nv-lb-rank">' + (r.you ? '▸' : '') + String(i + 1).padStart(2, '0') + '</span>' +
+          '<span class="nv-lb-pilot"><span class="nv-lb-name">' + r.label + '</span>' +
+          '<span class="nv-lb-tier" style="--nv-tier:' + tier.color + '">' + tier.name + '</span>' +
+          '<span class="nv-lb-meta">' + r.meta + '</span></span>' +
+          '<span class="nv-lb-score">' + fmt(r.score) + '</span></div>';
+      }).join('');
     } else {
-      html += '<div class="rec-best">—</div>';
+      html += '<div class="nv-lb-empty">NO PILOT FILES LOGGED</div>';
     }
     html += '</div>';
+
     if (streak > 0) {
       html += '<div class="rec-streak">🔥 STREAK ' + streak + (streak === 1 ? ' DAY' : ' DAYS') + '</div>';
     }
@@ -212,18 +240,6 @@
         '<span class="medal ' + (ownedSet.has(m.id) ? 'earned' : 'locked') + '" title="' + m.desc + '">' +
         '<span class="medal-glyph">' + m.glyph + '</span>' +
         '<span class="medal-name">' + m.name + '</span></span>').join('') + '</div></div>';
-    html += '<div><div class="rec-section-title">LAST 14 DAYS (UTC)</div>';
-    for (const d of days) { // newest first
-      if (d.rec) {
-        html += '<div class="rec-day"><span class="rec-day-date">' + d.date + '</span>' +
-          '<span class="rec-day-score">' + fmt(Number(d.rec.score) || 0) +
-          (d.rec.bossDown ? '<span class="boss">✦</span>' : '') + '</span></div>';
-      } else {
-        html += '<div class="rec-day empty"><span class="rec-day-date">' + d.date +
-          '</span><span class="rec-day-score">—</span></div>';
-      }
-    }
-    html += '</div>';
     $('records-body').innerHTML = html;
   }
 
