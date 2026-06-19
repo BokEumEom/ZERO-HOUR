@@ -146,9 +146,10 @@
     'screen-pause': 'btn-resume',
     'screen-howto': 'btn-howto-start',
     'screen-records': 'btn-records-back',
+    'screen-settings': 'btn-settings-back',
   };
   function show(screenId) {
-    for (const id of ['screen-menu', 'screen-over', 'screen-pause', 'screen-howto', 'screen-records']) {
+    for (const id of ['screen-menu', 'screen-over', 'screen-pause', 'screen-howto', 'screen-records', 'screen-settings']) {
       $(id).classList.toggle('visible', id === screenId);
     }
     if (screenId !== 'screen-over') stopCountdown();
@@ -493,7 +494,9 @@
     const m = SY.audio.isMuted();
     $('btn-mute').classList.toggle('muted', m); // SVG: show slash / hide waves
     $('btn-mute').setAttribute('aria-label', m ? 'Unmute' : 'Mute');
-    $('btn-pause-mute').textContent = 'SOUND: ' + (m ? 'OFF' : 'ON');
+    const label = 'SOUND: ' + (m ? 'OFF' : 'ON');
+    $('btn-pause-mute').textContent = label;
+    $('btn-set-mute').textContent = label; // settings screen mirrors the pause toggle
   }
   function toggleMute() {
     SY.audio.setMuted(!SY.audio.isMuted());
@@ -503,6 +506,7 @@
   }
   $('btn-mute').addEventListener('click', toggleMute);
   $('btn-pause-mute').addEventListener('click', toggleMute);
+  $('btn-set-mute').addEventListener('click', toggleMute);
 
   // ---------- buttons ----------
   function quitToMenu() {
@@ -520,9 +524,10 @@
   $('btn-resume').addEventListener('click', resumeGame);
   $('btn-pause-restart').addEventListener('click', () => reallyStart(G.mode));
   $('btn-pause-quit').addEventListener('click', quitToMenu); // run is discarded: no onGameOver, no saves
-  $('btn-pause-fs').addEventListener('click', () => {
+  function toggleFullscreen() {
     if (document.fullscreenElement) document.exitFullscreen(); else enterFullscreen();
-  });
+  }
+  $('btn-pause-fs').addEventListener('click', toggleFullscreen);
   $('btn-howto-start').addEventListener('click', () => {
     recs.settings.seenHowto = true;
     SY.store.saveSettings(recs.settings);
@@ -530,6 +535,16 @@
   });
   $('btn-records').addEventListener('click', () => { renderRecords(); show('screen-records'); });
   $('btn-records-back').addEventListener('click', () => show('screen-menu'));
+
+  // ---------- settings screen (gear-opened; reuses the pause-menu toggle logic) ----------
+  function openSettings() {
+    updateMuteBtn();    // reflect current sound state on the settings buttons
+    updateHapticBtn();
+    show('screen-settings');
+  }
+  $('btn-settings').addEventListener('click', openSettings);
+  $('btn-settings-back').addEventListener('click', () => show('screen-menu'));
+  $('btn-set-fs').addEventListener('click', toggleFullscreen);
 
   // ---------- auto-pause ----------
   document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
@@ -546,6 +561,8 @@
       if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); $('btn-howto-start').click(); }
     } else if ($('screen-records').classList.contains('visible')) {
       if (e.code === 'Escape' || e.code === 'KeyM') $('btn-records-back').click();
+    } else if ($('screen-settings').classList.contains('visible')) {
+      if (e.code === 'Escape' || e.code === 'KeyM') $('btn-settings-back').click();
     } else if (G.phase === 'paused') {
       if (e.code === 'Escape' || e.code === 'KeyP') resumeGame();
     } else if (G.phase === 'playing' || G.phase === 'ready') {
@@ -601,7 +618,7 @@
   const fsBtn = $('btn-fullscreen');
   const fsSupported = !!document.documentElement.requestFullscreen;
   if (fsSupported) fsBtn.classList.add('available');
-  else $('btn-pause-fs').style.display = 'none'; // hide the pause-menu fullscreen toggle too
+  else { $('btn-pause-fs').style.display = 'none'; $('btn-set-fs').style.display = 'none'; } // hide fullscreen toggles too
   function enterFullscreen() {
     if (!fsSupported || document.fullscreenElement) return;
     document.documentElement.requestFullscreen().catch(() => {});
@@ -611,19 +628,23 @@
     else enterFullscreen();
   });
 
-  // ---------- haptics toggle (pause screen; only on devices that vibrate) ----------
-  const hapticBtn = $('btn-haptic');
-  if (navigator.vibrate) hapticBtn.classList.add('available');
+  // ---------- haptics toggle (pause + settings screens; only on devices that vibrate) ----------
+  const hapticBtn = $('btn-haptic'), setHapticBtn = $('btn-set-haptic');
+  if (navigator.vibrate) { hapticBtn.classList.add('available'); setHapticBtn.classList.add('available'); }
   function updateHapticBtn() {
-    hapticBtn.textContent = 'VIBRATION: ' + (SY.audio.hapticsOn() ? 'ON' : 'OFF');
+    const label = 'VIBRATION: ' + (SY.audio.hapticsOn() ? 'ON' : 'OFF');
+    hapticBtn.textContent = label;
+    setHapticBtn.textContent = label; // settings screen mirrors the pause toggle
   }
-  hapticBtn.addEventListener('click', () => {
+  function toggleHaptic() {
     const on = !SY.audio.hapticsOn();
     SY.audio.setHaptics(on);
     recs.settings.haptics = on;
     SY.store.saveSettings(recs.settings);
     updateHapticBtn();
-  });
+  }
+  hapticBtn.addEventListener('click', toggleHaptic);
+  setHapticBtn.addEventListener('click', toggleHaptic);
   updateHapticBtn();
 
   // ---------- register with the arcade shell ----------

@@ -68,6 +68,12 @@
     shipc.click();
     await sleep(150);
     check('hub', 'tapping the card enters NEON VORTEX (menu)', visible(d, 'neonvortex-screen-menu') && !visible(d, 'screen-arcade'));
+    d.getElementById('neonvortex-btn-settings').click();
+    await sleep(150);
+    check('nv-settings', 'gear opens the NEON VORTEX settings screen', visible(d, 'neonvortex-screen-settings') && !visible(d, 'neonvortex-screen-menu'));
+    d.getElementById('neonvortex-btn-settings-back').click();
+    await sleep(150);
+    check('nv-settings', 'BACK returns to the NEON VORTEX menu', visible(d, 'neonvortex-screen-menu') && !visible(d, 'neonvortex-screen-settings'));
     d.getElementById('neonvortex-btn-arcade').click();
     await sleep(150);
     check('hub', 'ARCADE button returns from NEON VORTEX', visible(d, 'screen-arcade') && !visible(d, 'neonvortex-screen-menu'));
