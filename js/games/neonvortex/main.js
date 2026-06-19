@@ -410,7 +410,130 @@
   // touch the simulation, score, drops, or the daily seed. ----
   function renderHangar() {}
   function renderOverhaul() {}
-  function renderAchievements() {}
+
+  // TACTICAL BADGES (display-only). `earned` is computed from REAL persisted
+  // data only — recs.lifetime ({score,crystals,runs}) for the cumulative
+  // milestones and the owned Zero Hour medal set (gameStore.loadMedals()) for
+  // the combat badges. Where no real signal exists (5-consecutive-perfect runs
+  // are not persisted), the badge stays LOCKED — it is never fake-earned.
+  const NV_BADGES = [
+    { id: 'crystals_1k', glyph: '✦', titleKR: '크리스탈 미광', descKR: '누적 1,000 나노 크리스탈을 채굴하십시오.', kind: 'crystals', target: 1000 },
+    { id: 'crystals_10k', glyph: '◈', titleKR: '자원 통제관', descKR: '누적 10,000 나노 크리스탈을 채굴하십시오.', kind: 'crystals', target: 10000 },
+    { id: 'crystals_100k', glyph: '◆', titleKR: '신디케이트 국고', descKR: '누적 100,000 나노 크리스탈을 징수 완료하십시오.', kind: 'crystals', target: 100000 },
+    { id: 'score_100k', glyph: '♜', titleKR: '파괴의 임계값', descKR: '누적 시뮬레이션 점수 100,000점을 돌파하십시오.', kind: 'score', target: 100000 },
+    { id: 'score_500k', glyph: '♛', titleKR: '구역 절대 지배자', descKR: '누적 시뮬레이션 점수 500,000점을 돌파하십시오.', kind: 'score', target: 500000 },
+    { id: 'win_1', glyph: '✧', titleKR: '시뮬레이션 승인', descKR: '코어 워든 보스를 1회 격파 완료하십시오.', kind: 'medal', medal: 'boss' },
+    { id: 'perfect_1', glyph: '◇', titleKR: '무결의 편향막', descKR: '피격 없이 기지 방어 시뮬레이션 1회를 완수하십시오.', kind: 'medal', medal: 'nohit' },
+    { id: 'perfect_5_consecutive', glyph: '★', titleKR: '무적의 강습 기동함', descKR: '연속 5회 피격 없이 완벽 수비를 완주하십시오.', kind: 'unsupported' },
+  ];
+
+  // svg helper — build a namespaced <svg> via createElement (no innerHTML sink)
+  function nvSvg(pathD, cls) {
+    const NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '1.6');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+    if (cls) svg.setAttribute('class', cls);
+    const p = document.createElementNS(NS, 'path');
+    p.setAttribute('d', pathD);
+    svg.appendChild(p);
+    return svg;
+  }
+  // small element factory
+  function nvEl(tag, cls, text) {
+    const el = document.createElement(tag);
+    if (cls) el.className = cls;
+    if (text != null) el.textContent = text;
+    return el;
+  }
+
+  async function renderAchievements() {
+    const owned = new Set(await gameStore.loadMedals());
+    const lt = recs.lifetime || { score: 0, crystals: 0, runs: 0 };
+    const isEarned = (b) => {
+      if (b.kind === 'crystals') return (lt.crystals || 0) >= b.target;
+      if (b.kind === 'score') return (lt.score || 0) >= b.target;
+      if (b.kind === 'medal') return owned.has(b.medal);
+      return false; // 'unsupported' — no persisted signal; never fake-earn
+    };
+    const badges = NV_BADGES.map((b) => ({ ...b, earned: isEarned(b) }));
+    const earnedCount = badges.filter((b) => b.earned).length;
+    const syncPct = Math.round((earnedCount / badges.length) * 100);
+    // PERFECT SIMS: reflect the no-hit medal when owned, else fall back to TOTAL SIMS
+    const hasPerfect = owned.has('nohit');
+    const perfectVal = hasPerfect ? '1+' : fmt(lt.runs || 0);
+    const perfectLabel = hasPerfect ? 'PERFECT SIMS' : 'TOTAL SIMS';
+
+    const body = $('achievements-body');
+    body.textContent = ''; // clear (no innerHTML)
+
+    // ---- header ----
+    const header = nvEl('header', 'nv-ach-head');
+    const tag = nvEl('div', 'nv-ach-tag');
+    tag.appendChild(nvEl('span', 'nv-ach-tag-kicker', 'REGISTRATION MEMORY'));
+    tag.appendChild(nvEl('span', 'nv-ach-tag-code', 'BADGE_REGISTRY_OK'));
+    header.appendChild(tag);
+    const titleWrap = nvEl('div', 'nv-ach-title-wrap');
+    titleWrap.appendChild(nvEl('h2', 'nv-ach-title', 'TACTICAL BADGES'));
+    titleWrap.appendChild(nvEl('p', 'nv-ach-subtitle', '전술 훈장'));
+    header.appendChild(titleWrap);
+    header.appendChild(nvEl('div', 'nv-ach-rule'));
+    body.appendChild(header);
+
+    // ---- stat strip ----
+    const strip = nvEl('section', 'nv-ach-strip');
+    const chip = (label, value, gold) => {
+      const c = nvEl('div', 'nv-ach-chip' + (gold ? ' nv-ach-chip-gold' : ''));
+      c.appendChild(nvEl('span', 'nv-ach-chip-label', label));
+      c.appendChild(nvEl('span', 'nv-ach-chip-val', value));
+      return c;
+    };
+    strip.appendChild(chip('LIFETIME SCORE', fmt(lt.score || 0), false));
+    strip.appendChild(chip('CRYSTALS', fmt(lt.crystals || 0), true));
+    strip.appendChild(chip(perfectLabel, perfectVal, false));
+    body.appendChild(strip);
+
+    // ---- achievement sync bar ----
+    const sync = nvEl('section', 'nv-ach-sync');
+    const syncHead = nvEl('div', 'nv-ach-sync-head');
+    syncHead.appendChild(nvEl('span', 'nv-ach-sync-label', 'ACHIEVEMENT SYNC'));
+    syncHead.appendChild(nvEl('span', 'nv-ach-sync-val', earnedCount + ' / ' + badges.length + ' (' + syncPct + '%)'));
+    sync.appendChild(syncHead);
+    const syncBar = nvEl('div', 'nv-ach-sync-bar');
+    const syncFill = nvEl('i');
+    syncFill.style.width = syncPct + '%';
+    syncBar.appendChild(syncFill);
+    sync.appendChild(syncBar);
+    body.appendChild(sync);
+
+    // ---- badge grid ----
+    const grid = nvEl('section', 'nv-ach-grid');
+    for (const b of badges) {
+      const card = nvEl('div', 'nv-ach-card' + (b.earned ? ' is-earned' : ' is-locked'));
+      const badge = nvEl('div', 'nv-ach-badge');
+      badge.appendChild(nvEl('span', 'nv-ach-glyph', b.glyph));
+      if (!b.earned) {
+        const lock = nvEl('span', 'nv-ach-lock');
+        lock.appendChild(nvSvg('M6 11V8a6 6 0 0 1 12 0v3M5 11h14v9H5z', 'nv-ach-lock-icon'));
+        badge.appendChild(lock);
+      }
+      card.appendChild(badge);
+      const info = nvEl('div', 'nv-ach-info');
+      const infoHead = nvEl('div', 'nv-ach-info-head');
+      infoHead.appendChild(nvEl('h3', 'nv-ach-name', b.titleKR));
+      infoHead.appendChild(nvEl('span', 'nv-ach-state', b.earned ? 'VERIFIED' : 'ENCRYPTED'));
+      info.appendChild(infoHead);
+      info.appendChild(nvEl('p', 'nv-ach-desc', b.descKR));
+      card.appendChild(info);
+      grid.appendChild(card);
+    }
+    body.appendChild(grid);
+  }
+
   function renderPilotLog() {}
 
   let pendingMode = null;
