@@ -916,6 +916,148 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   letter-spacing: 0.06em;
 }
 
+/* ===== NEON VORTEX — "Arcade Pilot" menu meta (crystals · rank · career) =====
+   Display-only chrome over the existing dark-grid panel. Header row (crystals
+   chip + settings gear), a pilot-credentials glass card with a cyan accent bar
+   and a JS-coloured rank badge, and a segmented career-progress track. */
+#neonvortex-screen-menu .nv-menu-top {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+#neonvortex-screen-menu .nv-menu-top .kicker { align-self: center; }
+#neonvortex-screen-menu .nv-menu-top-right {
+  display: flex; align-items: center; gap: 10px;
+}
+/* gold ◆ + Space Mono number in a cyan-bordered chip */
+#neonvortex-screen-menu .nv-crystals {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px;
+  border-radius: 5px;
+  background: rgba(0,219,231,0.08);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 30%, transparent);
+  color: var(--nv-value);
+  font-size: 13px;
+  line-height: 1;
+}
+#neonvortex-screen-menu .nv-crystals b {
+  font-family: var(--nv-font-mono);
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--nv-primary-bright);
+}
+/* cyan icon button */
+#neonvortex-screen-menu .nv-gear {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 28%, transparent);
+  border-radius: 5px;
+  background: rgba(0,219,231,0.04);
+  color: var(--nv-primary);
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease, color 0.15s ease;
+}
+#neonvortex-screen-menu .nv-gear:hover,
+#neonvortex-screen-menu .nv-gear:focus-visible {
+  background: rgba(0,219,231,0.14);
+  box-shadow: 0 0 12px rgba(0,219,231,0.3);
+  color: var(--nv-primary-bright);
+}
+#neonvortex-screen-menu .nv-gear:active { transform: scale(0.9); }
+
+/* ---- pilot credentials card ---- */
+#neonvortex-screen-menu .nv-pilot-card {
+  position: relative;
+  width: 100%;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px 12px 18px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--nv-bg) 88%, #000);
+  border: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+/* left cyan→transparent accent bar */
+#neonvortex-screen-menu .nv-pilot-card::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, var(--nv-primary), transparent);
+}
+#neonvortex-screen-menu .nv-pilot-info {
+  display: flex; flex-direction: column; gap: 4px;
+  text-align: left;
+}
+#neonvortex-screen-menu .nv-call {
+  font-family: var(--nv-font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--nv-outline);
+}
+#neonvortex-screen-menu .nv-life {
+  font-family: var(--nv-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nv-on-surface-variant);
+}
+#neonvortex-screen-menu .nv-life b {
+  color: var(--nv-primary-bright);
+  margin-left: 4px;
+}
+/* glowing tier badge — color/border set inline by JS; style layout + glow here */
+#neonvortex-screen-menu .nv-rank {
+  flex-shrink: 0;
+  font-family: var(--nv-font-display);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid currentColor;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  box-shadow: 0 0 15px color-mix(in srgb, currentColor 45%, transparent);
+}
+
+/* ---- career progress ---- */
+#neonvortex-screen-menu .nv-career {
+  width: 100%;
+  display: flex; flex-direction: column; gap: 6px;
+}
+#neonvortex-screen-menu .nv-career-ticks {
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--nv-outline);
+}
+#neonvortex-screen-menu .nv-career-track {
+  position: relative;
+  height: 10px;
+  padding: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--nv-bg) 80%, #000);
+  border: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+#neonvortex-screen-menu .nv-career-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(to right, #38bdf8, #a78bfa, #34d399, #fbbf24, #fb7185);
+  box-shadow: 0 0 8px rgba(168,85,247,0.5);
+  transition: width 1s ease;
+}
+
 /* ===== NEON VORTEX — RESULT screen reskin (Stitch "_2" mockup) =====
    Scoped strictly to #neonvortex-screen-over. A chamfered glass result CARD
    over the navy void: VICTORY-style flickering cyan header + tick marks, big

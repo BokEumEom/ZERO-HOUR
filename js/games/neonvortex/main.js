@@ -234,6 +234,32 @@
     $('menu-all-best').textContent = recs.bestAll
       ? 'ALL-TIME BEST ' + fmt(recs.bestAll.score) + ' \u00b7 \u00d7' + recs.bestAll.combo + ' \u00b7 ' + recs.bestAll.date
       : 'ALL-TIME BEST \u2014';
+
+    // ---- Arcade Pilot meta (display-only; never read by the simulation) ----
+    const lt = recs.lifetime || { score: 0, crystals: 0, runs: 0 };
+    $('menu-crystals').textContent = fmt(lt.crystals);
+    $('menu-lifetime').textContent = fmt(lt.score);
+    const tier = SY.nvMeta.rankTier(lt.score);
+    const rankEl = $('menu-rank');
+    rankEl.textContent = tier.name;
+    rankEl.style.color = tier.color;
+    rankEl.style.borderColor = tier.color;
+    // career ticks: START + each tier with a positive min (1K-formatted)
+    const tiers = SY.nvMeta.TIERS;
+    const tickLabels = ['START'].concat(
+      tiers.filter((t) => t.min > 0).map((t) => (t.min >= 1000 ? t.min / 1000 + 'K' : '' + t.min))
+    );
+    const ticksEl = $('menu-ticks');
+    ticksEl.textContent = ''; // rebuild from constants via createElement/textContent (no innerHTML)
+    for (const label of tickLabels) {
+      const span = document.createElement('span');
+      span.textContent = label;
+      ticksEl.appendChild(span);
+    }
+    // fill: cosmetic progress across the whole START..LEGEND.min range
+    const maxBand = tiers[tiers.length - 1].min || 150000;
+    const pct = Math.max(0, Math.min(100, (lt.score / maxBand) * 100));
+    $('menu-career').style.width = pct.toFixed(1) + '%';
   }
 
   let pendingMode = null;

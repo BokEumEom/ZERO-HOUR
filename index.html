@@ -196,8 +196,25 @@
       <div id="neonvortex-screen-menu" class="screen" data-screen-label="Ship — Main Menu">
         <button id="neonvortex-btn-arcade" class="back-btn" type="button">← ARCADE</button>
         <div class="panel">
-          <span class="kicker">ARCADE_PILOT_OS</span>
+          <div class="nv-menu-top">
+            <span class="kicker">ARCADE_PILOT_OS</span>
+            <div class="nv-menu-top-right">
+              <span class="nv-crystals">◆ <b id="neonvortex-menu-crystals">0</b></span>
+              <button id="neonvortex-btn-settings" class="nv-gear" type="button" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm9 4a7 7 0 00-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 00-2-1.2L16 2H8l-.5 2.6a7 7 0 00-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 003 12c0 .4 0 .8.1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 002 1.2L8 22h8l.5-2.6a7 7 0 002-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+            </div>
+          </div>
           <h1 class="game-title nv-logo"><span class="nv-logo-1">NEON</span><span class="nv-logo-2">VORTEX</span><span class="nv-logo-tag">ULTRA</span></h1>
+          <div class="nv-pilot-card">
+            <div class="nv-pilot-info">
+              <span class="nv-call">CALLSIGN · PILOT_YOU</span>
+              <span class="nv-life">LIFETIME <b id="neonvortex-menu-lifetime">0</b></span>
+            </div>
+            <span id="neonvortex-menu-rank" class="nv-rank">ROOKIE PILOT</span>
+          </div>
+          <div class="nv-career">
+            <div class="nv-career-ticks" id="neonvortex-menu-ticks"></div>
+            <div class="nv-career-track"><div id="neonvortex-menu-career" class="nv-career-fill"></div></div>
+          </div>
           <div class="mode-row">
             <button id="neonvortex-btn-daily" class="mode-card" type="button">
               <span class="mode-name">DAILY</span>
