@@ -2184,44 +2184,246 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   letter-spacing: 0.14em;
   color: color-mix(in srgb, var(--nv-on-surface-variant) 50%, transparent);
 }
-/* ---- SETTINGS screen: toggle rows styled as a console of on/off switches ---- */
-#neonvortex-screen-settings .nv-settings-list {
+/* ===== SETTINGS console — reference UI (header / title / control + info cards) ===== */
+/* The settings screen drops the shared .panel; it is a full-bleed scrolling
+   console column so the two cards can breathe and scroll on tall phones. */
+#neonvortex-screen-settings .nv-set-shell {
+  width: min(420px, 94vw);
+  display: flex;
   flex-direction: column;
-  flex-wrap: nowrap;
-  gap: 10px;
-  width: 100%;
-  margin: 14px 0 6px;
+  gap: 18px;
+  text-align: left;
+  color: var(--nv-on-surface);
 }
-/* each toggle becomes a full-width glass row: label left, ON/OFF state right */
-#neonvortex-screen-settings .nv-settings-list .settings-btn {
+/* header: back control left, mono OK status right, hairline base */
+#neonvortex-screen-settings .nv-set-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  min-height: 52px;
-  padding: 12px 18px;
-  font-family: var(--nv-font-mono);
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  text-align: left;
-  color: var(--nv-on-surface);
-  background: color-mix(in srgb, var(--nv-surface) 60%, transparent);
-  border: 1px solid color-mix(in srgb, var(--nv-primary) 24%, transparent);
-  border-radius: 10px;
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--nv-primary) 10%, transparent);
+  padding-bottom: 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--nv-primary) 20%, transparent);
 }
-#neonvortex-screen-settings .nv-settings-list .haptic-toggle.available { display: flex; }
-#neonvortex-screen-settings .nv-settings-list .settings-btn:hover,
-#neonvortex-screen-settings .nv-settings-list .settings-btn:focus-visible {
-  background: color-mix(in srgb, var(--nv-primary) 14%, transparent);
-  border-color: color-mix(in srgb, var(--nv-primary) 45%, transparent);
-  transform: none;
-  box-shadow: 0 0 16px color-mix(in srgb, var(--nv-primary) 22%, transparent);
+#neonvortex-screen-settings .nv-set-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-primary) 78%, transparent);
+  transition: color 0.15s ease, transform 0.1s ease;
+}
+#neonvortex-screen-settings .nv-set-back:hover,
+#neonvortex-screen-settings .nv-set-back:focus-visible {
+  color: var(--nv-primary-bright);
   outline: none;
 }
-#neonvortex-screen-settings .nv-settings-list .settings-btn:active { transform: translateY(1px); }
-#neonvortex-screen-settings .btn-row { margin-top: 12px; }
-#neonvortex-screen-settings .btn-row .arcade-btn { min-width: 160px; }
+#neonvortex-screen-settings .nv-set-back:active { transform: scale(0.96); }
+#neonvortex-screen-settings .nv-set-back-icon { width: 14px; height: 14px; }
+#neonvortex-screen-settings .nv-set-status {
+  font-family: var(--nv-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--nv-primary);
+}
+/* title: Sora extrabold italic with a cyan bloom, thin gradient rule beneath */
+#neonvortex-screen-settings .nv-set-title-wrap { display: flex; flex-direction: column; gap: 4px; }
+#neonvortex-screen-settings .nv-set-title {
+  font-family: var(--nv-font-display);
+  font-size: clamp(20px, 6vw, 26px);
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--nv-primary);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--nv-primary) 50%, transparent);
+}
+#neonvortex-screen-settings .nv-set-rule {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(to right,
+    color-mix(in srgb, var(--nv-primary) 45%, transparent), transparent);
+}
+/* cards: bordered, rounded, surface-container glass */
+#neonvortex-screen-settings .nv-set-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--nv-surface-container) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 20%, transparent);
+}
+#neonvortex-screen-settings .nv-set-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+#neonvortex-screen-settings .nv-set-row-col { flex-direction: column; align-items: stretch; gap: 8px; }
+#neonvortex-screen-settings .nv-set-row-divider {
+  border-top: 1px solid color-mix(in srgb, var(--nv-primary) 12%, transparent);
+  padding-top: 16px;
+}
+#neonvortex-screen-settings .nv-set-row-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--nv-font-display);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--nv-primary);
+}
+#neonvortex-screen-settings .nv-set-icon { width: 14px; height: 14px; flex-shrink: 0; }
+/* iOS-style pill switch: knob slides, on = cyan, off = dark */
+#neonvortex-screen-settings .nv-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 46px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 30%, transparent);
+  border-radius: 999px;
+  background: var(--nv-surface-high);
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+#neonvortex-screen-settings .nv-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--nv-on-surface-variant);
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+#neonvortex-screen-settings .nv-switch[aria-checked="true"] {
+  background: var(--nv-primary);
+  border-color: var(--nv-primary);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--nv-primary) 45%, transparent);
+}
+#neonvortex-screen-settings .nv-switch[aria-checked="true"] .nv-switch-knob {
+  transform: translateX(22px);
+  background: var(--nv-bg);
+}
+#neonvortex-screen-settings .nv-switch:focus-visible {
+  outline: 2px solid var(--nv-primary-bright);
+  outline-offset: 2px;
+}
+/* haptics switch: hidden until a vibrate-capable device adds .available */
+#neonvortex-screen-settings .haptic-toggle { display: none; }
+#neonvortex-screen-settings .haptic-toggle.available { display: inline-block; }
+/* volume slider head + readout */
+#neonvortex-screen-settings .nv-set-vol-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+#neonvortex-screen-settings .nv-set-vol-val {
+  font-family: var(--nv-font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--nv-value);
+}
+#neonvortex-screen-settings .nv-set-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--nv-surface-high);
+  outline: none;
+  cursor: pointer;
+}
+#neonvortex-screen-settings .nv-set-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--nv-primary);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--nv-primary) 55%, transparent);
+  cursor: pointer;
+}
+#neonvortex-screen-settings .nv-set-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 50%;
+  background: var(--nv-primary);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--nv-primary) 55%, transparent);
+  cursor: pointer;
+}
+/* disabled state (sound off): dim the whole volume row */
+#neonvortex-screen-settings .nv-set-row.is-disabled { opacity: 0.32; }
+#neonvortex-screen-settings .nv-set-row.is-disabled .nv-set-slider { cursor: not-allowed; }
+/* fullscreen action: not a persistent toggle, so a plain pill button */
+#neonvortex-screen-settings .nv-set-action {
+  flex-shrink: 0;
+  padding: 7px 16px;
+  font-family: var(--nv-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--nv-primary);
+  background: color-mix(in srgb, var(--nv-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 40%, transparent);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+#neonvortex-screen-settings .nv-set-action:hover,
+#neonvortex-screen-settings .nv-set-action:focus-visible {
+  background: color-mix(in srgb, var(--nv-primary) 22%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--nv-primary) 30%, transparent);
+  outline: none;
+}
+#neonvortex-screen-settings .nv-set-action:active { transform: translateY(1px); }
+/* info card: descriptive control register rows */
+#neonvortex-screen-settings .nv-set-info { background: color-mix(in srgb, var(--nv-surface-high) 40%, transparent); }
+#neonvortex-screen-settings .nv-set-info-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--nv-primary) 12%, transparent);
+}
+#neonvortex-screen-settings .nv-set-info-head h3 {
+  font-family: var(--nv-font-display);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--nv-primary);
+}
+#neonvortex-screen-settings .nv-set-info-row { display: flex; gap: 10px; align-items: flex-start; }
+#neonvortex-screen-settings .nv-set-info-row .nv-set-icon { margin-top: 2px; color: var(--nv-primary); }
+#neonvortex-screen-settings .nv-set-info-text { display: flex; flex-direction: column; gap: 3px; }
+#neonvortex-screen-settings .nv-set-info-title {
+  font-family: var(--nv-font-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--nv-primary);
+}
+#neonvortex-screen-settings .nv-set-info-text p {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--nv-on-surface-variant);
+}
+#neonvortex-screen-settings .nv-set-info-text b { color: var(--nv-on-surface); font-weight: 700; }
+
+/* cosmetic CRT toggle: hide the shared scanline/vignette overlay when off */
+#stage.crt-off #crt { display: none; }
 
 /* how-to key chip: Space Mono pill, cyan hairline on a faint cyan wash */
 #neonvortex-screen-howto .howto-k {
@@ -2542,16 +2744,97 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         </div>
       </div>
       <div id="neonvortex-screen-settings" class="screen" data-screen-label="NEON VORTEX — Settings" role="dialog" aria-modal="true" aria-label="Settings">
-        <div class="panel">
-          <span class="kicker">ARCADE_PILOT_OS</span>
-          <span class="pause-title">SETTINGS</span>
-          <div class="settings-row nv-settings-list">
-            <button id="neonvortex-btn-set-mute" class="arcade-btn settings-btn" type="button">SOUND: ON</button>
-            <button id="neonvortex-btn-set-haptic" class="arcade-btn settings-btn haptic-toggle" type="button">VIBRATION: ON</button>
-            <button id="neonvortex-btn-set-fs" class="arcade-btn settings-btn" type="button">FULLSCREEN</button>
+        <div class="nv-set-shell">
+          <header class="nv-set-head">
+            <button id="neonvortex-btn-settings-back" class="nv-set-back" type="button">
+              <svg class="nv-set-back-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>LOBBY_CONTROL</span>
+            </button>
+            <span class="nv-set-status">SETTINGS_CONSOLE_OK</span>
+          </header>
+
+          <div class="nv-set-title-wrap">
+            <h1 class="nv-set-title">ARCADE SETTINGS</h1>
+            <div class="nv-set-rule"></div>
           </div>
-          <div class="btn-row">
-            <button id="neonvortex-btn-settings-back" class="arcade-btn primary" type="button">BACK</button>
+
+          <div class="nv-set-card">
+            <div class="nv-set-row">
+              <span class="nv-set-row-label">
+                <svg class="nv-set-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9 H8 L13 5 V19 L8 15 H4 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M16 8.5 Q18.5 12 16 15.5M18.5 6 Q22.5 12 18.5 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                INTEGRATED AUDIO ENGINE
+              </span>
+              <button id="neonvortex-btn-set-mute" class="nv-switch" type="button" role="switch" aria-checked="true" aria-label="Sound">
+                <span class="nv-switch-knob"></span>
+              </button>
+            </div>
+
+            <div class="nv-set-row nv-set-row-col" id="neonvortex-set-volume-row">
+              <div class="nv-set-vol-head">
+                <span class="nv-set-row-label">
+                  <svg class="nv-set-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9 H8 L13 5 V19 L8 15 H4 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M16 9.5 Q18 12 16 14.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                  MASTER SFX VOLUME
+                </span>
+                <span class="nv-set-vol-val" id="neonvortex-set-volume-val">70%</span>
+              </div>
+              <input id="neonvortex-set-volume" class="nv-set-slider" type="range" min="0" max="100" step="1" value="70" aria-label="Master SFX volume">
+            </div>
+
+            <div class="nv-set-row nv-set-row-divider">
+              <span class="nv-set-row-label">
+                <svg class="nv-set-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="9" rx="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7 12.5h3M8.5 11v3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                VIBRATION
+              </span>
+              <button id="neonvortex-btn-set-haptic" class="nv-switch haptic-toggle" type="button" role="switch" aria-checked="true" aria-label="Vibration">
+                <span class="nv-switch-knob"></span>
+              </button>
+            </div>
+
+            <div class="nv-set-row">
+              <span class="nv-set-row-label">
+                <svg class="nv-set-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 20h8M12 17v3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                GLOBAL STATIC CRT SCREEN RENDER
+              </span>
+              <button id="neonvortex-btn-set-crt" class="nv-switch" type="button" role="switch" aria-checked="true" aria-label="CRT screen render">
+                <span class="nv-switch-knob"></span>
+              </button>
+            </div>
+
+            <div class="nv-set-row nv-set-row-divider">
+              <span class="nv-set-row-label">
+                <svg class="nv-set-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9 V4 H9 M15 4 H20 V9 M20 15 V20 H15 M9 20 H4 V15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                FULLSCREEN
+              </span>
+              <button id="neonvortex-btn-set-fs" class="nv-set-action" type="button">TOGGLE</button>
+            </div>
+          </div>
+
+          <div class="nv-set-card nv-set-info">
+            <div class="nv-set-info-head">
+              <svg class="nv-set-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 11v5M12 8h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <h3>FLIGHT CONTROLS REGISTER</h3>
+            </div>
+            <div class="nv-set-info-row">
+              <svg class="nv-set-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 7-6 2-2 6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              <div class="nv-set-info-text">
+                <span class="nv-set-info-title">기체 이동</span>
+                <p>화면 어디서나 드래그(세로 모드는 아레나가 90° 회전)하거나, 키보드 <b>WASD</b> · <b>방향키</b>로 기체를 조종합니다.</p>
+              </div>
+            </div>
+            <div class="nv-set-info-row">
+              <svg class="nv-set-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4.5 13H11l-1 9 8.5-11H12l1-9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              <div class="nv-set-info-text">
+                <span class="nv-set-info-title">자동 발사</span>
+                <p>전방 레이저는 자동으로 가장 가까운 적을 조준해 연사됩니다. 회피와 크리스털 수집에 집중하세요.</p>
+              </div>
+            </div>
+            <div class="nv-set-info-row">
+              <svg class="nv-set-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              <div class="nv-set-info-text">
+                <span class="nv-set-info-title">파워업 드롭</span>
+                <p>적을 처치하면 MAGNET · SHIELD · SLOW · ×2 · BOOST · SPREAD 파워업이 떨어집니다. 닿으면 일정 시간 자동 발동됩니다.</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -2685,7 +2968,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // Settings are shared across the arcade: "settings" { muted, haptics, seenHowto }.
   SY.store = {
     // ---- shared settings ----
-    async loadSettings() { return (await kvGet('settings')) || { muted: false }; },
+    async loadSettings() { return (await kvGet('settings')) || { muted: false, volume: 70, crt: true }; },
     saveSettings(s) { return kvSet('settings', s); },
 
     // ---- per-game record store ----
@@ -2758,6 +3041,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   let master = null;
   let muted = false;
   let haptics = true;
+  let volume = 0.5; // cosmetic master level (0..1), applied to master.gain
 
   // tactile feedback lives with the audio feedback (same call sites)
   function buzz(pattern) {
@@ -2771,7 +3055,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       if (!AC) return null;
       ctx = new AC();
       master = ctx.createGain();
-      master.gain.value = 0.5;
+      master.gain.value = volume;
       master.connect(ctx.destination);
     }
     if (ctx.state === 'suspended') ctx.resume();
@@ -2825,6 +3109,9 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     isMuted() { return muted; },
     setHaptics(h) { haptics = !!h; },
     hapticsOn() { return haptics; },
+    // cosmetic SFX level (0..1): scales the master gain, no gameplay effect
+    setVolume(v) { volume = Math.max(0, Math.min(1, Number(v) || 0)); if (master) master.gain.value = volume; },
+    getVolume() { return volume; },
     unlock() { ensure(); },
 
     // light pew — kept very quiet, fires constantly
@@ -6047,8 +6334,12 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // ---------- lifecycle (shell-driven; registered via SY.registerGame below) ----------
   function enter() {
     recs.settings = SY.settings; // shared settings, loaded by the shell at boot
+    applyVolume(volumeValue());  // cosmetic SFX level from persisted settings
+    applyCrt(crtOn());           // cosmetic CRT overlay from persisted settings
     updateMuteBtn();
     updateHapticBtn();
+    updateVolumeUi();
+    updateCrtBtn();
     renderMenuStats();           // shows defaults until records load
     show('screen-menu');         // instant — records hydrate asynchronously
     loadRecords();
@@ -6537,14 +6828,16 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     setTimeout(() => { $('btn-share').textContent = 'COPY RESULT'; }, 1800);
   }
 
-  // ---------- mute (top button + pause-menu toggle share state) ----------
+  // ---------- mute (top button + pause-menu toggle + settings switch) ----------
+  // The settings screen renders an iOS-style switch (ON = sound enabled, i.e. not
+  // muted); the corner button + pause toggle keep their existing label form.
   function updateMuteBtn() {
     const m = SY.audio.isMuted();
     $('btn-mute').classList.toggle('muted', m); // SVG: show slash / hide waves
     $('btn-mute').setAttribute('aria-label', m ? 'Unmute' : 'Mute');
-    const label = 'SOUND: ' + (m ? 'OFF' : 'ON');
-    $('btn-pause-mute').textContent = label;
-    $('btn-set-mute').textContent = label; // settings screen mirrors the pause toggle
+    $('btn-pause-mute').textContent = 'SOUND: ' + (m ? 'OFF' : 'ON');
+    $('btn-set-mute').setAttribute('aria-checked', m ? 'false' : 'true');
+    updateVolumeUi(); // sound off disables the volume row
   }
   function toggleMute() {
     SY.audio.setMuted(!SY.audio.isMuted());
@@ -6555,6 +6848,42 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   $('btn-mute').addEventListener('click', toggleMute);
   $('btn-pause-mute').addEventListener('click', toggleMute);
   $('btn-set-mute').addEventListener('click', toggleMute);
+
+  // ---------- master SFX volume (cosmetic level; settings slider only) ----------
+  const volSlider = $('set-volume'), volVal = $('set-volume-val'), volRow = $('set-volume-row');
+  function volumeValue() {
+    const v = recs.settings && typeof recs.settings.volume === 'number' ? recs.settings.volume : 70;
+    return Math.max(0, Math.min(100, v));
+  }
+  function applyVolume(v0to100) { SY.audio.setVolume(v0to100 / 100); }
+  function updateVolumeUi() {
+    const v = volumeValue();
+    volSlider.value = String(v);
+    volVal.textContent = v + '%';
+    const off = SY.audio.isMuted();
+    volRow.classList.toggle('is-disabled', off);
+    volSlider.disabled = off;
+  }
+  volSlider.addEventListener('input', () => {
+    const v = Math.max(0, Math.min(100, parseInt(volSlider.value, 10) || 0));
+    recs.settings.volume = v;
+    applyVolume(v);
+    volVal.textContent = v + '%';
+  });
+  volSlider.addEventListener('change', () => { SY.store.saveSettings(recs.settings); });
+
+  // ---------- CRT screen render (cosmetic scanline/vignette overlay) ----------
+  const crtBtn = $('btn-set-crt'), stageEl = document.getElementById('stage');
+  function crtOn() { return recs.settings ? recs.settings.crt !== false : true; }
+  function applyCrt(on) { if (stageEl) stageEl.classList.toggle('crt-off', !on); }
+  function updateCrtBtn() { crtBtn.setAttribute('aria-checked', crtOn() ? 'true' : 'false'); }
+  function toggleCrt() {
+    recs.settings.crt = !crtOn();
+    applyCrt(recs.settings.crt);
+    SY.store.saveSettings(recs.settings);
+    updateCrtBtn();
+  }
+  crtBtn.addEventListener('click', toggleCrt);
 
   // ---------- buttons ----------
   function quitToMenu() {
@@ -6587,8 +6916,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 
   // ---------- settings screen (gear-opened; reuses the pause-menu toggle logic) ----------
   function openSettings() {
-    updateMuteBtn();    // reflect current sound state on the settings buttons
+    updateMuteBtn();    // reflect current sound state on the settings switches
     updateHapticBtn();
+    updateVolumeUi();
+    updateCrtBtn();
     show('screen-settings');
   }
   $('btn-settings').addEventListener('click', openSettings);
@@ -6681,9 +7012,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   const hapticBtn = $('btn-haptic'), setHapticBtn = $('btn-set-haptic');
   if (navigator.vibrate) { hapticBtn.classList.add('available'); setHapticBtn.classList.add('available'); }
   function updateHapticBtn() {
-    const label = 'VIBRATION: ' + (SY.audio.hapticsOn() ? 'ON' : 'OFF');
-    hapticBtn.textContent = label;
-    setHapticBtn.textContent = label; // settings screen mirrors the pause toggle
+    hapticBtn.textContent = 'VIBRATION: ' + (SY.audio.hapticsOn() ? 'ON' : 'OFF');
+    setHapticBtn.setAttribute('aria-checked', SY.audio.hapticsOn() ? 'true' : 'false'); // settings switch
   }
   function toggleHaptic() {
     const on = !SY.audio.hapticsOn();

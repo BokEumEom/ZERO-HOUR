@@ -18,8 +18,12 @@
   // ---------- lifecycle (shell-driven; registered via SY.registerGame below) ----------
   function enter() {
     recs.settings = SY.settings; // shared settings, loaded by the shell at boot
+    applyVolume(volumeValue());  // cosmetic SFX level from persisted settings
+    applyCrt(crtOn());           // cosmetic CRT overlay from persisted settings
     updateMuteBtn();
     updateHapticBtn();
+    updateVolumeUi();
+    updateCrtBtn();
     renderMenuStats();           // shows defaults until records load
     show('screen-menu');         // instant — records hydrate asynchronously
     loadRecords();
@@ -508,14 +512,16 @@
     setTimeout(() => { $('btn-share').textContent = 'COPY RESULT'; }, 1800);
   }
 
-  // ---------- mute (top button + pause-menu toggle share state) ----------
+  // ---------- mute (top button + pause-menu toggle + settings switch) ----------
+  // The settings screen renders an iOS-style switch (ON = sound enabled, i.e. not
+  // muted); the corner button + pause toggle keep their existing label form.
   function updateMuteBtn() {
     const m = SY.audio.isMuted();
     $('btn-mute').classList.toggle('muted', m); // SVG: show slash / hide waves
     $('btn-mute').setAttribute('aria-label', m ? 'Unmute' : 'Mute');
-    const label = 'SOUND: ' + (m ? 'OFF' : 'ON');
-    $('btn-pause-mute').textContent = label;
-    $('btn-set-mute').textContent = label; // settings screen mirrors the pause toggle
+    $('btn-pause-mute').textContent = 'SOUND: ' + (m ? 'OFF' : 'ON');
+    $('btn-set-mute').setAttribute('aria-checked', m ? 'false' : 'true');
+    updateVolumeUi(); // sound off disables the volume row
   }
   function toggleMute() {
     SY.audio.setMuted(!SY.audio.isMuted());
@@ -526,6 +532,42 @@
   $('btn-mute').addEventListener('click', toggleMute);
   $('btn-pause-mute').addEventListener('click', toggleMute);
   $('btn-set-mute').addEventListener('click', toggleMute);
+
+  // ---------- master SFX volume (cosmetic level; settings slider only) ----------
+  const volSlider = $('set-volume'), volVal = $('set-volume-val'), volRow = $('set-volume-row');
+  function volumeValue() {
+    const v = recs.settings && typeof recs.settings.volume === 'number' ? recs.settings.volume : 70;
+    return Math.max(0, Math.min(100, v));
+  }
+  function applyVolume(v0to100) { SY.audio.setVolume(v0to100 / 100); }
+  function updateVolumeUi() {
+    const v = volumeValue();
+    volSlider.value = String(v);
+    volVal.textContent = v + '%';
+    const off = SY.audio.isMuted();
+    volRow.classList.toggle('is-disabled', off);
+    volSlider.disabled = off;
+  }
+  volSlider.addEventListener('input', () => {
+    const v = Math.max(0, Math.min(100, parseInt(volSlider.value, 10) || 0));
+    recs.settings.volume = v;
+    applyVolume(v);
+    volVal.textContent = v + '%';
+  });
+  volSlider.addEventListener('change', () => { SY.store.saveSettings(recs.settings); });
+
+  // ---------- CRT screen render (cosmetic scanline/vignette overlay) ----------
+  const crtBtn = $('btn-set-crt'), stageEl = document.getElementById('stage');
+  function crtOn() { return recs.settings ? recs.settings.crt !== false : true; }
+  function applyCrt(on) { if (stageEl) stageEl.classList.toggle('crt-off', !on); }
+  function updateCrtBtn() { crtBtn.setAttribute('aria-checked', crtOn() ? 'true' : 'false'); }
+  function toggleCrt() {
+    recs.settings.crt = !crtOn();
+    applyCrt(recs.settings.crt);
+    SY.store.saveSettings(recs.settings);
+    updateCrtBtn();
+  }
+  crtBtn.addEventListener('click', toggleCrt);
 
   // ---------- buttons ----------
   function quitToMenu() {
@@ -558,8 +600,10 @@
 
   // ---------- settings screen (gear-opened; reuses the pause-menu toggle logic) ----------
   function openSettings() {
-    updateMuteBtn();    // reflect current sound state on the settings buttons
+    updateMuteBtn();    // reflect current sound state on the settings switches
     updateHapticBtn();
+    updateVolumeUi();
+    updateCrtBtn();
     show('screen-settings');
   }
   $('btn-settings').addEventListener('click', openSettings);
@@ -652,9 +696,8 @@
   const hapticBtn = $('btn-haptic'), setHapticBtn = $('btn-set-haptic');
   if (navigator.vibrate) { hapticBtn.classList.add('available'); setHapticBtn.classList.add('available'); }
   function updateHapticBtn() {
-    const label = 'VIBRATION: ' + (SY.audio.hapticsOn() ? 'ON' : 'OFF');
-    hapticBtn.textContent = label;
-    setHapticBtn.textContent = label; // settings screen mirrors the pause toggle
+    hapticBtn.textContent = 'VIBRATION: ' + (SY.audio.hapticsOn() ? 'ON' : 'OFF');
+    setHapticBtn.setAttribute('aria-checked', SY.audio.hapticsOn() ? 'true' : 'false'); // settings switch
   }
   function toggleHaptic() {
     const on = !SY.audio.hapticsOn();

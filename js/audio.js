@@ -6,6 +6,7 @@
   let master = null;
   let muted = false;
   let haptics = true;
+  let volume = 0.5; // cosmetic master level (0..1), applied to master.gain
 
   // tactile feedback lives with the audio feedback (same call sites)
   function buzz(pattern) {
@@ -19,7 +20,7 @@
       if (!AC) return null;
       ctx = new AC();
       master = ctx.createGain();
-      master.gain.value = 0.5;
+      master.gain.value = volume;
       master.connect(ctx.destination);
     }
     if (ctx.state === 'suspended') ctx.resume();
@@ -73,6 +74,9 @@
     isMuted() { return muted; },
     setHaptics(h) { haptics = !!h; },
     hapticsOn() { return haptics; },
+    // cosmetic SFX level (0..1): scales the master gain, no gameplay effect
+    setVolume(v) { volume = Math.max(0, Math.min(1, Number(v) || 0)); if (master) master.gain.value = volume; },
+    getVolume() { return volume; },
     unlock() { ensure(); },
 
     // light pew — kept very quiet, fires constantly

@@ -89,7 +89,7 @@
   // Settings are shared across the arcade: "settings" { muted, haptics, seenHowto }.
   SY.store = {
     // ---- shared settings ----
-    async loadSettings() { return (await kvGet('settings')) || { muted: false }; },
+    async loadSettings() { return (await kvGet('settings')) || { muted: false, volume: 70, crt: true }; },
     saveSettings(s) { return kvSet('settings', s); },
 
     // ---- per-game record store ----
