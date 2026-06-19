@@ -120,6 +120,9 @@
           while (streak < 365 && (await kvGet(k('daily_' + utcDateMinus(offset + streak))))) streak++;
           return streak;
         },
+        // cosmetic lifetime totals (display-only): { score, crystals, runs }
+        async loadLifetime() { return (await kvGet(k('lifetime'))) || { score: 0, crystals: 0, runs: 0 }; },
+        saveLifetime(rec) { return kvSet(k('lifetime'), rec); },
         // lifetime medals: set of unlocked ids (no stored timestamps)
         async loadMedals() { return (await kvGet(k('medals'))) || []; },
         async addMedals(ids) {

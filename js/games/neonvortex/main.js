@@ -6,7 +6,8 @@
   const $ = (id) => document.getElementById('neonvortex-' + id);
   // stage rotation (radians) so render.js can keep in-canvas overlay text upright
   SY.layout = SY.layout || { rot: 0 };
-  let recs = { settings: { muted: false }, bestAll: null, dailyBest: null, today: SY.todayUTC() };
+  let recs = { settings: { muted: false }, bestAll: null, dailyBest: null, today: SY.todayUTC(),
+    lifetime: { score: 0, crystals: 0, runs: 0 } }; // cosmetic meta (display-only)
   let lastResult = null;
   let runBestPace = null; // daily pace snapshot for live comparison
 
@@ -29,6 +30,7 @@
     recs.bestAll = gr.bestAll;
     recs.dailyBest = gr.dailyBest;
     recs.today = gr.today;
+    recs.lifetime = await gameStore.loadLifetime(); // cosmetic meta (display-only)
     renderMenuStats();
     renderDailyHistory();
   }
@@ -319,6 +321,9 @@
       recs.bestAll = { score: res.score, combo: res.maxCombo, date: recs.today, mode: res.mode };
       gameStore.saveBestAll(recs.bestAll);
     }
+    // cosmetic lifetime totals (display-only; wired to UI in a later task)
+    recs.lifetime = SY.nvMeta.accumulateLifetime(recs.lifetime, { score: res.score, crystals: res.crystalsCollected || 0 });
+    gameStore.saveLifetime(recs.lifetime);
     const isNewBest = newAll || newDaily;
 
     $('over-reason').textContent = res.reason === 'down' ? 'DRONE DESTROYED' : 'TIME UP';

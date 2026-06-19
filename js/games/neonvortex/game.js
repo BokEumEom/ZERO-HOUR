@@ -95,6 +95,7 @@
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
+      crystalsCollected: 0, // display-only (cosmetic meta); never read by the sim
       breakdown: { crystals: 0, combo: 0, destruction: 0, boss: 0, heat: 0 },
       tookDamage: false, // for the NO HIT medal (shield blocks don't count as damage)
     };
@@ -360,6 +361,7 @@
       mode: s.mode, score: s.score, maxCombo: s.maxCombo,
       bossDown: s.bossDown, reason, pace: s.pace.slice(),
       collected: s.collected, duration: s.duration,
+      crystalsCollected: s.crystalsCollected, // display-only (cosmetic meta)
       breakdown: { ...s.breakdown },
       seedStr: s.seedStr, // daily runs record under their seed's date, not "now"
       noHit: !s.tookDamage,
@@ -508,6 +510,7 @@
         s.combo += 1; s.comboT = 2.6;
         s.maxCombo = Math.max(s.maxCombo, s.combo);
         s.collected += 1;
+        s.crystalsCollected++; // display-only counter (cosmetic meta); output-only
         if (s.inSurge) s.heat += 1;
         addScore(s, 10 + s.combo, c.x, c.y, undefined, 'crystal');
         burst(s, c.x, c.y, '#2de2c6', 7, 150, 2.2);

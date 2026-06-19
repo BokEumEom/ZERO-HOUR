@@ -71,7 +71,7 @@ test('script load order in index.html is store -> audio -> game -> render -> mai
   // match basenames regardless of folder (per-game modules live under js/games/<id>/)
   const order = [...html.matchAll(/<script src="js[^"]*\/([a-z-]+)\.js">/g)].map((m) => m[1]);
   // shell core, then each in-shell game as game -> render -> main (ship also loads its sprite atlas first), then the linked register
-  assert.deepEqual(order, ['store', 'audio', 'shell', 'game', 'render', 'medals', 'main', 'sprites', 'game', 'render', 'main', 'register']);
+  assert.deepEqual(order, ['store', 'audio', 'shell', 'game', 'render', 'medals', 'main', 'sprites', 'meta', 'game', 'render', 'main', 'register']);
 });
 
 test('render.js reacts to surge state (telegraph + tint)', () => {
