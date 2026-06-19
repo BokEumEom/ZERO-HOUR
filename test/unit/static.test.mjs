@@ -106,3 +106,16 @@ test('neonvortex menu is reskinned to NEON VORTEX (no stale SHIP label)', () => 
   assert.ok(!css.includes('#ship-'), 'no ship-scoped CSS selectors remain');
   assert.ok(css.includes('#neonvortex-screen-menu'), 'neonvortex menu scope present');
 });
+
+test('neonvortex meta stays cosmetic (lifetime/crystalsCollected never drive the sim)', () => {
+  const game = read('js/games/neonvortex/game.js');
+  // crystalsCollected exists but is output-only: it must not appear in spawn counts,
+  // drop probabilities, score math, or rng expressions.
+  assert.ok(/crystalsCollected/.test(game), 'crystalsCollected counter present');
+  assert.ok(!/crystalsCollected\s*[*/%<>]/.test(game), 'crystalsCollected not used in arithmetic/compare');
+  assert.ok(!/(rng\(\)[^\n;]*crystalsCollected)|(crystalsCollected[^\n;]*rng\(\))/.test(game), 'crystalsCollected not tied to rng');
+  // game.js must NOT read the persisted lifetime at all (that lives only in main.js display)
+  assert.ok(!/lifetime/i.test(game), 'game.js never references lifetime');
+  const main = read('js/games/neonvortex/main.js');
+  assert.ok(/nvMeta\.accumulateLifetime/.test(main), 'lifetime accumulation happens in main.js');
+});

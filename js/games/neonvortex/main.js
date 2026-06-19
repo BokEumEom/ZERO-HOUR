@@ -367,6 +367,9 @@
     // cosmetic lifetime totals (display-only; wired to UI in a later task)
     recs.lifetime = SY.nvMeta.accumulateLifetime(recs.lifetime, { score: res.score, crystals: res.crystalsCollected || 0 });
     gameStore.saveLifetime(recs.lifetime);
+    const tier = SY.nvMeta.rankTier(recs.lifetime.score);
+    const prEl = $('over-pilot-rank'); prEl.textContent = tier.name; prEl.style.color = tier.color;
+    $('over-bank').textContent = fmt(recs.lifetime.crystals);
     const isNewBest = newAll || newDaily;
 
     $('over-reason').textContent = res.reason === 'down' ? 'DRONE DESTROYED' : 'TIME UP';

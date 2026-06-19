@@ -1167,6 +1167,29 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 #neonvortex-screen-over #neonvortex-over-rank.rank-ace { color: var(--nv-value); text-shadow: 0 0 14px rgba(255,186,32,0.7); }
 #neonvortex-screen-over #neonvortex-over-rank.rank-legend { color: var(--nv-threat); text-shadow: 0 0 18px rgba(255,36,228,0.8); }
 
+/* ---- lifetime pilot-rank + crystal-bank line (display-only) ---- */
+#neonvortex-screen-over .nv-result-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  width: min(360px, 90vw);
+  margin: 0;
+  font-family: var(--nv-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nv-on-surface-variant);
+}
+#neonvortex-screen-over .nv-result-meta .nv-result-rank b {
+  font-weight: 700;
+  color: var(--nv-primary-bright); /* overridden inline with the tier color */
+}
+#neonvortex-screen-over .nv-result-meta .nv-result-bank b {
+  font-weight: 700;
+  color: var(--nv-value);
+  text-shadow: 0 0 10px rgba(255,186,32,0.5);
+}
+
 /* ---- NEW BEST! gold pill ---- */
 #neonvortex-screen-over #neonvortex-over-best-banner {
   display: none;

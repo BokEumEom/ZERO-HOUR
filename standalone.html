@@ -1595,6 +1595,148 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   letter-spacing: 0.06em;
 }
 
+/* ===== NEON VORTEX — "Arcade Pilot" menu meta (crystals · rank · career) =====
+   Display-only chrome over the existing dark-grid panel. Header row (crystals
+   chip + settings gear), a pilot-credentials glass card with a cyan accent bar
+   and a JS-coloured rank badge, and a segmented career-progress track. */
+#neonvortex-screen-menu .nv-menu-top {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+#neonvortex-screen-menu .nv-menu-top .kicker { align-self: center; }
+#neonvortex-screen-menu .nv-menu-top-right {
+  display: flex; align-items: center; gap: 10px;
+}
+/* gold ◆ + Space Mono number in a cyan-bordered chip */
+#neonvortex-screen-menu .nv-crystals {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px;
+  border-radius: 5px;
+  background: rgba(0,219,231,0.08);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 30%, transparent);
+  color: var(--nv-value);
+  font-size: 13px;
+  line-height: 1;
+}
+#neonvortex-screen-menu .nv-crystals b {
+  font-family: var(--nv-font-mono);
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--nv-primary-bright);
+}
+/* cyan icon button */
+#neonvortex-screen-menu .nv-gear {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 28%, transparent);
+  border-radius: 5px;
+  background: rgba(0,219,231,0.04);
+  color: var(--nv-primary);
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease, color 0.15s ease;
+}
+#neonvortex-screen-menu .nv-gear:hover,
+#neonvortex-screen-menu .nv-gear:focus-visible {
+  background: rgba(0,219,231,0.14);
+  box-shadow: 0 0 12px rgba(0,219,231,0.3);
+  color: var(--nv-primary-bright);
+}
+#neonvortex-screen-menu .nv-gear:active { transform: scale(0.9); }
+
+/* ---- pilot credentials card ---- */
+#neonvortex-screen-menu .nv-pilot-card {
+  position: relative;
+  width: 100%;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px 12px 18px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--nv-bg) 88%, #000);
+  border: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+/* left cyan→transparent accent bar */
+#neonvortex-screen-menu .nv-pilot-card::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, var(--nv-primary), transparent);
+}
+#neonvortex-screen-menu .nv-pilot-info {
+  display: flex; flex-direction: column; gap: 4px;
+  text-align: left;
+}
+#neonvortex-screen-menu .nv-call {
+  font-family: var(--nv-font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--nv-outline);
+}
+#neonvortex-screen-menu .nv-life {
+  font-family: var(--nv-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nv-on-surface-variant);
+}
+#neonvortex-screen-menu .nv-life b {
+  color: var(--nv-primary-bright);
+  margin-left: 4px;
+}
+/* glowing tier badge — color/border set inline by JS; style layout + glow here */
+#neonvortex-screen-menu .nv-rank {
+  flex-shrink: 0;
+  font-family: var(--nv-font-display);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid currentColor;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  box-shadow: 0 0 15px color-mix(in srgb, currentColor 45%, transparent);
+}
+
+/* ---- career progress ---- */
+#neonvortex-screen-menu .nv-career {
+  width: 100%;
+  display: flex; flex-direction: column; gap: 6px;
+}
+#neonvortex-screen-menu .nv-career-ticks {
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--nv-outline);
+}
+#neonvortex-screen-menu .nv-career-track {
+  position: relative;
+  height: 10px;
+  padding: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--nv-bg) 80%, #000);
+  border: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+#neonvortex-screen-menu .nv-career-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(to right, #38bdf8, #a78bfa, #34d399, #fbbf24, #fb7185);
+  box-shadow: 0 0 8px rgba(168,85,247,0.5);
+  transition: width 1s ease;
+}
+
 /* ===== NEON VORTEX — RESULT screen reskin (Stitch "_2" mockup) =====
    Scoped strictly to #neonvortex-screen-over. A chamfered glass result CARD
    over the navy void: VICTORY-style flickering cyan header + tick marks, big
@@ -1703,6 +1845,29 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 #neonvortex-screen-over #neonvortex-over-rank.rank-pilot { color: var(--nv-primary-bright); text-shadow: 0 0 12px rgba(0,219,231,0.6); }
 #neonvortex-screen-over #neonvortex-over-rank.rank-ace { color: var(--nv-value); text-shadow: 0 0 14px rgba(255,186,32,0.7); }
 #neonvortex-screen-over #neonvortex-over-rank.rank-legend { color: var(--nv-threat); text-shadow: 0 0 18px rgba(255,36,228,0.8); }
+
+/* ---- lifetime pilot-rank + crystal-bank line (display-only) ---- */
+#neonvortex-screen-over .nv-result-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  width: min(360px, 90vw);
+  margin: 0;
+  font-family: var(--nv-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nv-on-surface-variant);
+}
+#neonvortex-screen-over .nv-result-meta .nv-result-rank b {
+  font-weight: 700;
+  color: var(--nv-primary-bright); /* overridden inline with the tier color */
+}
+#neonvortex-screen-over .nv-result-meta .nv-result-bank b {
+  font-weight: 700;
+  color: var(--nv-value);
+  text-shadow: 0 0 10px rgba(255,186,32,0.5);
+}
 
 /* ---- NEW BEST! gold pill ---- */
 #neonvortex-screen-over #neonvortex-over-best-banner {
@@ -1857,14 +2022,16 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
    Scoped strictly to the three #neonvortex-screen-* dialogs — no platform leak. */
 #neonvortex-screen-pause,
 #neonvortex-screen-howto,
-#neonvortex-screen-records {
+#neonvortex-screen-records,
+#neonvortex-screen-settings {
   background: color-mix(in srgb, var(--nv-bg) 88%, transparent);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
 }
 #neonvortex-screen-pause .panel,
 #neonvortex-screen-howto .panel,
-#neonvortex-screen-records .panel {
+#neonvortex-screen-records .panel,
+#neonvortex-screen-settings .panel {
   width: min(440px, 92vw);
   background: color-mix(in srgb, var(--nv-surface) 90%, transparent);
   background-image: none;
@@ -1880,7 +2047,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 /* kicker: Space Mono, spaced cyan eyebrow with a leading tick */
 #neonvortex-screen-pause .kicker,
 #neonvortex-screen-howto .kicker,
-#neonvortex-screen-records .kicker {
+#neonvortex-screen-records .kicker,
+#neonvortex-screen-settings .kicker {
   font-family: var(--nv-font-mono);
   font-size: 10px;
   font-weight: 700;
@@ -1891,7 +2059,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 /* title: Sora display, bright with a soft cyan bloom */
 #neonvortex-screen-pause .pause-title,
 #neonvortex-screen-howto .pause-title,
-#neonvortex-screen-records .pause-title {
+#neonvortex-screen-records .pause-title,
+#neonvortex-screen-settings .pause-title {
   font-family: var(--nv-font-display);
   font-weight: 900;
   letter-spacing: 0.02em;
@@ -1904,21 +2073,163 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 #neonvortex-screen-records .rec-best-meta {
   color: var(--nv-on-surface-variant);
 }
-#neonvortex-screen-records .rec-section-title,
-#neonvortex-screen-records .rec-day-date {
+#neonvortex-screen-records .rec-section-title {
   font-family: var(--nv-font-mono);
   color: color-mix(in srgb, var(--nv-on-surface-variant) 70%, transparent);
 }
-#neonvortex-screen-records .rec-best {
-  font-family: var(--nv-font-display);
+#neonvortex-screen-records .rec-streak { color: var(--nv-value); }
+
+/* ---- LEADERBOARD: ranked pilot-file rows (reskin of the records list) ---- */
+#neonvortex-screen-records .nv-lb {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: min(46vh, 360px);
+  overflow-y: auto;
+  padding-right: 2px;
+}
+/* column header: spaced mono eyebrow over the ranked rows */
+#neonvortex-screen-records .nv-lb-head {
+  display: grid;
+  grid-template-columns: 2.6em 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px 6px;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 60%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--nv-primary) 22%, transparent);
+}
+#neonvortex-screen-records .nv-lb-head .nv-lb-score { text-align: right; }
+/* a ranked row: dark glass card with a cyan left accent */
+#neonvortex-screen-records .nv-lb-row {
+  display: grid;
+  grid-template-columns: 2.6em 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 14%, transparent);
+  border-left: 2px solid color-mix(in srgb, var(--nv-primary) 55%, transparent);
+  background: color-mix(in srgb, var(--nv-surface) 60%, transparent);
+}
+#neonvortex-screen-records .nv-lb-row:nth-child(odd) {
+  background: color-mix(in srgb, var(--nv-bg) 50%, transparent);
+}
+/* rank number: mono, dimmed */
+#neonvortex-screen-records .nv-lb-rank {
+  font-family: var(--nv-font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 75%, transparent);
+}
+/* pilot column: name + tier chip + supporting meta */
+#neonvortex-screen-records .nv-lb-pilot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-width: 0;
+}
+#neonvortex-screen-records .nv-lb-name {
+  font-family: var(--nv-font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--nv-on-surface);
+}
+#neonvortex-screen-records .nv-lb-meta {
+  flex-basis: 100%;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 55%, transparent);
+}
+/* tier chip: colored by the pilot rank tier (var supplied inline per row) */
+#neonvortex-screen-records .nv-lb-tier {
+  font-family: var(--nv-font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: var(--nv-tier, var(--nv-primary));
+  border: 1px solid color-mix(in srgb, var(--nv-tier, var(--nv-primary)) 55%, transparent);
+  background: color-mix(in srgb, var(--nv-tier, var(--nv-primary)) 12%, transparent);
+}
+/* score: Space Mono, right-aligned, bright */
+#neonvortex-screen-records .nv-lb-score {
+  font-family: var(--nv-font-mono);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: right;
+  letter-spacing: 0.02em;
   color: var(--nv-primary-bright);
-  text-shadow: 0 0 14px color-mix(in srgb, var(--nv-primary) 50%, transparent);
 }
-#neonvortex-screen-records .rec-day {
-  border-bottom-color: color-mix(in srgb, var(--nv-primary) 16%, transparent);
+/* the user's own / all-time-best row: cyan glow + brighter accent */
+#neonvortex-screen-records .nv-lb-row.is-you {
+  border-color: color-mix(in srgb, var(--nv-primary) 45%, transparent);
+  border-left-color: var(--nv-primary-bright);
+  background: color-mix(in srgb, var(--nv-primary) 14%, transparent);
+  box-shadow: inset 0 0 10px color-mix(in srgb, var(--nv-primary) 22%, transparent);
 }
-#neonvortex-screen-records .rec-streak,
-#neonvortex-screen-records .rec-day .boss { color: var(--nv-value); }
+#neonvortex-screen-records .nv-lb-row.is-you .nv-lb-rank,
+#neonvortex-screen-records .nv-lb-row.is-you .nv-lb-name { color: var(--nv-primary-bright); }
+#neonvortex-screen-records .nv-lb-row.is-you .nv-lb-score {
+  text-shadow: 0 0 12px color-mix(in srgb, var(--nv-primary) 55%, transparent);
+}
+#neonvortex-screen-records .nv-lb-empty {
+  padding: 28px 0;
+  text-align: center;
+  font-family: var(--nv-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 50%, transparent);
+}
+/* ---- SETTINGS screen: toggle rows styled as a console of on/off switches ---- */
+#neonvortex-screen-settings .nv-settings-list {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 10px;
+  width: 100%;
+  margin: 14px 0 6px;
+}
+/* each toggle becomes a full-width glass row: label left, ON/OFF state right */
+#neonvortex-screen-settings .nv-settings-list .settings-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 18px;
+  font-family: var(--nv-font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-align: left;
+  color: var(--nv-on-surface);
+  background: color-mix(in srgb, var(--nv-surface) 60%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 24%, transparent);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--nv-primary) 10%, transparent);
+}
+#neonvortex-screen-settings .nv-settings-list .haptic-toggle.available { display: flex; }
+#neonvortex-screen-settings .nv-settings-list .settings-btn:hover,
+#neonvortex-screen-settings .nv-settings-list .settings-btn:focus-visible {
+  background: color-mix(in srgb, var(--nv-primary) 14%, transparent);
+  border-color: color-mix(in srgb, var(--nv-primary) 45%, transparent);
+  transform: none;
+  box-shadow: 0 0 16px color-mix(in srgb, var(--nv-primary) 22%, transparent);
+  outline: none;
+}
+#neonvortex-screen-settings .nv-settings-list .settings-btn:active { transform: translateY(1px); }
+#neonvortex-screen-settings .btn-row { margin-top: 12px; }
+#neonvortex-screen-settings .btn-row .arcade-btn { min-width: 160px; }
+
 /* how-to key chip: Space Mono pill, cyan hairline on a faint cyan wash */
 #neonvortex-screen-howto .howto-k {
   font-family: var(--nv-font-mono) !important;
@@ -2119,8 +2430,25 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       <div id="neonvortex-screen-menu" class="screen" data-screen-label="Ship — Main Menu">
         <button id="neonvortex-btn-arcade" class="back-btn" type="button">← ARCADE</button>
         <div class="panel">
-          <span class="kicker">ARCADE_PILOT_OS</span>
+          <div class="nv-menu-top">
+            <span class="kicker">ARCADE_PILOT_OS</span>
+            <div class="nv-menu-top-right">
+              <span class="nv-crystals">◆ <b id="neonvortex-menu-crystals">0</b></span>
+              <button id="neonvortex-btn-settings" class="nv-gear" type="button" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm9 4a7 7 0 00-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 00-2-1.2L16 2H8l-.5 2.6a7 7 0 00-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 003 12c0 .4 0 .8.1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 002 1.2L8 22h8l.5-2.6a7 7 0 002-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+            </div>
+          </div>
           <h1 class="game-title nv-logo"><span class="nv-logo-1">NEON</span><span class="nv-logo-2">VORTEX</span><span class="nv-logo-tag">ULTRA</span></h1>
+          <div class="nv-pilot-card">
+            <div class="nv-pilot-info">
+              <span class="nv-call">CALLSIGN · PILOT_YOU</span>
+              <span class="nv-life">LIFETIME <b id="neonvortex-menu-lifetime">0</b></span>
+            </div>
+            <span id="neonvortex-menu-rank" class="nv-rank">ROOKIE PILOT</span>
+          </div>
+          <div class="nv-career">
+            <div class="nv-career-ticks" id="neonvortex-menu-ticks"></div>
+            <div class="nv-career-track"><div id="neonvortex-menu-career" class="nv-career-fill"></div></div>
+          </div>
           <div class="mode-row">
             <button id="neonvortex-btn-daily" class="mode-card" type="button">
               <span class="mode-name">DAILY</span>
@@ -2149,6 +2477,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
             <p id="neonvortex-over-score">0</p>
           </div>
           <div id="neonvortex-over-rank"></div>
+          <p class="nv-result-meta"><span class="nv-result-rank">PILOT RANK · <b id="neonvortex-over-pilot-rank">—</b></span><span class="nv-result-bank">CRYSTAL BANK · <b id="neonvortex-over-bank">0</b></span></p>
           <span id="neonvortex-over-best-banner"><span id="neonvortex-over-best-label">NEW BEST!</span> ★</span>
           <div id="neonvortex-over-medals"></div>
           <div id="neonvortex-over-stats"></div>
@@ -2206,6 +2535,20 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
           <div id="neonvortex-records-body"></div>
           <div class="btn-row">
             <button id="neonvortex-btn-records-back" class="arcade-btn primary" type="button">BACK</button>
+          </div>
+        </div>
+      </div>
+      <div id="neonvortex-screen-settings" class="screen" data-screen-label="NEON VORTEX — Settings" role="dialog" aria-modal="true" aria-label="Settings">
+        <div class="panel">
+          <span class="kicker">ARCADE_PILOT_OS</span>
+          <span class="pause-title">SETTINGS</span>
+          <div class="settings-row nv-settings-list">
+            <button id="neonvortex-btn-set-mute" class="arcade-btn settings-btn" type="button">SOUND: ON</button>
+            <button id="neonvortex-btn-set-haptic" class="arcade-btn settings-btn haptic-toggle" type="button">VIBRATION: ON</button>
+            <button id="neonvortex-btn-set-fs" class="arcade-btn settings-btn" type="button">FULLSCREEN</button>
+          </div>
+          <div class="btn-row">
+            <button id="neonvortex-btn-settings-back" class="arcade-btn primary" type="button">BACK</button>
           </div>
         </div>
       </div>
@@ -2370,6 +2713,9 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
           while (streak < 365 && (await kvGet(k('daily_' + utcDateMinus(offset + streak))))) streak++;
           return streak;
         },
+        // cosmetic lifetime totals (display-only): { score, crystals, runs }
+        async loadLifetime() { return (await kvGet(k('lifetime'))) || { score: 0, crystals: 0, runs: 0 }; },
+        saveLifetime(rec) { return kvSet(k('lifetime'), rec); },
         // lifetime medals: set of unlocked ids (no stored timestamps)
         async loadMedals() { return (await kvGet(k('medals'))) || []; },
         async addMedals(ids) {
@@ -4559,6 +4905,41 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 
 </script>
   <script>
+// --- inlined: js/games/neonvortex/meta.js ---
+// NEON VORTEX — cosmetic (display-only) meta: lifetime totals + pilot rank tier.
+// NEVER read by the simulation (game.js); display-only, so it cannot affect
+// daily-challenge fairness.
+//
+// Tiers use an inclusive lower bound (`min`): a cumulative lifetime score falls
+// in the highest tier whose `min` it reaches. ESM mirror: meta.mjs (keep in sync).
+(function () {
+  const SY = (window.SY = window.SY || {});
+  const TIERS = [
+    { key: 'ROOKIE', min: 0,      name: 'ROOKIE PILOT',    color: '#38bdf8' },
+    { key: 'ELITE',  min: 5000,   name: 'ELITE WINGMAN',   color: '#a78bfa' },
+    { key: 'ACE',    min: 20000,  name: 'ACE STRIKER',     color: '#34d399' },
+    { key: 'CMDR',   min: 90000,  name: 'FLEET COMMANDER', color: '#fbbf24' },
+    { key: 'LEGEND', min: 150000, name: 'GALAXY LEGEND',   color: '#fb7185' },
+  ];
+  function rankTier(score) {
+    const s = Math.max(0, Number(score) || 0);
+    let tier = TIERS[0];
+    for (const t of TIERS) { if (s >= t.min) tier = t; }
+    return tier;
+  }
+  function accumulateLifetime(prev, run) {
+    const p = prev || { score: 0, crystals: 0, runs: 0 };
+    return {
+      score: (p.score || 0) + (Number(run.score) || 0),
+      crystals: (p.crystals || 0) + (Number(run.crystals) || 0),
+      runs: (p.runs || 0) + 1,
+    };
+  }
+  SY.nvMeta = { TIERS, rankTier, accumulateLifetime };
+})();
+
+</script>
+  <script>
 // --- inlined: js/games/neonvortex/game.js ---
 // Scoreyard — core game engine (state + simulation). Rendering lives in render.js.
 (function () {
@@ -4657,6 +5038,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
+      crystalsCollected: 0, // display-only (cosmetic meta); never read by the sim
       breakdown: { crystals: 0, combo: 0, destruction: 0, boss: 0, heat: 0 },
       tookDamage: false, // for the NO HIT medal (shield blocks don't count as damage)
     };
@@ -4922,6 +5304,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       mode: s.mode, score: s.score, maxCombo: s.maxCombo,
       bossDown: s.bossDown, reason, pace: s.pace.slice(),
       collected: s.collected, duration: s.duration,
+      crystalsCollected: s.crystalsCollected, // display-only (cosmetic meta)
       breakdown: { ...s.breakdown },
       seedStr: s.seedStr, // daily runs record under their seed's date, not "now"
       noHit: !s.tookDamage,
@@ -5070,6 +5453,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         s.combo += 1; s.comboT = 2.6;
         s.maxCombo = Math.max(s.maxCombo, s.combo);
         s.collected += 1;
+        s.crystalsCollected++; // display-only counter (cosmetic meta); output-only
         if (s.inSurge) s.heat += 1;
         addScore(s, 10 + s.combo, c.x, c.y, undefined, 'crystal');
         burst(s, c.x, c.y, '#2de2c6', 7, 150, 2.2);
@@ -5648,7 +6032,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   const $ = (id) => document.getElementById('neonvortex-' + id);
   // stage rotation (radians) so render.js can keep in-canvas overlay text upright
   SY.layout = SY.layout || { rot: 0 };
-  let recs = { settings: { muted: false }, bestAll: null, dailyBest: null, today: SY.todayUTC() };
+  let recs = { settings: { muted: false }, bestAll: null, dailyBest: null, today: SY.todayUTC(),
+    lifetime: { score: 0, crystals: 0, runs: 0 } }; // cosmetic meta (display-only)
   let lastResult = null;
   let runBestPace = null; // daily pace snapshot for live comparison
 
@@ -5671,6 +6056,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     recs.bestAll = gr.bestAll;
     recs.dailyBest = gr.dailyBest;
     recs.today = gr.today;
+    recs.lifetime = await gameStore.loadLifetime(); // cosmetic meta (display-only)
     renderMenuStats();
     renderDailyHistory();
   }
@@ -5786,9 +6172,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     'screen-pause': 'btn-resume',
     'screen-howto': 'btn-howto-start',
     'screen-records': 'btn-records-back',
+    'screen-settings': 'btn-settings-back',
   };
   function show(screenId) {
-    for (const id of ['screen-menu', 'screen-over', 'screen-pause', 'screen-howto', 'screen-records']) {
+    for (const id of ['screen-menu', 'screen-over', 'screen-pause', 'screen-howto', 'screen-records', 'screen-settings']) {
       $(id).classList.toggle('visible', id === screenId);
     }
     if (screenId !== 'screen-over') stopCountdown();
@@ -5834,15 +6221,43 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     ]);
     const ownedSet = new Set(owned);
     const b = recs.bestAll;
-    let html = '<div><div class="rec-section-title">ALL-TIME BEST</div>';
+
+    // Leaderboard rows from REAL local data only (no invented/fetched entries):
+    // the all-time best plus each played day in the recent history, ranked by
+    // score (desc). The all-time-best row is flagged "you" for highlight. A
+    // display-only pilot rank-tier chip labels each row.
+    const rows = [];
     if (b) {
-      html += '<div class="rec-best">' + fmt(b.score) + '</div>' +
-        '<div class="rec-best-meta">×' + (Number(b.combo) || 0) + ' COMBO · ' + b.date +
-        ' · ' + (b.mode === 'daily' ? 'DAILY' : 'FREE') + '</div>';
+      rows.push({ label: 'ALL-TIME', score: Number(b.score) || 0,
+        meta: (b.mode === 'daily' ? 'DAILY' : 'FREE') + ' · ' + b.date, you: true });
+    }
+    for (const d of days) {
+      if (d.rec) {
+        rows.push({ label: d.date, score: Number(d.rec.score) || 0,
+          meta: 'DAILY' + (d.rec.bossDown ? ' · BOSS' : ''), you: false });
+      }
+    }
+    rows.sort((x, y) => y.score - x.score);
+
+    let html = '<div class="nv-lb">';
+    html += '<div class="nv-lb-head"><span class="nv-lb-rank">RANK</span>' +
+      '<span class="nv-lb-pilot">PILOT_FILE</span>' +
+      '<span class="nv-lb-score">SCORE</span></div>';
+    if (rows.length) {
+      html += rows.map((r, i) => {
+        const tier = SY.nvMeta.rankTier(r.score);
+        return '<div class="nv-lb-row' + (r.you ? ' is-you' : '') + '">' +
+          '<span class="nv-lb-rank">' + (r.you ? '▸' : '') + String(i + 1).padStart(2, '0') + '</span>' +
+          '<span class="nv-lb-pilot"><span class="nv-lb-name">' + r.label + '</span>' +
+          '<span class="nv-lb-tier" style="--nv-tier:' + tier.color + '">' + tier.name + '</span>' +
+          '<span class="nv-lb-meta">' + r.meta + '</span></span>' +
+          '<span class="nv-lb-score">' + fmt(r.score) + '</span></div>';
+      }).join('');
     } else {
-      html += '<div class="rec-best">—</div>';
+      html += '<div class="nv-lb-empty">NO PILOT FILES LOGGED</div>';
     }
     html += '</div>';
+
     if (streak > 0) {
       html += '<div class="rec-streak">🔥 STREAK ' + streak + (streak === 1 ? ' DAY' : ' DAYS') + '</div>';
     }
@@ -5851,18 +6266,6 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         '<span class="medal ' + (ownedSet.has(m.id) ? 'earned' : 'locked') + '" title="' + m.desc + '">' +
         '<span class="medal-glyph">' + m.glyph + '</span>' +
         '<span class="medal-name">' + m.name + '</span></span>').join('') + '</div></div>';
-    html += '<div><div class="rec-section-title">LAST 14 DAYS (UTC)</div>';
-    for (const d of days) { // newest first
-      if (d.rec) {
-        html += '<div class="rec-day"><span class="rec-day-date">' + d.date + '</span>' +
-          '<span class="rec-day-score">' + fmt(Number(d.rec.score) || 0) +
-          (d.rec.bossDown ? '<span class="boss">✦</span>' : '') + '</span></div>';
-      } else {
-        html += '<div class="rec-day empty"><span class="rec-day-date">' + d.date +
-          '</span><span class="rec-day-score">—</span></div>';
-      }
-    }
-    html += '</div>';
     $('records-body').innerHTML = html;
   }
 
@@ -5874,6 +6277,32 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     $('menu-all-best').textContent = recs.bestAll
       ? 'ALL-TIME BEST ' + fmt(recs.bestAll.score) + ' \u00b7 \u00d7' + recs.bestAll.combo + ' \u00b7 ' + recs.bestAll.date
       : 'ALL-TIME BEST \u2014';
+
+    // ---- Arcade Pilot meta (display-only; never read by the simulation) ----
+    const lt = recs.lifetime || { score: 0, crystals: 0, runs: 0 };
+    $('menu-crystals').textContent = fmt(lt.crystals);
+    $('menu-lifetime').textContent = fmt(lt.score);
+    const tier = SY.nvMeta.rankTier(lt.score);
+    const rankEl = $('menu-rank');
+    rankEl.textContent = tier.name;
+    rankEl.style.color = tier.color;
+    rankEl.style.borderColor = tier.color;
+    // career ticks: START + each tier with a positive min (1K-formatted)
+    const tiers = SY.nvMeta.TIERS;
+    const tickLabels = ['START'].concat(
+      tiers.filter((t) => t.min > 0).map((t) => (t.min >= 1000 ? t.min / 1000 + 'K' : '' + t.min))
+    );
+    const ticksEl = $('menu-ticks');
+    ticksEl.textContent = ''; // rebuild from constants via createElement/textContent (no innerHTML)
+    for (const label of tickLabels) {
+      const span = document.createElement('span');
+      span.textContent = label;
+      ticksEl.appendChild(span);
+    }
+    // fill: cosmetic progress across the whole START..LEGEND.min range
+    const maxBand = tiers[tiers.length - 1].min || 150000;
+    const pct = Math.max(0, Math.min(100, (lt.score / maxBand) * 100));
+    $('menu-career').style.width = pct.toFixed(1) + '%';
   }
 
   let pendingMode = null;
@@ -5961,6 +6390,12 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       recs.bestAll = { score: res.score, combo: res.maxCombo, date: recs.today, mode: res.mode };
       gameStore.saveBestAll(recs.bestAll);
     }
+    // cosmetic lifetime totals (display-only; wired to UI in a later task)
+    recs.lifetime = SY.nvMeta.accumulateLifetime(recs.lifetime, { score: res.score, crystals: res.crystalsCollected || 0 });
+    gameStore.saveLifetime(recs.lifetime);
+    const tier = SY.nvMeta.rankTier(recs.lifetime.score);
+    const prEl = $('over-pilot-rank'); prEl.textContent = tier.name; prEl.style.color = tier.color;
+    $('over-bank').textContent = fmt(recs.lifetime.crystals);
     const isNewBest = newAll || newDaily;
 
     $('over-reason').textContent = res.reason === 'down' ? 'DRONE DESTROYED' : 'TIME UP';
@@ -6104,7 +6539,9 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     const m = SY.audio.isMuted();
     $('btn-mute').classList.toggle('muted', m); // SVG: show slash / hide waves
     $('btn-mute').setAttribute('aria-label', m ? 'Unmute' : 'Mute');
-    $('btn-pause-mute').textContent = 'SOUND: ' + (m ? 'OFF' : 'ON');
+    const label = 'SOUND: ' + (m ? 'OFF' : 'ON');
+    $('btn-pause-mute').textContent = label;
+    $('btn-set-mute').textContent = label; // settings screen mirrors the pause toggle
   }
   function toggleMute() {
     SY.audio.setMuted(!SY.audio.isMuted());
@@ -6114,6 +6551,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   }
   $('btn-mute').addEventListener('click', toggleMute);
   $('btn-pause-mute').addEventListener('click', toggleMute);
+  $('btn-set-mute').addEventListener('click', toggleMute);
 
   // ---------- buttons ----------
   function quitToMenu() {
@@ -6131,9 +6569,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   $('btn-resume').addEventListener('click', resumeGame);
   $('btn-pause-restart').addEventListener('click', () => reallyStart(G.mode));
   $('btn-pause-quit').addEventListener('click', quitToMenu); // run is discarded: no onGameOver, no saves
-  $('btn-pause-fs').addEventListener('click', () => {
+  function toggleFullscreen() {
     if (document.fullscreenElement) document.exitFullscreen(); else enterFullscreen();
-  });
+  }
+  $('btn-pause-fs').addEventListener('click', toggleFullscreen);
   $('btn-howto-start').addEventListener('click', () => {
     recs.settings.seenHowto = true;
     SY.store.saveSettings(recs.settings);
@@ -6141,6 +6580,16 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   });
   $('btn-records').addEventListener('click', () => { renderRecords(); show('screen-records'); });
   $('btn-records-back').addEventListener('click', () => show('screen-menu'));
+
+  // ---------- settings screen (gear-opened; reuses the pause-menu toggle logic) ----------
+  function openSettings() {
+    updateMuteBtn();    // reflect current sound state on the settings buttons
+    updateHapticBtn();
+    show('screen-settings');
+  }
+  $('btn-settings').addEventListener('click', openSettings);
+  $('btn-settings-back').addEventListener('click', () => show('screen-menu'));
+  $('btn-set-fs').addEventListener('click', toggleFullscreen);
 
   // ---------- auto-pause ----------
   document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
@@ -6157,6 +6606,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); $('btn-howto-start').click(); }
     } else if ($('screen-records').classList.contains('visible')) {
       if (e.code === 'Escape' || e.code === 'KeyM') $('btn-records-back').click();
+    } else if ($('screen-settings').classList.contains('visible')) {
+      if (e.code === 'Escape' || e.code === 'KeyM') $('btn-settings-back').click();
     } else if (G.phase === 'paused') {
       if (e.code === 'Escape' || e.code === 'KeyP') resumeGame();
     } else if (G.phase === 'playing' || G.phase === 'ready') {
@@ -6212,7 +6663,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   const fsBtn = $('btn-fullscreen');
   const fsSupported = !!document.documentElement.requestFullscreen;
   if (fsSupported) fsBtn.classList.add('available');
-  else $('btn-pause-fs').style.display = 'none'; // hide the pause-menu fullscreen toggle too
+  else { $('btn-pause-fs').style.display = 'none'; $('btn-set-fs').style.display = 'none'; } // hide fullscreen toggles too
   function enterFullscreen() {
     if (!fsSupported || document.fullscreenElement) return;
     document.documentElement.requestFullscreen().catch(() => {});
@@ -6222,19 +6673,23 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     else enterFullscreen();
   });
 
-  // ---------- haptics toggle (pause screen; only on devices that vibrate) ----------
-  const hapticBtn = $('btn-haptic');
-  if (navigator.vibrate) hapticBtn.classList.add('available');
+  // ---------- haptics toggle (pause + settings screens; only on devices that vibrate) ----------
+  const hapticBtn = $('btn-haptic'), setHapticBtn = $('btn-set-haptic');
+  if (navigator.vibrate) { hapticBtn.classList.add('available'); setHapticBtn.classList.add('available'); }
   function updateHapticBtn() {
-    hapticBtn.textContent = 'VIBRATION: ' + (SY.audio.hapticsOn() ? 'ON' : 'OFF');
+    const label = 'VIBRATION: ' + (SY.audio.hapticsOn() ? 'ON' : 'OFF');
+    hapticBtn.textContent = label;
+    setHapticBtn.textContent = label; // settings screen mirrors the pause toggle
   }
-  hapticBtn.addEventListener('click', () => {
+  function toggleHaptic() {
     const on = !SY.audio.hapticsOn();
     SY.audio.setHaptics(on);
     recs.settings.haptics = on;
     SY.store.saveSettings(recs.settings);
     updateHapticBtn();
-  });
+  }
+  hapticBtn.addEventListener('click', toggleHaptic);
+  setHapticBtn.addEventListener('click', toggleHaptic);
   updateHapticBtn();
 
   // ---------- register with the arcade shell ----------
