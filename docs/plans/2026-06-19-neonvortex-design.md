@@ -1,8 +1,31 @@
 # 설계 — NEON VORTEX (Stitch 디자인 기반 고퀄 리메이크)
 
-> 상태: 설계 승인 대기. 구현은 M1→M2→M3→M4 단계적 출하.
-> 디자인 소스: `Downloads/stitch_neon_core_warden_ui/` (Google Stitch 산출물 —
-> `neon_syndicate/DESIGN.md` + `_1`(메뉴)/`hud`(인게임)/`_2`(결과)/`_3`(상점) 목업).
+> 상태: M1·M2 완료(merged). **방향 전환(2026-06-19) 아래 참조.**
+> 디자인 소스: `Downloads/stitch_neon_core_warden_ui/` (Google Stitch 목업) +
+> 루트 `Neon-Vortex-Arcade-Pilot/` (Google AI Studio 풀 React 레퍼런스 — UI/UX 기준).
+
+## 업데이트 (2026-06-19): 방향 전환 — 게임플레이는 Zero Hour 유지
+
+사용자 결정으로 **게임플레이는 Zero Hour 그대로** 두고, **UI/메뉴만** Neon Vortex
+레퍼런스(`Neon-Vortex-Arcade-Pilot/`)처럼 만든다. 따라서:
+
+- **기존 M3(웨이브/어빌리티/BOOST)·M4(상점/경제)는 폐기.** 게임플레이 시뮬은
+  현재 `neonvortex/game.js`(Zero Hour 클론) 그대로.
+- **신규 M3 = 리치 UI(코스메틱 메타).** 레퍼런스의 리치 메인메뉴(크리스탈 카운터·
+  파일럿 랭크 배지·커리어 진척 대시보드)와 핵심 화면(설정·랭킹·결과)을 **바닐라
+  HTML/CSS/JS로 재구현**(React-free 불변식). 레퍼런스 디자인 시스템은 M1 `--nv-*`
+  토큰과 1:1 일치 — 토대 재사용.
+- **메타는 표시 전용(코스메틱):** 평생점수·랭크 티어·누적 크리스탈을 표시만 하고
+  **게임플레이/점수에 영향 0** → 데일리 공정성(ADR-0002) 보존. 표시용 누적치는
+  `neonvortex:lifetime`(신규, 시뮬 미참조)에 적립.
+- Hangar/SystemUpgrade/Achievements/PilotLog 등 풀 메타 셸은 이번 범위 제외.
+
+세부 계획: [2026-06-19-neonvortex-m3-rich-menu.md](2026-06-19-neonvortex-m3-rich-menu.md).
+
+---
+
+## (이하 원안 — M3/M4 게임플레이 확장 부분은 위 전환으로 보류)
+
 
 ## 1. 배경 & 의도
 
