@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="136" viewBox="0 0 360 136" role="img" aria-labelledby="t d">
+  <title id="t">Shepherd's Dog flock</title>
+  <desc id="d">A warm pastoral sticker: a black shepherd dog with a collar guiding three fluffy fleece-textured sheep along a curved meadow path strewn with grass tufts, wildflowers and a butterfly.</desc>
+  <defs>
+    <linearGradient id="wool" x1="0" y1="-22" x2="14" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fffefb"/><stop offset="1" stop-color="#e9dcc0"/>
+    </linearGradient>
+    <linearGradient id="dog" x1="96" y1="54" x2="110" y2="112" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2f2b23"/><stop offset="1" stop-color="#1b1813"/>
+    </linearGradient>
+    <radialGradient id="meadow" cx="50%" cy="70%" r="60%">
+      <stop offset="0" stop-color="#7da04a" stop-opacity=".18"/><stop offset="1" stop-color="#7da04a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="360" height="136" fill="url(#meadow)"/>
+
+  <!-- soft sun glow, upper right -->
+  <circle cx="316" cy="34" r="30" fill="#e8a33d" opacity=".14"/>
+
+  <!-- curved meadow path -->
+  <path d="M34 104C72 90 104 92 134 102C170 114 214 117 308 95" fill="none" stroke="#7da04a" stroke-width="6" stroke-linecap="round" opacity=".6"/>
+  <path d="M50 113C96 106 137 108 176 116C217 123 260 119 320 101" fill="none" stroke="#5e7d38" stroke-width="3" stroke-linecap="round" opacity=".4"/>
+
+  <!-- grass tufts scattered along the path -->
+  <g stroke="#6f9341" stroke-width="2.4" stroke-linecap="round" fill="none" opacity=".72">
+    <path d="M44 101 42 94M48 102 49 95M46 102 46 96"/>
+    <path d="M132 109 130 102M137 110 138 103"/>
+    <path d="M150 110 148 103M155 111 156 104M152 111 152 105"/>
+    <path d="M278 102 276 95M283 103 284 96"/>
+    <path d="M300 99 298 92M305 100 306 93M302 100 302 94"/>
+    <path d="M84 105 82 99M88 106 89 100"/>
+  </g>
+
+  <!-- wildflowers -->
+  <g stroke-linejoin="round">
+    <g transform="translate(60 100)">
+      <path d="M0 0V7" stroke="#5e7d38" stroke-width="2" stroke-linecap="round"/>
+      <g fill="#f6efdf" stroke="#c4552e" stroke-width=".7"><circle cx="0" cy="-7" r="1.8"/><circle cx="3.6" cy="-4.4" r="1.8"/><circle cx="2.2" cy="-.2" r="1.8"/><circle cx="-2.2" cy="-.2" r="1.8"/><circle cx="-3.6" cy="-4.4" r="1.8"/></g>
+      <circle cx="0" cy="-3.6" r="1.7" fill="#e8a33d"/>
+    </g>
+    <g transform="translate(292 96)">
+      <path d="M0 0V7" stroke="#5e7d38" stroke-width="2" stroke-linecap="round"/>
+      <g fill="#f7d9c4" stroke="#c4552e" stroke-width=".7"><circle cx="0" cy="-7" r="1.7"/><circle cx="3.4" cy="-4.2" r="1.7"/><circle cx="2.1" cy="-.2" r="1.7"/><circle cx="-2.1" cy="-.2" r="1.7"/><circle cx="-3.4" cy="-4.2" r="1.7"/></g>
+      <circle cx="0" cy="-3.4" r="1.6" fill="#e8a33d"/>
+    </g>
+  </g>
+
+  <!-- ground contact shadows -->
+  <g fill="#2b2620" opacity=".13">
+    <ellipse cx="104" cy="108" rx="40" ry="6.5"/>
+    <ellipse cx="205" cy="104" rx="28" ry="5.5"/>
+    <ellipse cx="168" cy="105" rx="30" ry="6"/>
+    <ellipse cx="244" cy="106" rx="26" ry="5.5"/>
+  </g>
+
+  <!-- ===== sheep (scalloped wool + sun highlight + warm under-shade + fleece curls) ===== -->
+  <!-- rear sheep -->
+  <g transform="translate(205 64) scale(.92)" stroke="#2b2620" stroke-linejoin="round">
+    <path d="M-21 9C-30 7-31-5-22-9C-26-19-12-23-5-15C-1-24 13-24 17-15C27-20 38-10 33-1C40 4 37 16 28 16C29 26 16 31 9 25C3 33-10 32-13 23C-22 26-29 17-21 9Z" fill="url(#wool)" stroke-width="3"/>
+    <g fill="none" stroke="#e0d0af" stroke-width="1.5" stroke-linecap="round" opacity=".6"><path d="M-6-6C-3-9 1-9 3-6"/><path d="M8-4C11-7 15-7 17-4"/><path d="M-2 6C1 3 5 3 7 6"/><path d="M12 5C15 2 19 2 21 5"/></g>
+    <path d="M-16-9C-8-17 7-18 15-13" fill="none" stroke="#fffefb" stroke-width="2.8" stroke-linecap="round" opacity=".75"/>
+    <ellipse cx="-19" cy="10" rx="8.5" ry="9.5" fill="#2b2620" stroke="none"/>
+    <path d="M-26 3C-33-1-33-8-27-11C-21-8-18-2-20 5Z" fill="#d2a06f" stroke-width="2"/>
+    <circle cx="-21" cy="8" r="1.6" fill="#fffaf2" stroke="none"/>
+    <path d="M-2 27v8M20 25v8" stroke="#2b2620" stroke-width="3.8" stroke-linecap="round"/>
+  </g>
+  <!-- middle sheep (largest) -->
+  <g transform="translate(166 56)" stroke="#2b2620" stroke-linejoin="round">
+    <path d="M-23 10C-33 8-34-6-24-10C-28-21-13-26-5-17C-1-27 14-27 19-16C30-22 42-11 36-1C44 4 41 18 31 18C32 29 18 35 10 28C3 37-11 36-15 26C-25 29-32 19-23 10Z" fill="url(#wool)" stroke-width="3.3"/>
+    <g fill="none" stroke="#e0d0af" stroke-width="1.6" stroke-linecap="round" opacity=".6"><path d="M-7-7C-4-10 1-10 4-7"/><path d="M9-5C12-8 17-8 20-5"/><path d="M-3 7C1 4 6 4 9 7"/><path d="M13 6C16 3 21 3 24 6"/><path d="M-13 4C-10 1-6 1-3 4"/></g>
+    <path d="M-17-10C-8-19 8-20 17-14" fill="none" stroke="#fffefb" stroke-width="3" stroke-linecap="round" opacity=".75"/>
+    <ellipse cx="-21" cy="12" rx="9.5" ry="10.5" fill="#2b2620" stroke="none"/>
+    <path d="M-29 4C-37-1-37-9-30-12C-23-9-20-2-22 6Z" fill="#d2a06f" stroke-width="2.2"/>
+    <circle cx="-24" cy="9" r="1.8" fill="#fffaf2" stroke="none"/>
+    <path d="M-4 31v8M22 29v8" stroke="#2b2620" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <!-- front sheep -->
+  <g transform="translate(244 67) scale(.86)" stroke="#2b2620" stroke-linejoin="round">
+    <path d="M-21 9C-30 7-31-5-22-9C-26-19-12-23-5-15C-1-24 13-24 17-15C27-20 38-10 33-1C40 4 37 16 28 16C29 26 16 31 9 25C3 33-10 32-13 23C-22 26-29 17-21 9Z" fill="url(#wool)" stroke-width="3"/>
+    <g fill="none" stroke="#e0d0af" stroke-width="1.5" stroke-linecap="round" opacity=".6"><path d="M-6-6C-3-9 1-9 3-6"/><path d="M8-4C11-7 15-7 17-4"/><path d="M-2 6C1 3 5 3 7 6"/></g>
+    <path d="M-16-9C-8-17 7-18 15-13" fill="none" stroke="#fffefb" stroke-width="2.8" stroke-linecap="round" opacity=".75"/>
+    <ellipse cx="-18" cy="10" rx="8" ry="9" fill="#2b2620" stroke="none"/>
+    <path d="M-25 3C-31-1-31-8-26-11C-20-8-17-2-19 5Z" fill="#d2a06f" stroke-width="2"/>
+    <circle cx="-20" cy="8" r="1.5" fill="#fffaf2" stroke="none"/>
+    <path d="M-1 26v8M20 24v8" stroke="#2b2620" stroke-width="3.8" stroke-linecap="round"/>
+  </g>
+
+  <!-- ===== shepherd dog (left, facing the flock) ===== -->
+  <g stroke-linejoin="round">
+    <path d="M62 92C47 88 44 73 52 60" fill="none" stroke="#24211b" stroke-width="9" stroke-linecap="round"/>
+    <ellipse cx="98" cy="86" rx="35" ry="20" fill="url(#dog)"/>
+    <path d="M82 102v11M114 103v11M70 100 62 107" stroke="#24211b" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="128" cy="72" r="16" fill="url(#dog)"/>
+    <path d="M116 60 119 43 129 57ZM132 59 142 45 145 62Z" fill="#24211b"/>
+    <path d="M140 70C150 70 152 80 144 83 137 84 136 74 140 70Z" fill="#24211b"/>
+    <!-- collar + tag -->
+    <path d="M114 80C121 86 133 86 140 79" fill="none" stroke="#c4552e" stroke-width="3.4" stroke-linecap="round"/>
+    <circle cx="127" cy="87" r="2.6" fill="#e8a33d" stroke="#2b2620" stroke-width="1.2"/>
+    <!-- golden sun rim light -->
+    <path d="M64 88C50 84 48 70 55 59" fill="none" stroke="#e8a33d" stroke-width="2.2" stroke-linecap="round" opacity=".55"/>
+    <path d="M116 60 119 43 126 53M132 59 142 45 144 58" fill="none" stroke="#e8a33d" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+    <path d="M114 64C110 70 110 80 114 88" fill="none" stroke="#e8a33d" stroke-width="2" stroke-linecap="round" opacity=".45"/>
+    <!-- eye, nose, tongue -->
+    <circle cx="133" cy="70" r="2.4" fill="#fff5d7"/>
+    <circle cx="148" cy="76" r="2.2" fill="#0f0d0a"/>
+    <path d="M142 83C145 88 150 88 152 84" fill="none" stroke="#c4552e" stroke-width="2.6" stroke-linecap="round"/>
+  </g>
+
+  <!-- whistle cue, butterfly + accents -->
+  <g>
+    <path d="M156 64C165 70 165 80 156 87M169 56C184 68 184 85 169 96" fill="none" stroke="#c4552e" stroke-width="3.4" stroke-linecap="round" opacity=".85"/>
+    <!-- butterfly -->
+    <g transform="translate(276 44)" stroke-linejoin="round">
+      <path d="M0 1C-9-8-17-3-14 4C-12 9-4 7 0 1Z" fill="#e8a33d" stroke="#c4552e" stroke-width="1"/>
+      <path d="M0 1C9-8 17-3 14 4C12 9 4 7 0 1Z" fill="#f0b64a" stroke="#c4552e" stroke-width="1"/>
+      <path d="M0-4V6" stroke="#2b2620" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M0-4-3-8M0-4 3-8" stroke="#2b2620" stroke-width="1.2" stroke-linecap="round"/>
+    </g>
+    <!-- sun star -->
+    <path d="M316 52l6 12 13 2-10 8 3 13-12-7-12 7 3-13-10-8 13-2z" fill="#e8a33d" stroke="#2b2620" stroke-width="2.6" stroke-linejoin="round"/>
+    <circle cx="40" cy="40" r="3" fill="#e8a33d" opacity=".8"/>
+  </g>
+</svg>

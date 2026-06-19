@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="136" viewBox="0 0 360 136" role="img" aria-labelledby="t d">
+  <title id="t">Scoreyard platform hub</title>
+  <desc id="d">A neon arcade cabinet emblem: a glowing teal machine with a lit marquee, a screen of game-slot glyphs, joystick and buttons, over a perspective signal grid.</desc>
+  <defs>
+    <radialGradient id="mh-ambient" cx="50%" cy="60%" r="62%">
+      <stop offset="0" stop-color="#0e4a45" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#04090f" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mh-hull" x1="180" y1="16" x2="180" y2="120" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0a222b"/><stop offset="1" stop-color="#050f15"/>
+    </linearGradient>
+    <linearGradient id="mh-screen" x1="180" y1="50" x2="180" y2="92" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0a2d35"/><stop offset="1" stop-color="#04141b"/>
+    </linearGradient>
+    <filter id="mh-bloom" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.3" result="a"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3.6" result="b"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="7.5" result="c"/>
+      <feMerge><feMergeNode in="c"/><feMergeNode in="b"/><feMergeNode in="a"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="mh-soft" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="mh-scan" width="3" height="3" patternUnits="userSpaceOnUse">
+      <rect width="3" height="1.3" fill="#02080c" opacity=".5"/>
+    </pattern>
+  </defs>
+
+  <rect width="360" height="136" fill="url(#mh-ambient)"/>
+
+  <!-- perspective floor grid -->
+  <g filter="url(#mh-soft)" stroke="#0fae97" fill="none" stroke-linecap="round">
+    <path d="M24 126H336" stroke-width="2" opacity=".46"/>
+    <path d="M66 114H294" stroke-width="1.5" opacity=".3"/>
+    <path d="M150 122 130 132M210 122 230 132" stroke-width="1.3" opacity=".26"/>
+  </g>
+
+  <!-- side coins / collectibles -->
+  <g filter="url(#mh-bloom)" stroke-linejoin="round">
+    <g transform="translate(70 74)">
+      <circle r="11" fill="#2a1c05" stroke="#ffc34d" stroke-width="2.8"/>
+      <circle r="6" fill="none" stroke="#ffc34d" stroke-width="2" opacity=".8"/>
+      <path d="M0 -4V4M-3.4 -2 3.4 2" stroke="#ffe7a0" stroke-width="1.6" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(290 66)">
+      <path d="M0 -10 10 0 0 10 -10 0Z" fill="#06222a" stroke="#2de2c6" stroke-width="2.6"/>
+      <path d="M0 -5 5 0 0 5 -5 0Z" fill="#2de2c6" opacity=".9"/>
+    </g>
+  </g>
+
+  <!-- arcade cabinet -->
+  <g filter="url(#mh-bloom)" stroke-linejoin="round">
+    <rect x="104" y="16" width="152" height="104" rx="15" fill="url(#mh-hull)" stroke="#2de2c6" stroke-width="4"/>
+    <!-- marquee -->
+    <rect x="116" y="23" width="128" height="17" rx="7" fill="#1c1407" stroke="#ffc34d" stroke-width="2.6"/>
+    <path d="M126 31.5H234" stroke="#ffc34d" stroke-width="2.4" stroke-linecap="round" opacity=".5"/>
+    <g fill="#ffe7a0"><circle cx="130" cy="31.5" r="1.6"/><circle cx="180" cy="31.5" r="1.6"/><circle cx="230" cy="31.5" r="1.6"/></g>
+    <!-- control deck divider -->
+    <path d="M112 96H248" stroke="#2de2c6" stroke-width="1.6" opacity=".4"/>
+    <!-- joystick -->
+    <path d="M150 114V103" stroke="#2de2c6" stroke-width="3.4" stroke-linecap="round"/>
+    <circle cx="150" cy="100" r="6.4" fill="#1a0610" stroke="#ff5a78" stroke-width="2.6"/>
+    <circle cx="150" cy="100" r="2.4" fill="#ff5a78"/>
+    <!-- buttons -->
+    <circle cx="188" cy="108" r="5.2" fill="#06222a" stroke="#2de2c6" stroke-width="2.4"/>
+    <circle cx="208" cy="108" r="5.2" fill="#2a1c05" stroke="#ffc34d" stroke-width="2.4"/>
+    <circle cx="228" cy="108" r="5.2" fill="#1a0610" stroke="#ff5a78" stroke-width="2.4"/>
+  </g>
+
+  <!-- screen panel (own soft glow so slot glyphs stay crisp) -->
+  <g filter="url(#mh-soft)">
+    <rect x="116" y="50" width="128" height="40" rx="8" fill="url(#mh-screen)" stroke="#2de2c6" stroke-width="2.4"/>
+    <path d="M122 56H238" stroke="#9ff5e8" stroke-width="1.4" stroke-linecap="round" opacity=".35"/>
+  </g>
+
+  <!-- game-slot glyphs: crystal / star / heart / drone -->
+  <g filter="url(#mh-bloom)" stroke-linejoin="round">
+    <g transform="translate(134 70)"><path d="M0 -10 8 0 0 10 -8 0Z" fill="#06222a" stroke="#2de2c6" stroke-width="2.2"/><path d="M0 -5 4 0 0 5 -4 0Z" fill="#2de2c6"/></g>
+    <g transform="translate(166 70)"><path d="M0 -10 2.7 -3.2 10 -3 4.2 1.6 6.2 9 0 4.6 -6.2 9 -4.2 1.6 -10 -3 -2.7 -3.2Z" fill="#2a1c05" stroke="#ffc34d" stroke-width="2"/></g>
+    <g transform="translate(198 70)"><path d="M0 9 -8 0.5C-11 -2.5 -8 -8 -3.6 -6 -1.5 -5 0 -3 0 -3 0 -3 1.5 -5 3.6 -6 8 -8 11 -2.5 8 0.5Z" fill="#1a0610" stroke="#ff5a78" stroke-width="2"/></g>
+    <g transform="translate(228 70)"><path d="M0 -9 8 9 0 4 -8 9Z" fill="#06222a" stroke="#2de2c6" stroke-width="2.2"/><circle cy="4" r="2.4" fill="#eafffb"/></g>
+  </g>
+
+  <!-- sparkles -->
+  <g>
+    <path d="M44 30 46 36 52 38 46 40 44 46 42 40 36 38 42 36Z" fill="#9ff5e8" opacity=".85"/>
+    <circle cx="318" cy="100" r="2" fill="#ffc34d"/>
+    <circle cx="40" cy="104" r="1.7" fill="#2de2c6"/>
+  </g>
+
+  <rect width="360" height="136" fill="url(#mh-scan)" opacity=".4"/>
+</svg>

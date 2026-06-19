@@ -195,26 +195,25 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
 /* small pink tracked label that sits above a title (Shepherd's .kicker) */
 .kicker { font-family: var(--body); font-size: 11px; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase; color: var(--pink); }
 
-/* ASCII-art mascots (sheep + dog) — a terminal banner atop the hub + Zero Hour
-   panels. Decorative (aria-hidden); the wordmark below carries the meaning. */
-.ascii-banner {
-  font-family: var(--mono);
-  font-size: 11px;
-  line-height: 1.15;
-  white-space: pre;
-  color: var(--teal-soft);
-  text-shadow: 0 0 7px rgba(45, 226, 198, 0.45);
-  width: max-content;
-  max-width: 100%;
-  margin: 0;
-  user-select: none;
-  overflow: hidden;
+/* Shared lobby mascot art: the same dog/flock language as Shepherd's Dog,
+   with a Zero Hour signal variant for the drone lobby. Decorative only. */
+.lobby-mascot {
+  display: block;
+  width: min(360px, 84vw);
+  height: auto;
+  margin: -2px auto 2px;
+  filter: drop-shadow(0 4px 0 rgba(43,38,32,0.1));
 }
-@media (max-width: 380px) { .ascii-banner { font-size: 9px; } }
+.lobby-mascot-main {
+  width: min(390px, 86vw);
+}
+.lobby-mascot-zero {
+  width: min(360px, 84vw);
+}
 @media (prefers-reduced-motion: no-preference) {
-  .ascii-banner { animation: ascii-bob 3.4s ease-in-out infinite; }
+  .lobby-mascot { animation: mascot-bob 3.4s ease-in-out infinite; }
 }
-@keyframes ascii-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes mascot-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
 
 /* Fraunces is a variable font — display headings need an explicit heavy weight
    and tight tracking (the old pixel tracking looks wrong on a serif) */
@@ -251,6 +250,7 @@ body.portrait #boss-hp { top: calc(var(--safe-top) + 78px); }
   -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
 }
 #screen-arcade .panel, #screen-menu .panel {
+  width: min(520px, 92vw);
   background-color: #f6efdf;                          /* Dog cream paper */
   background-image: radial-gradient(rgba(43,38,32,0.06) 1px, transparent 1.5px);
   background-size: 15px 15px;

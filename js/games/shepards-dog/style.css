@@ -362,8 +362,11 @@ h2 {
   border-color: #3b4a8c;
 }
 .heroArt {
+  width: min(320px, 82vw);
+  height: auto;
   margin: 6px auto 2px;
   display: block;
+  filter: drop-shadow(0 4px 0 rgba(43, 38, 32, 0.1));
 }
 @media (max-height: 620px) {
   .panel {
