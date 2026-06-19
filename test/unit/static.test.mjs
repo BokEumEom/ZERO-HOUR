@@ -68,13 +68,32 @@ test('innerHTML sinks in main.js only receive fmt()/fixed-format values', () => 
 
 test('script load order in index.html is store -> audio -> game -> render -> main', () => {
   const html = read('index.html');
-  // match basenames regardless of folder (zerohour modules live under js/games/zerohour/)
+  // match basenames regardless of folder (per-game modules live under js/games/<id>/)
   const order = [...html.matchAll(/<script src="js[^"]*\/([a-z-]+)\.js">/g)].map((m) => m[1]);
-  assert.deepEqual(order, ['store', 'audio', 'shell', 'game', 'render', 'medals', 'main', 'register']);
+  // shell core, then each in-shell game as game -> render -> main (ship also loads its sprite atlas first), then the linked register
+  assert.deepEqual(order, ['store', 'audio', 'shell', 'game', 'render', 'medals', 'main', 'sprites', 'game', 'render', 'main', 'register']);
 });
 
 test('render.js reacts to surge state (telegraph + tint)', () => {
   const src = read(`${ZH}/render.js`);
   assert.ok(src.includes('surgeWarnT'), 'render draws the surge telegraph');
   assert.ok(src.includes('inSurge'), 'render tints during a surge');
+});
+
+test('neonvortex design system is wired (css linked, tokens + utils present)', () => {
+  const html = read('index.html');
+  assert.match(html, /<link rel="stylesheet" href="css\/neonvortex\.css">/, 'neonvortex.css linked');
+  assert.ok(/family=Sora/.test(html) && /family=Space\+Mono/.test(html), 'Sora + Space Mono fonts loaded');
+  const css = read('css/neonvortex.css');
+  assert.match(css, /--nv-primary:\s*#00dbe7/, 'primary token');
+  for (const cls of ['.nv-scanlines', '.nv-hexgrid', '.nv-segment', '.nv-glass', '.nv-chamfer']) {
+    assert.ok(css.includes(cls), `utility ${cls} present`);
+  }
+});
+
+test('no stale "ship" identifiers remain in the renamed game', () => {
+  const html = read('index.html');
+  assert.ok(!/js\/games\/ship\//.test(html), 'no js/games/ship path');
+  assert.ok(!/css\/ship\.css/.test(html), 'no css/ship.css link');
+  assert.ok(!/["'(]ship-/.test(html), 'no ship- DOM id prefix');
 });
