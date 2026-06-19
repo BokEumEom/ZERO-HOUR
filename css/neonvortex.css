@@ -304,11 +304,11 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
    (cream paper / ink / rust / gold), the panel floating over a visible, blurred
    background. We take Dog's colours + tone, not its (unrevised, landscape)
    layout. The in-game dialog screens keep the dark neon panel. ===== */
-#screen-arcade, #ship-screen-menu {
+#screen-arcade {
   background: rgba(8, 11, 14, 0.42);                 /* translucent veil -> canvas/CRT shows behind */
   -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
 }
-#screen-arcade .panel, #ship-screen-menu .panel {
+#screen-arcade .panel {
   width: min(520px, 92vw);
   background-color: #f6efdf;                          /* Dog cream paper */
   background-image: radial-gradient(rgba(43,38,32,0.06) 1px, transparent 1.5px);
@@ -318,41 +318,37 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
   box-shadow: 8px 8px 0 rgba(20,18,12,0.5);
   color: #2b2620;
 }
-#screen-arcade .kicker, #ship-screen-menu .kicker { color: #c4552e; }            /* rust */
-#screen-arcade .arcade-wordmark, #ship-screen-menu .game-title { color: #2b2620; text-shadow: none; }
+#screen-arcade .kicker { color: #c4552e; }            /* rust */
+#screen-arcade .arcade-wordmark { color: #2b2620; text-shadow: none; }
 #screen-arcade .arcade-foot { color: rgba(43,38,32,0.5); }
-#ship-screen-menu .best-line { color: rgba(43,38,32,0.62); }
 /* game / mode cards become warm paper "cutout" items */
-#screen-arcade .panel .game-card, #ship-screen-menu .panel .mode-card {
+#screen-arcade .panel .game-card {
   background: #fffaf2;
   border: 2px solid #2b2620;
   box-shadow: 3px 3px 0 rgba(43,38,32,0.22);
   color: #2b2620;
 }
-#screen-arcade .panel .game-card:hover, #screen-arcade .panel .game-card:focus-visible,
-#ship-screen-menu .panel .mode-card:hover, #ship-screen-menu .panel .mode-card:focus-visible {
+#screen-arcade .panel .game-card:hover, #screen-arcade .panel .game-card:focus-visible {
   transform: translate(-1px, -2px);
   box-shadow: 5px 6px 0 rgba(43,38,32,0.3);
 }
-#screen-arcade .panel .game-card:active, #ship-screen-menu .panel .mode-card:active {
+#screen-arcade .panel .game-card:active {
   transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(43,38,32,0.25);
 }
-#screen-arcade .game-card-title, #ship-screen-menu .mode-name { color: #2b2620; text-shadow: none; }
-#screen-arcade .game-card-blurb, #ship-screen-menu .mode-sub { color: rgba(43,38,32,0.6); }
-#screen-arcade .meta-best, #ship-screen-menu .mode-meta { color: #2b2620; }
-#screen-arcade .meta-played, #ship-screen-menu #ship-menu-date { color: rgba(43,38,32,0.55); }
+#screen-arcade .game-card-title { color: #2b2620; text-shadow: none; }
+#screen-arcade .game-card-blurb { color: rgba(43,38,32,0.6); }
+#screen-arcade .meta-best { color: #2b2620; }
+#screen-arcade .meta-played { color: rgba(43,38,32,0.55); }
 #screen-arcade .meta-new { color: #c4552e; }
-#ship-screen-menu #ship-menu-streak { color: #9a6a14; }                               /* gold */
-/* buttons → Shepherd's ink button (cream text) — RECORDS + hub RELOAD */
-#screen-arcade .arcade-btn, #ship-screen-menu .arcade-btn {
+/* buttons → Shepherd's ink button (cream text) — hub RELOAD */
+#screen-arcade .arcade-btn {
   background: #2b2620; color: #f6efdf; border: 2px solid #2b2620;
   box-shadow: 4px 4px 0 rgba(20,18,12,0.4);
 }
-#screen-arcade .arcade-btn:hover, #screen-arcade .arcade-btn:focus-visible,
-#ship-screen-menu .arcade-btn:hover, #ship-screen-menu .arcade-btn:focus-visible {
+#screen-arcade .arcade-btn:hover, #screen-arcade .arcade-btn:focus-visible {
   background: #2b2620; transform: translate(-1px, -2px); box-shadow: 6px 7px 0 rgba(20,18,12,0.5);
 }
-#screen-arcade .arcade-btn:active, #ship-screen-menu .arcade-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(20,18,12,0.4); }
+#screen-arcade .arcade-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(20,18,12,0.4); }
 /* fail-safe empty state, recoloured for the cream panel */
 #screen-arcade .hub-empty-glyph { color: rgba(43,38,32,0.3); }
 #screen-arcade .hub-empty-title { color: #2b2620; }
@@ -685,21 +681,189 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
   #viewport.leaving { transition: none !important; opacity: 1; } /* JS also skips the fade under reduce */
 }
 
-/* ===== SHIP overrides: keyart title backdrop + dark neon menu =====
-   (the warm-palette menu rules above were mirrored from Zero Hour's hub;
-   SHIP uses a dark neon menu over the key art.) */
-#ship-screen-menu .panel {
-  background-image: linear-gradient(rgba(4,9,15,0.74), rgba(4,9,15,0.9)),
-    url('../assets/illustrations/zero-hour-keyart.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  border-color: #ff5a78;
+/* ===== NEON VORTEX — main MENU reskin (Stitch "_1" mockup) =====
+   Scoped strictly to #neonvortex-screen-menu. Dark navy void with a faint
+   cyan grid + blurred cyan glow blobs; centred two-line neon logo; angled-clip
+   menu buttons (gold accent on DAILY, cyan on FREE/RECORDS). Tokens/utils from
+   the M1 css/neonvortex.css :root. No remote images — pure CSS gradients. */
+#neonvortex-screen-menu {
+  background: var(--nv-bg);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
 }
-#ship-screen-menu .kicker { color: #ff8aa0; }
-#ship-screen-menu .game-title { color: #eaf6ff; text-shadow: 0 2px 14px rgba(0,0,0,0.6); }
-#ship-screen-menu .best-line { color: rgba(234,246,255,0.7); text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
-#ship-screen-menu .mode-card { background: rgba(8,20,32,0.72); border-color: #2de2c6; }
-#ship-screen-menu .mode-name { color: #eaf6ff; }
-#ship-screen-menu .mode-sub, #ship-screen-menu #ship-menu-date { color: rgba(234,246,255,0.62); }
-#ship-screen-menu .mode-meta, #ship-screen-menu #ship-menu-streak { color: #ffc34d; }
+#neonvortex-screen-menu .panel {
+  width: min(440px, 92vw);
+  /* faint cyan grid + two blurred cyan glow blobs over the navy void */
+  background-color: var(--nv-bg);
+  background-image:
+    radial-gradient(220px 220px at 18% 22%, rgba(0,219,231,0.16), transparent 70%),
+    radial-gradient(260px 260px at 88% 82%, rgba(0,219,231,0.12), transparent 72%),
+    linear-gradient(to right, rgba(0,219,231,0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,219,231,0.05) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 55%, transparent);
+  border-radius: 6px;
+  box-shadow: 0 0 28px rgba(0,219,231,0.14), inset 0 0 40px rgba(0,219,231,0.05);
+  color: var(--nv-on-surface);
+  gap: clamp(12px, 2.4vh, 20px);
+}
+
+/* ---- kicker: ARCADE_PILOT_OS — mono cyan, wide track, pulsing dot ---- */
+#neonvortex-screen-menu .kicker {
+  font-family: var(--nv-font-mono);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--nv-primary);
+  display: flex; align-items: center; gap: 8px;
+  align-self: flex-start;
+}
+#neonvortex-screen-menu .kicker::before {
+  content: "";
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--nv-primary);
+  box-shadow: 0 0 8px var(--nv-primary);
+  animation: nv-menu-dot 1.6s ease-in-out infinite;
+}
+@keyframes nv-menu-dot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.7); } }
+
+/* ---- centred two-line neon logo + ULTRA tag ---- */
+#neonvortex-screen-menu .nv-logo {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center;
+  font-family: var(--nv-font-display);
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 0.9;
+  font-size: clamp(40px, 13vw, 56px);
+  margin: clamp(8px, 3vh, 22px) 0;
+  text-shadow: none;
+}
+#neonvortex-screen-menu .nv-logo-1 {
+  color: var(--nv-primary);
+  text-shadow: 0 0 8px rgba(0,219,231,0.8), 0 0 18px rgba(0,219,231,0.45);
+  animation: nv-logo-pulse 3s ease-in-out infinite;
+}
+@keyframes nv-logo-pulse {
+  0%,100% { text-shadow: 0 0 8px rgba(0,219,231,0.8), 0 0 18px rgba(0,219,231,0.4); }
+  50%     { text-shadow: 0 0 14px rgba(0,219,231,1), 0 0 30px rgba(0,219,231,0.6); }
+}
+#neonvortex-screen-menu .nv-logo-2 {
+  color: var(--nv-surface-highest);
+  -webkit-text-stroke: 1px rgba(0,219,231,0.55);
+  text-shadow: 0 0 6px rgba(0,219,231,0.3);
+}
+#neonvortex-screen-menu .nv-logo-tag {
+  position: absolute;
+  top: -0.6em; right: -0.4em;
+  font-family: var(--nv-font-mono);
+  font-style: normal;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  padding: 3px 6px;
+  color: #ffffff;
+  background: var(--nv-threat);
+  border-radius: 3px;
+  transform: skewX(-15deg);
+  box-shadow: 0 0 10px rgba(255,36,228,0.5);
+}
+
+/* ---- best-line / footer text ---- */
+#neonvortex-screen-menu .best-line {
+  font-family: var(--nv-font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: rgba(0,219,231,0.7);
+}
+#neonvortex-screen-menu .nv-menu-footer {
+  font-family: var(--nv-font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: rgba(0,219,231,0.45);
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+/* ---- angled-clip menu cards (DAILY / FREE PLAY) + RECORDS button ---- */
+#neonvortex-screen-menu .panel .mode-card,
+#neonvortex-screen-menu .arcade-btn {
+  width: 100%;
+  background: rgba(0,219,231,0.04);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 70%, transparent);
+  border-radius: 0;
+  clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+  color: var(--nv-primary);
+  box-shadow: none;
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+}
+#neonvortex-screen-menu .panel .mode-card {
+  align-items: flex-start;
+  text-align: left;
+  padding: 16px 28px;
+}
+#neonvortex-screen-menu .arcade-btn { padding: 16px 28px; }
+
+#neonvortex-screen-menu .panel .mode-card:hover,
+#neonvortex-screen-menu .panel .mode-card:focus-visible,
+#neonvortex-screen-menu .arcade-btn:hover,
+#neonvortex-screen-menu .arcade-btn:focus-visible {
+  background: rgba(0,219,231,0.12);
+  box-shadow: 0 0 16px rgba(0,219,231,0.35);
+  transform: none;
+}
+#neonvortex-screen-menu .panel .mode-card:active,
+#neonvortex-screen-menu .arcade-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 0 10px rgba(0,219,231,0.3);
+}
+
+/* mode-card text colours */
+#neonvortex-screen-menu .mode-name {
+  font-family: var(--nv-font-display);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: inherit;
+  text-shadow: none;
+}
+#neonvortex-screen-menu .mode-sub,
+#neonvortex-screen-menu #neonvortex-menu-date {
+  color: var(--nv-on-surface-variant);
+}
+#neonvortex-screen-menu .mode-meta,
+#neonvortex-screen-menu #neonvortex-menu-streak {
+  font-family: var(--nv-font-mono);
+  font-size: 11px;
+  color: var(--nv-primary);
+}
+
+/* DAILY card → gold accent ("REWARDS_AVAILABLE") */
+#neonvortex-screen-menu #neonvortex-btn-daily {
+  color: var(--nv-value);
+  border-color: color-mix(in srgb, var(--nv-value) 70%, transparent);
+  background: rgba(255,186,32,0.05);
+}
+#neonvortex-screen-menu #neonvortex-btn-daily:hover,
+#neonvortex-screen-menu #neonvortex-btn-daily:focus-visible {
+  background: rgba(255,186,32,0.12);
+  box-shadow: 0 0 16px rgba(255,186,32,0.35);
+}
+#neonvortex-screen-menu #neonvortex-btn-daily:active {
+  box-shadow: 0 0 10px rgba(255,186,32,0.3);
+}
+#neonvortex-screen-menu #neonvortex-btn-daily .mode-meta,
+#neonvortex-screen-menu #neonvortex-btn-daily #neonvortex-menu-streak {
+  color: var(--nv-value);
+}
+
+/* RECORDS button → cyan label */
+#neonvortex-screen-menu .arcade-btn {
+  font-family: var(--nv-font-display);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
