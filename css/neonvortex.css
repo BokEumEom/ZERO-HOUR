@@ -108,59 +108,119 @@ body {
   z-index: 30;
 }
 
-/* ---------- HUD: unscaled fixed overlay ---------- */
-#ship-hud {
+/* ---------- HUD: unscaled fixed overlay (Stitch CORE_WARDEN reskin) ---------- */
+/* DOM is a flat flex row of .hud-block (TIME / SCORE / COMBO / HULL) + fx + mode.
+   We map it onto the mockup feel: TIME pinned left, SCORE a centred glass panel,
+   HULL pushed right — Space Mono numerals, cyan labels, magenta warn states. */
+#neonvortex-hud {
   position: fixed;
   left: 0; right: 0; top: 0;
   z-index: 40;
   display: flex;
-  align-items: center;
-  gap: clamp(8px, 2vw, 18px);
+  align-items: flex-start;
+  gap: clamp(8px, 2vw, 16px);
   /* right padding reserves room for the corner buttons (3 x 44px + gaps) */
-  padding: calc(var(--safe-top) + 6px) calc(var(--safe-right) + 158px) 6px calc(var(--safe-left) + 12px);
+  padding: calc(var(--safe-top) + 8px) calc(var(--safe-right) + 158px) 8px calc(var(--safe-left) + 12px);
   font-size: clamp(11px, 2.6vw, 14px);
   visibility: hidden;
   pointer-events: none;
 }
-body.landscape #ship-hud { background: linear-gradient(rgba(4,9,15,0.88), rgba(4,9,15,0)); }
-body.portrait #ship-hud { background: var(--panel); border-bottom: 1px solid rgba(45,226,198,0.25); }
-.hud-block { display: flex; flex-direction: column; gap: 2px; }
-.hud-label { font-size: clamp(7px, 1.7vw, 9px); letter-spacing: 0.14em; color: rgba(159,245,232,0.5); }
-#ship-hud-time {
-  font-family: var(--pixel); /* HUD numerals stay monospace pixel (no width jitter / arena readout) */
+body.landscape #neonvortex-hud {
+  background: linear-gradient(rgba(10,10,15,0.9), rgba(10,10,15,0));
+}
+body.portrait #neonvortex-hud {
+  background: color-mix(in srgb, var(--nv-surface) 92%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--nv-primary) 22%, transparent);
+}
+.hud-block { display: flex; flex-direction: column; gap: 3px; }
+/* SCORE block becomes the centred hero; COMBO sits with it, HULL trails right */
+#neonvortex-hud > .hud-block:nth-child(2) { align-items: center; margin: 0 auto; }
+#neonvortex-hud > .hud-block:nth-child(4) { align-items: flex-end; }
+.hud-label {
+  font-family: var(--nv-font-mono);
+  font-size: clamp(7px, 1.7vw, 9px);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-primary) 55%, transparent);
+}
+#neonvortex-hud-time {
+  font-family: var(--nv-font-mono); /* mono numerals: no width jitter */
+  font-weight: 700;
   font-size: clamp(15px, 4.2vw, 22px);
-  color: var(--teal-soft);
-  text-shadow: 0 0 12px rgba(45,226,198,0.7);
+  letter-spacing: 0.06em;
+  color: var(--nv-on-surface);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--nv-primary) 55%, transparent);
   min-width: 2.4em;
 }
-#ship-hud-time.warn { color: var(--pink); text-shadow: 0 0 12px rgba(255,90,120,0.8); animation: blink 0.5s steps(2) infinite; }
-@keyframes blink { 50% { opacity: 0.35; } }
-#ship-hud-score {
-  font-family: var(--pixel); /* HUD numerals stay monospace pixel */
-  font-size: clamp(12px, 3.4vw, 18px);
-  color: var(--ink);
-  text-shadow: 0 0 10px rgba(45,226,198,0.5);
-  min-width: 4.5em;
+#neonvortex-hud-time.warn {
+  color: var(--nv-threat);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--nv-threat) 75%, transparent);
+  animation: nv-flicker 0.55s steps(2) infinite;
 }
-#ship-hud-combo { font-weight: 700; font-size: clamp(13px, 3vw, 16px); color: var(--amber); min-width: 2.2em; text-shadow: 0 0 8px rgba(255,195,77,0.6); }
-#ship-hud-heat {
-  font: 700 13px "IBM Plex Mono", ui-monospace, monospace;
-  color: #ffc34d;
-  text-shadow: 0 0 8px rgba(255, 195, 77, 0.6);
+@keyframes blink { 50% { opacity: 0.35; } }
+/* SCORE: prominent glass panel, cyan border + blur, mono cyan numerals */
+#neonvortex-hud-score {
+  font-family: var(--nv-font-mono); /* mono numerals */
+  font-weight: 700;
+  font-size: clamp(13px, 3.6vw, 19px);
+  letter-spacing: 0.12em;
+  color: var(--nv-primary-bright);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--nv-primary) 60%, transparent);
+  min-width: 4.2em;
+  text-align: center;
+  padding: 5px clamp(10px, 3vw, 18px);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--nv-surface-high) 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 28%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+/* COMBO = cyan chip, HEAT.on = gold/threat chip — sit on the row under SCORE */
+#neonvortex-hud-combo {
+  display: inline-flex; align-items: center;
+  font-family: var(--nv-font-mono);
+  font-weight: 700; font-size: clamp(11px, 2.6vw, 14px);
+  letter-spacing: 0.08em;
+  color: var(--nv-primary);
+  min-width: 2.2em;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--nv-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 35%, transparent);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--nv-primary) 50%, transparent);
+}
+#neonvortex-hud-heat {
+  display: inline-flex; align-items: center;
+  font-family: var(--nv-font-mono);
+  font-weight: 700; font-size: clamp(10px, 2.4vw, 13px);
+  letter-spacing: 0.08em;
+  color: var(--nv-value);
+  padding: 2px 7px; margin-left: 5px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--nv-value) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-value) 40%, transparent);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--nv-value) 55%, transparent);
   opacity: 0;
   transition: opacity 0.15s ease;
-  letter-spacing: 0.5px;
 }
-#ship-hud-heat.on {
-  opacity: 1;
+#neonvortex-hud-heat.on { opacity: 1; }
+#neonvortex-hud-hearts {
+  color: var(--nv-primary);
+  font-size: clamp(13px, 3vw, 16px);
+  letter-spacing: 0.18em;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--nv-primary) 50%, transparent);
 }
-#ship-hud-hearts { color: var(--pink); font-size: clamp(12px, 3vw, 15px); letter-spacing: 0.1em; }
-#ship-hud-hearts.low { animation: blink 0.7s steps(2) infinite; }
-#ship-hud-pace { font-size: 13px; font-weight: 600; padding: 3px 8px; border: 1px solid; }
-#ship-hud-pace.ahead { color: var(--teal); border-color: rgba(45,226,198,0.5); background: rgba(45,226,198,0.08); }
-#ship-hud-pace.behind { color: var(--pink); border-color: rgba(255,90,120,0.5); background: rgba(255,90,120,0.08); }
+#neonvortex-hud-hearts.low {
+  color: var(--nv-threat);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--nv-threat) 70%, transparent);
+  animation: nv-flicker 0.7s steps(2) infinite;
+}
+#neonvortex-hud-pace { font-size: 13px; font-weight: 600; padding: 3px 8px; border: 1px solid; }
+#neonvortex-hud-pace.ahead { color: var(--nv-primary); border-color: color-mix(in srgb, var(--nv-primary) 50%, transparent); background: color-mix(in srgb, var(--nv-primary) 8%, transparent); }
+#neonvortex-hud-pace.behind { color: var(--nv-threat); border-color: color-mix(in srgb, var(--nv-threat) 50%, transparent); background: color-mix(in srgb, var(--nv-threat) 8%, transparent); }
 /* effects stay on one compact row (never wrap into the boss-bar/button band) */
-#ship-hud-fx { display: flex; gap: 5px; flex: 1; justify-content: flex-end; flex-wrap: nowrap; overflow: hidden; }
+#neonvortex-hud-fx { display: flex; gap: 5px; flex: 1; justify-content: flex-end; flex-wrap: nowrap; overflow: hidden; }
 /* active-powerup badge: glyph + depleting timer bar (--c is the powerup color) */
 .fx-badge {
   display: inline-flex; flex-direction: column; align-items: center; gap: 2px;
@@ -172,32 +232,54 @@ body.portrait #ship-hud { background: var(--panel); border-bottom: 1px solid rgb
 .fx-glyph { font-size: 11px; font-weight: 700; line-height: 1; text-shadow: 0 0 8px var(--c); }
 .fx-bar { width: 100%; height: 3px; background: rgba(255,255,255,0.12); overflow: hidden; }
 .fx-bar > i { display: block; height: 100%; background: var(--c); box-shadow: 0 0 6px var(--c); }
-#ship-hud-mode { font-size: 10px; letter-spacing: 0.12em; color: rgba(159,245,232,0.55); }
+#neonvortex-hud-mode { font-size: 10px; letter-spacing: 0.12em; color: color-mix(in srgb, var(--nv-primary) 55%, transparent); }
 
 /* ---------- boss HP (DOM so it stays upright in portrait) ---------- */
-#ship-boss-hp {
+/* Stitch: thin magenta bar, ~80% width, glowing fill + % readout, subtle flicker */
+#neonvortex-boss-hp {
   display: none;
   position: fixed;
-  top: calc(var(--safe-top) + 58px);
+  top: calc(var(--safe-top) + 60px);
   left: 50%; transform: translateX(-50%);
   z-index: 41;
-  width: min(300px, 82vw);
+  width: min(520px, 80vw);
   text-align: center;
   pointer-events: none;
+  animation: nv-flicker 3s ease-in-out infinite;
 }
-#ship-boss-hp.show { display: block; }
+#neonvortex-boss-hp.show { display: block; }
 /* portrait: HUD stat bar is tight, so effects + boss HP live in the empty band
    between the bar and the rotated arena (otherwise-wasted space) */
-body.portrait #ship-hud-fx {
+body.portrait #neonvortex-hud-fx {
   position: fixed; left: auto; flex: none;
-  top: calc(var(--safe-top) + 50px);
+  top: calc(var(--safe-top) + 56px);
   right: calc(var(--safe-right) + 10px);
   z-index: 42;
 }
-body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
-#ship-boss-hp-label { font-size: 10px; letter-spacing: 0.18em; color: #ff9ab0; text-shadow: 0 0 8px rgba(255,90,120,0.7); }
-#ship-boss-hp-track { margin-top: 3px; height: 9px; background: rgba(255,90,120,0.15); border: 1px solid rgba(255,90,120,0.6); }
-#ship-boss-hp-fill { height: 100%; width: 100%; background: #ff5a78; box-shadow: 0 0 10px rgba(255,90,120,0.8); transition: width 0.1s linear; }
+body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
+#neonvortex-boss-hp-label {
+  display: inline-block;
+  font-family: var(--nv-font-mono);
+  font-weight: 700;
+  font-size: clamp(9px, 2.2vw, 11px);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--nv-threat);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--nv-threat) 70%, transparent);
+  margin-bottom: 4px;
+}
+#neonvortex-boss-hp-track {
+  height: 7px;
+  background: color-mix(in srgb, var(--nv-threat) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-threat) 45%, transparent);
+  overflow: hidden;
+}
+#neonvortex-boss-hp-fill {
+  height: 100%; width: 100%;
+  background: var(--nv-threat);
+  box-shadow: 0 0 15px color-mix(in srgb, var(--nv-threat) 90%, transparent);
+  transition: width 0.1s linear;
+}
 
 /* ---------- danger feedback (low HP + hit flash) ---------- */
 #ship-danger-vignette {
@@ -214,7 +296,7 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
 #ship-hit-flash.flash { animation: hitFlash 0.26s ease-out; }
 @keyframes hitFlash { from { background: rgba(255,60,90,0.38); } to { background: rgba(255,60,90,0); } }
 @media (max-width: 640px) {
-  #ship-hud-mode, #ship-hud-pace { display: none !important; } /* JS toggles pace inline; narrow screens drop it */
+  #neonvortex-hud-mode, #neonvortex-hud-pace { display: none !important; } /* JS toggles pace inline; narrow screens drop it */
 }
 
 /* ---------- screens: viewport-level responsive overlays ---------- */
@@ -620,7 +702,7 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
   #ship-btn-mute { right: calc(var(--safe-right) + 8px); }
   #ship-btn-fullscreen { right: calc(var(--safe-right) + 52px); }
   #ship-btn-pause { right: calc(var(--safe-right) + 8px); }
-  #ship-hud { padding-right: calc(var(--safe-right) + 138px); }
+  #neonvortex-hud { padding-right: calc(var(--safe-right) + 138px); }
 }
 
 /* ---------- daily history ---------- */
@@ -662,15 +744,16 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
    animations and replace the hit-flash with a single static tint. Gameplay is
    unaffected — only decorative DOM animation is suppressed. */
 @media (prefers-reduced-motion: reduce) {
-  #ship-hud-time.warn,
-  #ship-hud-hearts.low,
+  #neonvortex-hud-time.warn,
+  #neonvortex-hud-hearts.low,
+  #neonvortex-boss-hp,
   #ship-danger-vignette.active,
   #ship-over-best-banner,
   .medal.is-new {
     animation: none !important;
   }
   /* keep the low-time warning legible without the blink */
-  #ship-hud-time.warn { opacity: 1; }
+  #neonvortex-hud-time.warn { opacity: 1; }
   /* danger stays readable as a steady vignette instead of a pulse */
   #ship-danger-vignette.active { box-shadow: inset 0 0 90px 24px rgba(255,40,70,0.28); }
   /* NEW BEST! still appears, just without the pop+glow loop */
