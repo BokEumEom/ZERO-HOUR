@@ -3143,6 +3143,291 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   color: color-mix(in srgb, var(--nv-on-surface-variant) 70%, transparent);
 }
 
+/* ===== SYSTEM OVERHAUL — 신디케이트 오버홀 (display-only preview) ===== */
+#neonvortex-screen-overhaul .nv-ovh-head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#neonvortex-screen-overhaul .nv-ovh-tag {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+#neonvortex-screen-overhaul .nv-ovh-tag-kicker { color: var(--nv-primary); }
+#neonvortex-screen-overhaul .nv-ovh-tag-code {
+  color: color-mix(in srgb, var(--nv-primary) 60%, transparent);
+}
+#neonvortex-screen-overhaul .nv-ovh-title-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+#neonvortex-screen-overhaul .nv-ovh-title-wrap { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+#neonvortex-screen-overhaul .nv-ovh-title {
+  margin: 0;
+  font-family: var(--nv-font-display);
+  font-size: clamp(22px, 6.5vw, 30px);
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--nv-primary);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--nv-primary) 50%, transparent);
+}
+#neonvortex-screen-overhaul .nv-ovh-subtitle {
+  margin: 0;
+  font-family: var(--nv-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 80%, transparent);
+}
+/* CRYSTAL_BANK chip — display-only readout (never decremented) */
+#neonvortex-screen-overhaul .nv-ovh-bank {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  padding: 7px 11px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--nv-value) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-value) 32%, transparent);
+}
+#neonvortex-screen-overhaul .nv-ovh-bank-label {
+  font-family: var(--nv-font-mono);
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 70%, transparent);
+}
+#neonvortex-screen-overhaul .nv-ovh-bank-val {
+  font-family: var(--nv-font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--nv-value);
+  white-space: nowrap;
+}
+#neonvortex-screen-overhaul .nv-ovh-bank-gem { font-size: 11px; }
+#neonvortex-screen-overhaul .nv-ovh-rule {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(to right,
+    color-mix(in srgb, var(--nv-primary) 45%, transparent), transparent);
+}
+#neonvortex-screen-overhaul .nv-ovh-note {
+  margin: 0;
+  font-family: var(--nv-font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.03em;
+  color: color-mix(in srgb, var(--nv-value) 70%, transparent);
+}
+
+/* upgrade cards */
+#neonvortex-screen-overhaul .nv-ovh-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#neonvortex-screen-overhaul .nv-ovh-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--nv-primary) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 22%, transparent);
+  border-left: 3px solid color-mix(in srgb, var(--nv-primary) 55%, transparent);
+}
+#neonvortex-screen-overhaul .nv-ovh-icon {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--nv-primary) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 34%, transparent);
+  color: var(--nv-primary);
+}
+#neonvortex-screen-overhaul .nv-ovh-icon-svg { width: 20px; height: 20px; }
+#neonvortex-screen-overhaul .nv-ovh-info {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+#neonvortex-screen-overhaul .nv-ovh-info-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+#neonvortex-screen-overhaul .nv-ovh-titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+#neonvortex-screen-overhaul .nv-ovh-name {
+  margin: 0;
+  font-family: var(--nv-font-display);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--nv-primary);
+}
+#neonvortex-screen-overhaul .nv-ovh-name-kr {
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 70%, transparent);
+}
+#neonvortex-screen-overhaul .nv-ovh-lv {
+  flex: 0 0 auto;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--nv-primary-bright);
+  background: color-mix(in srgb, var(--nv-primary) 12%, transparent);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+#neonvortex-screen-overhaul .nv-ovh-pips { display: flex; gap: 5px; }
+#neonvortex-screen-overhaul .nv-ovh-pip {
+  width: 22px;
+  height: 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--nv-primary) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 24%, transparent);
+}
+#neonvortex-screen-overhaul .nv-ovh-cost {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--nv-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+#neonvortex-screen-overhaul .nv-ovh-cost-gem { color: var(--nv-value); font-size: 10px; }
+#neonvortex-screen-overhaul .nv-ovh-cost-val { color: var(--nv-value); }
+#neonvortex-screen-overhaul .nv-ovh-btn {
+  flex: 0 0 auto;
+  align-self: stretch;
+  font-family: var(--nv-font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--nv-on-surface) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-on-surface-variant) 22%, transparent);
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 70%, transparent);
+  cursor: not-allowed;
+}
+
+/* hull finish registry (paint) */
+#neonvortex-screen-overhaul .nv-ovh-paint {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--nv-primary) 3%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 18%, transparent);
+}
+#neonvortex-screen-overhaul .nv-ovh-paint-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid color-mix(in srgb, var(--nv-primary) 16%, transparent);
+  padding-bottom: 8px;
+}
+#neonvortex-screen-overhaul .nv-ovh-paint-title {
+  font-family: var(--nv-font-display);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--nv-primary);
+}
+#neonvortex-screen-overhaul .nv-ovh-paint-title-kr {
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 70%, transparent);
+}
+#neonvortex-screen-overhaul .nv-ovh-paint-desc {
+  margin: 0;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 65%, transparent);
+}
+#neonvortex-screen-overhaul .nv-ovh-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+#neonvortex-screen-overhaul .nv-ovh-swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--nv-on-surface) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-on-surface-variant) 18%, transparent);
+  text-align: center;
+}
+#neonvortex-screen-overhaul .nv-ovh-swatch.is-active {
+  background: color-mix(in srgb, var(--nv-primary) 7%, transparent);
+  border-color: color-mix(in srgb, var(--nv-primary) 45%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--nv-primary) 14%, transparent);
+}
+#neonvortex-screen-overhaul .nv-ovh-swatch-glyph {
+  font-size: 20px;
+  line-height: 1;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 70%, transparent);
+}
+#neonvortex-screen-overhaul .nv-ovh-swatch.is-active .nv-ovh-swatch-glyph { color: var(--nv-primary); }
+#neonvortex-screen-overhaul .nv-ovh-swatch-name {
+  font-family: var(--nv-font-display);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 80%, transparent);
+}
+#neonvortex-screen-overhaul .nv-ovh-swatch.is-active .nv-ovh-swatch-name { color: var(--nv-primary); }
+#neonvortex-screen-overhaul .nv-ovh-swatch-chip {
+  font-family: var(--nv-font-mono);
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--nv-value);
+}
+#neonvortex-screen-overhaul .nv-ovh-swatch-btn {
+  font-family: var(--nv-font-mono);
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--nv-on-surface) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-on-surface-variant) 22%, transparent);
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 65%, transparent);
+  cursor: not-allowed;
+}
+
 </style>
 <link rel="preload" as="image" href="assets/illustrations/ship_assets.png">
 <link rel="preload" as="image" href="assets/illustrations/zero-hour-keyart.png">
@@ -7527,7 +7812,129 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // recs.lifetime / medals and renders into its *-body via createElement; none
   // touch the simulation, score, drops, or the daily seed. ----
   function renderHangar() {}
-  function renderOverhaul() {}
+
+  // SYSTEM OVERHAUL — 신디케이트 오버홀 (DISPLAY-ONLY PREVIEW). This page is a
+  // non-functional mock of the reference shop: it READS recs.lifetime.crystals
+  // for the bank readout but NEVER decrements it, spends nothing, writes no
+  // ship/gameplay stat, and persists no upgrade or paint. Every UPGRADE/EQUIP
+  // control is rendered disabled and labelled 표시 전용 // PREVIEW. All levels
+  // show LV 0 because nothing is (or can be) purchased here.
+  const NV_OVH_UPGRADES = [
+    { icon: 'M13 2 4.5 13H11l-1 9 8.5-11H12z', titleEN: 'LASER DAMAGE', titleKR: '레이저 출력', cost: 800 },
+    { icon: 'M12 3 5 6v5c0 4.2 2.9 8.1 7 9 4.1-.9 7-4.8 7-9V6z', titleEN: 'SHIELD CAPACITY', titleKR: '보호막 용량', cost: 500 },
+    { icon: 'M7 4v6a5 5 0 0 0 10 0V4M7 4H4m3 0h3m7 0h-3m3 0h3M12 15v5', titleEN: 'CRYSTAL MAGNET', titleKR: '크리스탈 자석', cost: 300 },
+    { icon: 'M13 2 4.5 13H11l-1 9 8.5-11H12zM5 5l-2 2m18-2 2 2', titleEN: 'BOOST SPEED', titleKR: '부스트 속도', cost: 5000 },
+  ];
+  // hull coatings — cosmetic preview only; NEON is shown ACTIVE (default), the
+  // others are inert preview chips. No persistence, no gameplay effect.
+  const NV_OVH_PAINTS = [
+    { glyph: '◆', nameEN: 'NEON MATRIX', nameKR: '네온 매트릭스', active: true },
+    { glyph: '◈', nameEN: 'STEALTH', nameKR: '공허 스텔스', active: false },
+    { glyph: '✦', nameEN: 'SOLAR FORGE', nameKR: '태양 용광로', active: false },
+  ];
+
+  function renderOverhaul() {
+    const lt = recs.lifetime || { score: 0, crystals: 0, runs: 0 };
+
+    const body = $('overhaul-body');
+    body.textContent = ''; // clear (no innerHTML)
+
+    // ---- header ----
+    const header = nvEl('header', 'nv-ovh-head');
+    const tag = nvEl('div', 'nv-ovh-tag');
+    tag.appendChild(nvEl('span', 'nv-ovh-tag-kicker', '빌드 4.2.0-ARC'));
+    tag.appendChild(nvEl('span', 'nv-ovh-tag-code', 'OVERHAUL_BAY_OK'));
+    header.appendChild(tag);
+
+    const titleRow = nvEl('div', 'nv-ovh-title-row');
+    const titleWrap = nvEl('div', 'nv-ovh-title-wrap');
+    titleWrap.appendChild(nvEl('h2', 'nv-ovh-title', 'SYSTEM OVERHAUL'));
+    titleWrap.appendChild(nvEl('p', 'nv-ovh-subtitle', '신디케이트 오버홀'));
+    titleRow.appendChild(titleWrap);
+    // CRYSTAL_BANK chip — display-only; never decremented
+    const bank = nvEl('div', 'nv-ovh-bank');
+    bank.appendChild(nvEl('span', 'nv-ovh-bank-label', 'CRYSTAL_BANK'));
+    const bankVal = nvEl('span', 'nv-ovh-bank-val');
+    bankVal.appendChild(nvEl('span', 'nv-ovh-bank-gem', '◆'));
+    bankVal.appendChild(document.createTextNode(' ' + fmt(lt.crystals || 0)));
+    bank.appendChild(bankVal);
+    titleRow.appendChild(bank);
+    header.appendChild(titleRow);
+    header.appendChild(nvEl('div', 'nv-ovh-rule'));
+    body.appendChild(header);
+
+    // ---- preview notice ----
+    body.appendChild(nvEl('p', 'nv-ovh-note',
+      '* 미리보기입니다 · 현재 게임플레이에 영향을 주지 않습니다'));
+
+    // ---- upgrade cards ----
+    const grid = nvEl('section', 'nv-ovh-grid');
+    for (const u of NV_OVH_UPGRADES) {
+      const card = nvEl('div', 'nv-ovh-card');
+
+      const iconWrap = nvEl('div', 'nv-ovh-icon');
+      iconWrap.appendChild(nvSvg(u.icon, 'nv-ovh-icon-svg'));
+      card.appendChild(iconWrap);
+
+      const info = nvEl('div', 'nv-ovh-info');
+      const infoHead = nvEl('div', 'nv-ovh-info-head');
+      const titles = nvEl('div', 'nv-ovh-titles');
+      titles.appendChild(nvEl('h3', 'nv-ovh-name', u.titleEN));
+      titles.appendChild(nvEl('span', 'nv-ovh-name-kr', u.titleKR));
+      infoHead.appendChild(titles);
+      infoHead.appendChild(nvEl('span', 'nv-ovh-lv', 'LV 0'));
+      info.appendChild(infoHead);
+
+      // level pips — all empty at level 0
+      const pips = nvEl('div', 'nv-ovh-pips');
+      for (let i = 0; i < 5; i++) pips.appendChild(nvEl('span', 'nv-ovh-pip'));
+      info.appendChild(pips);
+
+      const cost = nvEl('div', 'nv-ovh-cost');
+      cost.appendChild(nvEl('span', 'nv-ovh-cost-gem', '◆'));
+      cost.appendChild(nvEl('span', 'nv-ovh-cost-val', fmt(u.cost)));
+      info.appendChild(cost);
+      card.appendChild(info);
+
+      // inert UPGRADE button — disabled, labelled 표시 전용 / PREVIEW
+      const btn = nvEl('button', 'nv-ovh-btn', '표시 전용');
+      btn.type = 'button';
+      btn.disabled = true;
+      btn.setAttribute('aria-label', '표시 전용 // PREVIEW');
+      card.appendChild(btn);
+
+      grid.appendChild(card);
+    }
+    body.appendChild(grid);
+
+    // ---- hull finish registry (paint) ----
+    const paintSec = nvEl('section', 'nv-ovh-paint');
+    const paintHead = nvEl('div', 'nv-ovh-paint-head');
+    paintHead.appendChild(nvEl('span', 'nv-ovh-paint-title', 'HULL FINISH REGISTRY'));
+    paintHead.appendChild(nvEl('span', 'nv-ovh-paint-title-kr', '전술 편대 기체 도장'));
+    paintSec.appendChild(paintHead);
+    paintSec.appendChild(nvEl('p', 'nv-ovh-paint-desc',
+      '특수 파장 제어 반사 코팅 — 미리보기 전용, 적용되지 않습니다.'));
+
+    const gallery = nvEl('div', 'nv-ovh-gallery');
+    for (const p of NV_OVH_PAINTS) {
+      const swatch = nvEl('div', 'nv-ovh-swatch' + (p.active ? ' is-active' : ''));
+      swatch.appendChild(nvEl('span', 'nv-ovh-swatch-glyph', p.glyph));
+      swatch.appendChild(nvEl('span', 'nv-ovh-swatch-name', p.nameKR));
+      if (p.active) {
+        swatch.appendChild(nvEl('span', 'nv-ovh-swatch-chip', 'ACTIVE'));
+      } else {
+        const eq = nvEl('button', 'nv-ovh-swatch-btn', '표시 전용');
+        eq.type = 'button';
+        eq.disabled = true;
+        eq.setAttribute('aria-label', '표시 전용 // PREVIEW');
+        swatch.appendChild(eq);
+      }
+      gallery.appendChild(swatch);
+    }
+    paintSec.appendChild(gallery);
+    body.appendChild(paintSec);
+  }
 
   // TACTICAL BADGES (display-only). `earned` is computed from REAL persisted
   // data only — recs.lifetime ({score,crystals,runs}) for the cumulative

@@ -409,7 +409,129 @@
   // recs.lifetime / medals and renders into its *-body via createElement; none
   // touch the simulation, score, drops, or the daily seed. ----
   function renderHangar() {}
-  function renderOverhaul() {}
+
+  // SYSTEM OVERHAUL — 신디케이트 오버홀 (DISPLAY-ONLY PREVIEW). This page is a
+  // non-functional mock of the reference shop: it READS recs.lifetime.crystals
+  // for the bank readout but NEVER decrements it, spends nothing, writes no
+  // ship/gameplay stat, and persists no upgrade or paint. Every UPGRADE/EQUIP
+  // control is rendered disabled and labelled 표시 전용 // PREVIEW. All levels
+  // show LV 0 because nothing is (or can be) purchased here.
+  const NV_OVH_UPGRADES = [
+    { icon: 'M13 2 4.5 13H11l-1 9 8.5-11H12z', titleEN: 'LASER DAMAGE', titleKR: '레이저 출력', cost: 800 },
+    { icon: 'M12 3 5 6v5c0 4.2 2.9 8.1 7 9 4.1-.9 7-4.8 7-9V6z', titleEN: 'SHIELD CAPACITY', titleKR: '보호막 용량', cost: 500 },
+    { icon: 'M7 4v6a5 5 0 0 0 10 0V4M7 4H4m3 0h3m7 0h-3m3 0h3M12 15v5', titleEN: 'CRYSTAL MAGNET', titleKR: '크리스탈 자석', cost: 300 },
+    { icon: 'M13 2 4.5 13H11l-1 9 8.5-11H12zM5 5l-2 2m18-2 2 2', titleEN: 'BOOST SPEED', titleKR: '부스트 속도', cost: 5000 },
+  ];
+  // hull coatings — cosmetic preview only; NEON is shown ACTIVE (default), the
+  // others are inert preview chips. No persistence, no gameplay effect.
+  const NV_OVH_PAINTS = [
+    { glyph: '◆', nameEN: 'NEON MATRIX', nameKR: '네온 매트릭스', active: true },
+    { glyph: '◈', nameEN: 'STEALTH', nameKR: '공허 스텔스', active: false },
+    { glyph: '✦', nameEN: 'SOLAR FORGE', nameKR: '태양 용광로', active: false },
+  ];
+
+  function renderOverhaul() {
+    const lt = recs.lifetime || { score: 0, crystals: 0, runs: 0 };
+
+    const body = $('overhaul-body');
+    body.textContent = ''; // clear (no innerHTML)
+
+    // ---- header ----
+    const header = nvEl('header', 'nv-ovh-head');
+    const tag = nvEl('div', 'nv-ovh-tag');
+    tag.appendChild(nvEl('span', 'nv-ovh-tag-kicker', '빌드 4.2.0-ARC'));
+    tag.appendChild(nvEl('span', 'nv-ovh-tag-code', 'OVERHAUL_BAY_OK'));
+    header.appendChild(tag);
+
+    const titleRow = nvEl('div', 'nv-ovh-title-row');
+    const titleWrap = nvEl('div', 'nv-ovh-title-wrap');
+    titleWrap.appendChild(nvEl('h2', 'nv-ovh-title', 'SYSTEM OVERHAUL'));
+    titleWrap.appendChild(nvEl('p', 'nv-ovh-subtitle', '신디케이트 오버홀'));
+    titleRow.appendChild(titleWrap);
+    // CRYSTAL_BANK chip — display-only; never decremented
+    const bank = nvEl('div', 'nv-ovh-bank');
+    bank.appendChild(nvEl('span', 'nv-ovh-bank-label', 'CRYSTAL_BANK'));
+    const bankVal = nvEl('span', 'nv-ovh-bank-val');
+    bankVal.appendChild(nvEl('span', 'nv-ovh-bank-gem', '◆'));
+    bankVal.appendChild(document.createTextNode(' ' + fmt(lt.crystals || 0)));
+    bank.appendChild(bankVal);
+    titleRow.appendChild(bank);
+    header.appendChild(titleRow);
+    header.appendChild(nvEl('div', 'nv-ovh-rule'));
+    body.appendChild(header);
+
+    // ---- preview notice ----
+    body.appendChild(nvEl('p', 'nv-ovh-note',
+      '* 미리보기입니다 · 현재 게임플레이에 영향을 주지 않습니다'));
+
+    // ---- upgrade cards ----
+    const grid = nvEl('section', 'nv-ovh-grid');
+    for (const u of NV_OVH_UPGRADES) {
+      const card = nvEl('div', 'nv-ovh-card');
+
+      const iconWrap = nvEl('div', 'nv-ovh-icon');
+      iconWrap.appendChild(nvSvg(u.icon, 'nv-ovh-icon-svg'));
+      card.appendChild(iconWrap);
+
+      const info = nvEl('div', 'nv-ovh-info');
+      const infoHead = nvEl('div', 'nv-ovh-info-head');
+      const titles = nvEl('div', 'nv-ovh-titles');
+      titles.appendChild(nvEl('h3', 'nv-ovh-name', u.titleEN));
+      titles.appendChild(nvEl('span', 'nv-ovh-name-kr', u.titleKR));
+      infoHead.appendChild(titles);
+      infoHead.appendChild(nvEl('span', 'nv-ovh-lv', 'LV 0'));
+      info.appendChild(infoHead);
+
+      // level pips — all empty at level 0
+      const pips = nvEl('div', 'nv-ovh-pips');
+      for (let i = 0; i < 5; i++) pips.appendChild(nvEl('span', 'nv-ovh-pip'));
+      info.appendChild(pips);
+
+      const cost = nvEl('div', 'nv-ovh-cost');
+      cost.appendChild(nvEl('span', 'nv-ovh-cost-gem', '◆'));
+      cost.appendChild(nvEl('span', 'nv-ovh-cost-val', fmt(u.cost)));
+      info.appendChild(cost);
+      card.appendChild(info);
+
+      // inert UPGRADE button — disabled, labelled 표시 전용 / PREVIEW
+      const btn = nvEl('button', 'nv-ovh-btn', '표시 전용');
+      btn.type = 'button';
+      btn.disabled = true;
+      btn.setAttribute('aria-label', '표시 전용 // PREVIEW');
+      card.appendChild(btn);
+
+      grid.appendChild(card);
+    }
+    body.appendChild(grid);
+
+    // ---- hull finish registry (paint) ----
+    const paintSec = nvEl('section', 'nv-ovh-paint');
+    const paintHead = nvEl('div', 'nv-ovh-paint-head');
+    paintHead.appendChild(nvEl('span', 'nv-ovh-paint-title', 'HULL FINISH REGISTRY'));
+    paintHead.appendChild(nvEl('span', 'nv-ovh-paint-title-kr', '전술 편대 기체 도장'));
+    paintSec.appendChild(paintHead);
+    paintSec.appendChild(nvEl('p', 'nv-ovh-paint-desc',
+      '특수 파장 제어 반사 코팅 — 미리보기 전용, 적용되지 않습니다.'));
+
+    const gallery = nvEl('div', 'nv-ovh-gallery');
+    for (const p of NV_OVH_PAINTS) {
+      const swatch = nvEl('div', 'nv-ovh-swatch' + (p.active ? ' is-active' : ''));
+      swatch.appendChild(nvEl('span', 'nv-ovh-swatch-glyph', p.glyph));
+      swatch.appendChild(nvEl('span', 'nv-ovh-swatch-name', p.nameKR));
+      if (p.active) {
+        swatch.appendChild(nvEl('span', 'nv-ovh-swatch-chip', 'ACTIVE'));
+      } else {
+        const eq = nvEl('button', 'nv-ovh-swatch-btn', '표시 전용');
+        eq.type = 'button';
+        eq.disabled = true;
+        eq.setAttribute('aria-label', '표시 전용 // PREVIEW');
+        swatch.appendChild(eq);
+      }
+      gallery.appendChild(swatch);
+    }
+    paintSec.appendChild(gallery);
+    body.appendChild(paintSec);
+  }
 
   // TACTICAL BADGES (display-only). `earned` is computed from REAL persisted
   // data only — recs.lifetime ({score,crystals,runs}) for the cumulative
