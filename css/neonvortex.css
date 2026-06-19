@@ -282,18 +282,18 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 }
 
 /* ---------- danger feedback (low HP + hit flash) ---------- */
-#ship-danger-vignette {
+#neonvortex-danger-vignette {
   position: fixed; inset: 0; z-index: 38; pointer-events: none;
   box-shadow: inset 0 0 80px 18px rgba(255,40,70,0);
   transition: box-shadow 0.25s ease;
 }
-#ship-danger-vignette.active { animation: dangerPulse 0.9s ease-in-out infinite; }
+#neonvortex-danger-vignette.active { animation: dangerPulse 0.9s ease-in-out infinite; }
 @keyframes dangerPulse {
   0%, 100% { box-shadow: inset 0 0 70px 14px rgba(255,40,70,0.12); }
   50% { box-shadow: inset 0 0 100px 34px rgba(255,40,70,0.4); }
 }
-#ship-hit-flash { position: fixed; inset: 0; z-index: 39; pointer-events: none; background: rgba(255,60,90,0); }
-#ship-hit-flash.flash { animation: hitFlash 0.26s ease-out; }
+#neonvortex-hit-flash { position: fixed; inset: 0; z-index: 39; pointer-events: none; background: rgba(255,60,90,0); }
+#neonvortex-hit-flash.flash { animation: hitFlash 0.26s ease-out; }
 @keyframes hitFlash { from { background: rgba(255,60,90,0.38); } to { background: rgba(255,60,90,0); } }
 @media (max-width: 640px) {
   #neonvortex-hud-mode, #neonvortex-hud-pace { display: none !important; } /* JS toggles pace inline; narrow screens drop it */
@@ -469,7 +469,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 .mode-name { font-family: var(--display); font-size: clamp(12px, 3.2vw, 14px); color: var(--teal-soft); }
 .mode-desc { font-size: 12px; color: rgba(234,246,255,0.55); line-height: 1.5; }
 .mode-meta { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: var(--amber); }
-#ship-menu-date { font-size: 11px; color: rgba(159,245,232,0.5); letter-spacing: 0.1em; }
+#neonvortex-menu-date { font-size: 11px; color: rgba(159,245,232,0.5); letter-spacing: 0.1em; }
 
 .best-line { font-size: 12px; letter-spacing: 0.1em; color: rgba(159,245,232,0.65); }
 .controls-hint { font-size: 11px; letter-spacing: 0.1em; color: rgba(234,246,255,0.62); }
@@ -574,7 +574,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 .haptic-toggle.available { display: inline-block; }
 
 /* ---------- records screen ---------- */
-#ship-records-body {
+#neonvortex-records-body {
   width: min(360px, 92vw);
   display: flex; flex-direction: column; gap: 14px;
   max-height: 62vh; overflow-y: auto;
@@ -616,7 +616,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   color: var(--teal-soft);
   text-shadow: 0 0 18px rgba(45,226,198,0.7);
 }
-#ship-screen-howto .pause-title { color: var(--teal); }
+#neonvortex-screen-howto .pause-title { color: var(--teal); }
 .howto-list { display: flex; flex-direction: column; gap: 10px; width: min(420px, 90vw); text-align: left; }
 .howto-row { display: flex; gap: clamp(8px, 2vw, 12px); font-size: clamp(11px, 3vw, 13px); align-items: center; }
 /* Shepherd-style pill chip for the key (was a right-aligned label column) */
@@ -629,7 +629,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 .howto-v { color: rgba(234,246,255,0.75); line-height: 1.5; }
 
 /* ---------- corner buttons (outside the scaled stage) ---------- */
-#ship-btn-mute, #ship-btn-pause, #ship-btn-fullscreen {
+#neonvortex-btn-mute, #neonvortex-btn-pause, #neonvortex-btn-fullscreen {
   position: fixed;
   top: calc(var(--safe-top) + 8px);
   z-index: 70;
@@ -641,33 +641,33 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   cursor: pointer;
   transition: all 0.12s;
 }
-#ship-btn-mute:hover, #ship-btn-pause:hover, #ship-btn-fullscreen:hover { border-color: var(--teal); box-shadow: 0 0 14px rgba(45,226,198,0.3); }
+#neonvortex-btn-mute:hover, #neonvortex-btn-pause:hover, #neonvortex-btn-fullscreen:hover { border-color: var(--teal); box-shadow: 0 0 14px rgba(45,226,198,0.3); }
 /* pixel-line SVG glyphs (replace OS-variant emoji) — inherit the button color */
-#ship-btn-mute svg, #ship-btn-pause svg, #ship-btn-fullscreen svg { width: 20px; height: 20px; display: block; margin: auto; }
-#ship-btn-mute .spk, #ship-btn-pause rect { fill: currentColor; }
-#ship-btn-mute .waves path, #ship-btn-mute .slash, #ship-btn-fullscreen path {
+#neonvortex-btn-mute svg, #neonvortex-btn-pause svg, #neonvortex-btn-fullscreen svg { width: 20px; height: 20px; display: block; margin: auto; }
+#neonvortex-btn-mute .spk, #neonvortex-btn-pause rect { fill: currentColor; }
+#neonvortex-btn-mute .waves path, #neonvortex-btn-mute .slash, #neonvortex-btn-fullscreen path {
   fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
 }
-#ship-btn-mute .slash { display: none; }
-#ship-btn-mute.muted .waves { display: none; }
-#ship-btn-mute.muted .slash { display: inline; }
-#ship-btn-mute { right: calc(var(--safe-right) + 10px); }
-#ship-btn-fullscreen { right: calc(var(--safe-right) + 58px); display: none; }
-#ship-btn-fullscreen.available { display: block; }
+#neonvortex-btn-mute .slash { display: none; }
+#neonvortex-btn-mute.muted .waves { display: none; }
+#neonvortex-btn-mute.muted .slash { display: inline; }
+#neonvortex-btn-mute { right: calc(var(--safe-right) + 10px); }
+#neonvortex-btn-fullscreen { right: calc(var(--safe-right) + 58px); display: none; }
+#neonvortex-btn-fullscreen.available { display: block; }
 /* pause shows only during play (mute/fullscreen are then hidden), so it takes
    the flush corner slot — no floating gap. They never co-display. */
-#ship-btn-pause { right: calc(var(--safe-right) + 10px); display: none; font-family: var(--body); font-weight: 700; }
+#neonvortex-btn-pause { right: calc(var(--safe-right) + 10px); display: none; font-family: var(--body); font-weight: 700; }
 @media (max-width: 600px) {
-  #ship-btn-mute, #ship-btn-pause, #ship-btn-fullscreen { width: 38px; height: 38px; font-size: 16px; }
-  #ship-btn-mute { right: calc(var(--safe-right) + 8px); }
-  #ship-btn-fullscreen { right: calc(var(--safe-right) + 52px); }
-  #ship-btn-pause { right: calc(var(--safe-right) + 8px); }
+  #neonvortex-btn-mute, #neonvortex-btn-pause, #neonvortex-btn-fullscreen { width: 38px; height: 38px; font-size: 16px; }
+  #neonvortex-btn-mute { right: calc(var(--safe-right) + 8px); }
+  #neonvortex-btn-fullscreen { right: calc(var(--safe-right) + 52px); }
+  #neonvortex-btn-pause { right: calc(var(--safe-right) + 8px); }
   #neonvortex-hud { padding-right: calc(var(--safe-right) + 138px); }
 }
 
 /* ---------- daily history ---------- */
-#ship-menu-streak { color: var(--teal); }
-#ship-menu-week { display: none; }
+#neonvortex-menu-streak { color: var(--teal); }
+#neonvortex-menu-week { display: none; }
 .day-cell {
   display: inline-block;
   width: 18px; height: 10px;
@@ -707,7 +707,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   #neonvortex-hud-time.warn,
   #neonvortex-hud-hearts.low,
   #neonvortex-boss-hp,
-  #ship-danger-vignette.active,
+  #neonvortex-danger-vignette.active,
   #neonvortex-over-best-banner,
   #neonvortex-over-reason,
   .medal.is-new {
@@ -716,11 +716,11 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   /* keep the low-time warning legible without the blink */
   #neonvortex-hud-time.warn { opacity: 1; }
   /* danger stays readable as a steady vignette instead of a pulse */
-  #ship-danger-vignette.active { box-shadow: inset 0 0 90px 24px rgba(255,40,70,0.28); }
+  #neonvortex-danger-vignette.active { box-shadow: inset 0 0 90px 24px rgba(255,40,70,0.28); }
   /* NEW BEST! still appears, just without the pop+glow loop */
   #neonvortex-over-best-banner.show { animation: none !important; }
   /* hit feedback becomes a brief static tint, no flash animation */
-  #ship-hit-flash.flash { animation: none !important; background: rgba(255,60,90,0.18); }
+  #neonvortex-hit-flash.flash { animation: none !important; background: rgba(255,60,90,0.18); }
   .mode-card, .game-card, .arcade-btn { transition: none !important; }
   #viewport.leaving { transition: none !important; opacity: 1; } /* JS also skips the fade under reduce */
 }
@@ -1168,4 +1168,94 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   font-size: 11px;
   letter-spacing: 0.08em;
   color: rgba(0,219,231,0.45);
+}
+
+/* ===== NEON VORTEX screen styles =====
+   Secondary dialog screens (PAUSE / HOW TO PLAY / RECORDS) reskinned to match
+   the menu + result look: dark glass .panel (translucent --nv-surface over the
+   --nv-bg void, cyan --nv-primary hairline + subtle glow), Sora display titles,
+   Space Mono kicker/key labels, readable --nv-on-surface-variant body copy.
+   Scoped strictly to the three #neonvortex-screen-* dialogs — no platform leak. */
+#neonvortex-screen-pause,
+#neonvortex-screen-howto,
+#neonvortex-screen-records {
+  background: color-mix(in srgb, var(--nv-bg) 88%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+#neonvortex-screen-pause .panel,
+#neonvortex-screen-howto .panel,
+#neonvortex-screen-records .panel {
+  width: min(440px, 92vw);
+  background: color-mix(in srgb, var(--nv-surface) 90%, transparent);
+  background-image: none;
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 30%, transparent);
+  border-radius: 14px;
+  box-shadow:
+    0 0 22px color-mix(in srgb, var(--nv-primary) 18%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--nv-primary) 12%, transparent);
+  color: var(--nv-on-surface);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+/* kicker: Space Mono, spaced cyan eyebrow with a leading tick */
+#neonvortex-screen-pause .kicker,
+#neonvortex-screen-howto .kicker,
+#neonvortex-screen-records .kicker {
+  font-family: var(--nv-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-primary) 75%, transparent);
+}
+/* title: Sora display, bright with a soft cyan bloom */
+#neonvortex-screen-pause .pause-title,
+#neonvortex-screen-howto .pause-title,
+#neonvortex-screen-records .pause-title {
+  font-family: var(--nv-font-display);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: var(--nv-on-surface);
+  text-shadow: 0 0 16px color-mix(in srgb, var(--nv-primary) 45%, transparent);
+}
+/* body / supporting copy */
+#neonvortex-screen-pause .controls-hint,
+#neonvortex-screen-howto .howto-v,
+#neonvortex-screen-records .rec-best-meta {
+  color: var(--nv-on-surface-variant);
+}
+#neonvortex-screen-records .rec-section-title,
+#neonvortex-screen-records .rec-day-date {
+  font-family: var(--nv-font-mono);
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 70%, transparent);
+}
+#neonvortex-screen-records .rec-best {
+  font-family: var(--nv-font-display);
+  color: var(--nv-primary-bright);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--nv-primary) 50%, transparent);
+}
+#neonvortex-screen-records .rec-day {
+  border-bottom-color: color-mix(in srgb, var(--nv-primary) 16%, transparent);
+}
+#neonvortex-screen-records .rec-streak,
+#neonvortex-screen-records .rec-day .boss { color: var(--nv-value); }
+/* how-to key chip: Space Mono pill, cyan hairline on a faint cyan wash */
+#neonvortex-screen-howto .howto-k {
+  font-family: var(--nv-font-mono) !important;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--nv-primary);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 40%, transparent);
+  background: color-mix(in srgb, var(--nv-primary) 12%, transparent);
+}
+
+/* ===== HUD polish — empty combo / inactive heat must not render a pill ===== */
+#neonvortex-hud-combo:empty,
+#neonvortex-hud-heat:not(.on) {
+  background: none;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+  text-shadow: none;
 }

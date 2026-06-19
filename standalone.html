@@ -787,59 +787,119 @@ body {
   z-index: 30;
 }
 
-/* ---------- HUD: unscaled fixed overlay ---------- */
-#ship-hud {
+/* ---------- HUD: unscaled fixed overlay (Stitch CORE_WARDEN reskin) ---------- */
+/* DOM is a flat flex row of .hud-block (TIME / SCORE / COMBO / HULL) + fx + mode.
+   We map it onto the mockup feel: TIME pinned left, SCORE a centred glass panel,
+   HULL pushed right — Space Mono numerals, cyan labels, magenta warn states. */
+#neonvortex-hud {
   position: fixed;
   left: 0; right: 0; top: 0;
   z-index: 40;
   display: flex;
-  align-items: center;
-  gap: clamp(8px, 2vw, 18px);
+  align-items: flex-start;
+  gap: clamp(8px, 2vw, 16px);
   /* right padding reserves room for the corner buttons (3 x 44px + gaps) */
-  padding: calc(var(--safe-top) + 6px) calc(var(--safe-right) + 158px) 6px calc(var(--safe-left) + 12px);
+  padding: calc(var(--safe-top) + 8px) calc(var(--safe-right) + 158px) 8px calc(var(--safe-left) + 12px);
   font-size: clamp(11px, 2.6vw, 14px);
   visibility: hidden;
   pointer-events: none;
 }
-body.landscape #ship-hud { background: linear-gradient(rgba(4,9,15,0.88), rgba(4,9,15,0)); }
-body.portrait #ship-hud { background: var(--panel); border-bottom: 1px solid rgba(45,226,198,0.25); }
-.hud-block { display: flex; flex-direction: column; gap: 2px; }
-.hud-label { font-size: clamp(7px, 1.7vw, 9px); letter-spacing: 0.14em; color: rgba(159,245,232,0.5); }
-#ship-hud-time {
-  font-family: var(--pixel); /* HUD numerals stay monospace pixel (no width jitter / arena readout) */
+body.landscape #neonvortex-hud {
+  background: linear-gradient(rgba(10,10,15,0.9), rgba(10,10,15,0));
+}
+body.portrait #neonvortex-hud {
+  background: color-mix(in srgb, var(--nv-surface) 92%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--nv-primary) 22%, transparent);
+}
+.hud-block { display: flex; flex-direction: column; gap: 3px; }
+/* SCORE block becomes the centred hero; COMBO sits with it, HULL trails right */
+#neonvortex-hud > .hud-block:nth-child(2) { align-items: center; margin: 0 auto; }
+#neonvortex-hud > .hud-block:nth-child(4) { align-items: flex-end; }
+.hud-label {
+  font-family: var(--nv-font-mono);
+  font-size: clamp(7px, 1.7vw, 9px);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-primary) 55%, transparent);
+}
+#neonvortex-hud-time {
+  font-family: var(--nv-font-mono); /* mono numerals: no width jitter */
+  font-weight: 700;
   font-size: clamp(15px, 4.2vw, 22px);
-  color: var(--teal-soft);
-  text-shadow: 0 0 12px rgba(45,226,198,0.7);
+  letter-spacing: 0.06em;
+  color: var(--nv-on-surface);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--nv-primary) 55%, transparent);
   min-width: 2.4em;
 }
-#ship-hud-time.warn { color: var(--pink); text-shadow: 0 0 12px rgba(255,90,120,0.8); animation: blink 0.5s steps(2) infinite; }
-@keyframes blink { 50% { opacity: 0.35; } }
-#ship-hud-score {
-  font-family: var(--pixel); /* HUD numerals stay monospace pixel */
-  font-size: clamp(12px, 3.4vw, 18px);
-  color: var(--ink);
-  text-shadow: 0 0 10px rgba(45,226,198,0.5);
-  min-width: 4.5em;
+#neonvortex-hud-time.warn {
+  color: var(--nv-threat);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--nv-threat) 75%, transparent);
+  animation: nv-flicker 0.55s steps(2) infinite;
 }
-#ship-hud-combo { font-weight: 700; font-size: clamp(13px, 3vw, 16px); color: var(--amber); min-width: 2.2em; text-shadow: 0 0 8px rgba(255,195,77,0.6); }
-#ship-hud-heat {
-  font: 700 13px "IBM Plex Mono", ui-monospace, monospace;
-  color: #ffc34d;
-  text-shadow: 0 0 8px rgba(255, 195, 77, 0.6);
+@keyframes blink { 50% { opacity: 0.35; } }
+/* SCORE: prominent glass panel, cyan border + blur, mono cyan numerals */
+#neonvortex-hud-score {
+  font-family: var(--nv-font-mono); /* mono numerals */
+  font-weight: 700;
+  font-size: clamp(13px, 3.6vw, 19px);
+  letter-spacing: 0.12em;
+  color: var(--nv-primary-bright);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--nv-primary) 60%, transparent);
+  min-width: 4.2em;
+  text-align: center;
+  padding: 5px clamp(10px, 3vw, 18px);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--nv-surface-high) 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 28%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+/* COMBO = cyan chip, HEAT.on = gold/threat chip — sit on the row under SCORE */
+#neonvortex-hud-combo {
+  display: inline-flex; align-items: center;
+  font-family: var(--nv-font-mono);
+  font-weight: 700; font-size: clamp(11px, 2.6vw, 14px);
+  letter-spacing: 0.08em;
+  color: var(--nv-primary);
+  min-width: 2.2em;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--nv-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 35%, transparent);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--nv-primary) 50%, transparent);
+}
+#neonvortex-hud-heat {
+  display: inline-flex; align-items: center;
+  font-family: var(--nv-font-mono);
+  font-weight: 700; font-size: clamp(10px, 2.4vw, 13px);
+  letter-spacing: 0.08em;
+  color: var(--nv-value);
+  padding: 2px 7px; margin-left: 5px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--nv-value) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-value) 40%, transparent);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--nv-value) 55%, transparent);
   opacity: 0;
   transition: opacity 0.15s ease;
-  letter-spacing: 0.5px;
 }
-#ship-hud-heat.on {
-  opacity: 1;
+#neonvortex-hud-heat.on { opacity: 1; }
+#neonvortex-hud-hearts {
+  color: var(--nv-primary);
+  font-size: clamp(13px, 3vw, 16px);
+  letter-spacing: 0.18em;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--nv-primary) 50%, transparent);
 }
-#ship-hud-hearts { color: var(--pink); font-size: clamp(12px, 3vw, 15px); letter-spacing: 0.1em; }
-#ship-hud-hearts.low { animation: blink 0.7s steps(2) infinite; }
-#ship-hud-pace { font-size: 13px; font-weight: 600; padding: 3px 8px; border: 1px solid; }
-#ship-hud-pace.ahead { color: var(--teal); border-color: rgba(45,226,198,0.5); background: rgba(45,226,198,0.08); }
-#ship-hud-pace.behind { color: var(--pink); border-color: rgba(255,90,120,0.5); background: rgba(255,90,120,0.08); }
+#neonvortex-hud-hearts.low {
+  color: var(--nv-threat);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--nv-threat) 70%, transparent);
+  animation: nv-flicker 0.7s steps(2) infinite;
+}
+#neonvortex-hud-pace { font-size: 13px; font-weight: 600; padding: 3px 8px; border: 1px solid; }
+#neonvortex-hud-pace.ahead { color: var(--nv-primary); border-color: color-mix(in srgb, var(--nv-primary) 50%, transparent); background: color-mix(in srgb, var(--nv-primary) 8%, transparent); }
+#neonvortex-hud-pace.behind { color: var(--nv-threat); border-color: color-mix(in srgb, var(--nv-threat) 50%, transparent); background: color-mix(in srgb, var(--nv-threat) 8%, transparent); }
 /* effects stay on one compact row (never wrap into the boss-bar/button band) */
-#ship-hud-fx { display: flex; gap: 5px; flex: 1; justify-content: flex-end; flex-wrap: nowrap; overflow: hidden; }
+#neonvortex-hud-fx { display: flex; gap: 5px; flex: 1; justify-content: flex-end; flex-wrap: nowrap; overflow: hidden; }
 /* active-powerup badge: glyph + depleting timer bar (--c is the powerup color) */
 .fx-badge {
   display: inline-flex; flex-direction: column; align-items: center; gap: 2px;
@@ -851,49 +911,71 @@ body.portrait #ship-hud { background: var(--panel); border-bottom: 1px solid rgb
 .fx-glyph { font-size: 11px; font-weight: 700; line-height: 1; text-shadow: 0 0 8px var(--c); }
 .fx-bar { width: 100%; height: 3px; background: rgba(255,255,255,0.12); overflow: hidden; }
 .fx-bar > i { display: block; height: 100%; background: var(--c); box-shadow: 0 0 6px var(--c); }
-#ship-hud-mode { font-size: 10px; letter-spacing: 0.12em; color: rgba(159,245,232,0.55); }
+#neonvortex-hud-mode { font-size: 10px; letter-spacing: 0.12em; color: color-mix(in srgb, var(--nv-primary) 55%, transparent); }
 
 /* ---------- boss HP (DOM so it stays upright in portrait) ---------- */
-#ship-boss-hp {
+/* Stitch: thin magenta bar, ~80% width, glowing fill + % readout, subtle flicker */
+#neonvortex-boss-hp {
   display: none;
   position: fixed;
-  top: calc(var(--safe-top) + 58px);
+  top: calc(var(--safe-top) + 60px);
   left: 50%; transform: translateX(-50%);
   z-index: 41;
-  width: min(300px, 82vw);
+  width: min(520px, 80vw);
   text-align: center;
   pointer-events: none;
+  animation: nv-flicker 3s ease-in-out infinite;
 }
-#ship-boss-hp.show { display: block; }
+#neonvortex-boss-hp.show { display: block; }
 /* portrait: HUD stat bar is tight, so effects + boss HP live in the empty band
    between the bar and the rotated arena (otherwise-wasted space) */
-body.portrait #ship-hud-fx {
+body.portrait #neonvortex-hud-fx {
   position: fixed; left: auto; flex: none;
-  top: calc(var(--safe-top) + 50px);
+  top: calc(var(--safe-top) + 56px);
   right: calc(var(--safe-right) + 10px);
   z-index: 42;
 }
-body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
-#ship-boss-hp-label { font-size: 10px; letter-spacing: 0.18em; color: #ff9ab0; text-shadow: 0 0 8px rgba(255,90,120,0.7); }
-#ship-boss-hp-track { margin-top: 3px; height: 9px; background: rgba(255,90,120,0.15); border: 1px solid rgba(255,90,120,0.6); }
-#ship-boss-hp-fill { height: 100%; width: 100%; background: #ff5a78; box-shadow: 0 0 10px rgba(255,90,120,0.8); transition: width 0.1s linear; }
+body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
+#neonvortex-boss-hp-label {
+  display: inline-block;
+  font-family: var(--nv-font-mono);
+  font-weight: 700;
+  font-size: clamp(9px, 2.2vw, 11px);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--nv-threat);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--nv-threat) 70%, transparent);
+  margin-bottom: 4px;
+}
+#neonvortex-boss-hp-track {
+  height: 7px;
+  background: color-mix(in srgb, var(--nv-threat) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-threat) 45%, transparent);
+  overflow: hidden;
+}
+#neonvortex-boss-hp-fill {
+  height: 100%; width: 100%;
+  background: var(--nv-threat);
+  box-shadow: 0 0 15px color-mix(in srgb, var(--nv-threat) 90%, transparent);
+  transition: width 0.1s linear;
+}
 
 /* ---------- danger feedback (low HP + hit flash) ---------- */
-#ship-danger-vignette {
+#neonvortex-danger-vignette {
   position: fixed; inset: 0; z-index: 38; pointer-events: none;
   box-shadow: inset 0 0 80px 18px rgba(255,40,70,0);
   transition: box-shadow 0.25s ease;
 }
-#ship-danger-vignette.active { animation: dangerPulse 0.9s ease-in-out infinite; }
+#neonvortex-danger-vignette.active { animation: dangerPulse 0.9s ease-in-out infinite; }
 @keyframes dangerPulse {
   0%, 100% { box-shadow: inset 0 0 70px 14px rgba(255,40,70,0.12); }
   50% { box-shadow: inset 0 0 100px 34px rgba(255,40,70,0.4); }
 }
-#ship-hit-flash { position: fixed; inset: 0; z-index: 39; pointer-events: none; background: rgba(255,60,90,0); }
-#ship-hit-flash.flash { animation: hitFlash 0.26s ease-out; }
+#neonvortex-hit-flash { position: fixed; inset: 0; z-index: 39; pointer-events: none; background: rgba(255,60,90,0); }
+#neonvortex-hit-flash.flash { animation: hitFlash 0.26s ease-out; }
 @keyframes hitFlash { from { background: rgba(255,60,90,0.38); } to { background: rgba(255,60,90,0); } }
 @media (max-width: 640px) {
-  #ship-hud-mode, #ship-hud-pace { display: none !important; } /* JS toggles pace inline; narrow screens drop it */
+  #neonvortex-hud-mode, #neonvortex-hud-pace { display: none !important; } /* JS toggles pace inline; narrow screens drop it */
 }
 
 /* ---------- screens: viewport-level responsive overlays ---------- */
@@ -955,11 +1037,10 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
 
 /* Fraunces is a variable font — display headings need an explicit heavy weight
    and tight tracking (the old pixel tracking looks wrong on a serif) */
-.arcade-wordmark, .game-title, .pause-title, #ship-over-reason, #ship-over-score,
+.arcade-wordmark, .game-title, .pause-title,
 .bigscore, .game-card-title, .mode-name, .rec-best, .hub-empty-title {
   font-weight: 900; letter-spacing: -0.01em;
 }
-#ship-over-rank, #ship-over-best-banner { font-weight: 700; letter-spacing: 0.01em; }
 /* keep the how-to key as a readable Cabin pill, not a tiny serif */
 .howto-k { font-family: var(--body) !important; font-weight: 700; }
 
@@ -983,11 +1064,11 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
    (cream paper / ink / rust / gold), the panel floating over a visible, blurred
    background. We take Dog's colours + tone, not its (unrevised, landscape)
    layout. The in-game dialog screens keep the dark neon panel. ===== */
-#screen-arcade, #ship-screen-menu {
+#screen-arcade {
   background: rgba(8, 11, 14, 0.42);                 /* translucent veil -> canvas/CRT shows behind */
   -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
 }
-#screen-arcade .panel, #ship-screen-menu .panel {
+#screen-arcade .panel {
   width: min(520px, 92vw);
   background-color: #f6efdf;                          /* Dog cream paper */
   background-image: radial-gradient(rgba(43,38,32,0.06) 1px, transparent 1.5px);
@@ -997,41 +1078,37 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
   box-shadow: 8px 8px 0 rgba(20,18,12,0.5);
   color: #2b2620;
 }
-#screen-arcade .kicker, #ship-screen-menu .kicker { color: #c4552e; }            /* rust */
-#screen-arcade .arcade-wordmark, #ship-screen-menu .game-title { color: #2b2620; text-shadow: none; }
+#screen-arcade .kicker { color: #c4552e; }            /* rust */
+#screen-arcade .arcade-wordmark { color: #2b2620; text-shadow: none; }
 #screen-arcade .arcade-foot { color: rgba(43,38,32,0.5); }
-#ship-screen-menu .best-line { color: rgba(43,38,32,0.62); }
 /* game / mode cards become warm paper "cutout" items */
-#screen-arcade .panel .game-card, #ship-screen-menu .panel .mode-card {
+#screen-arcade .panel .game-card {
   background: #fffaf2;
   border: 2px solid #2b2620;
   box-shadow: 3px 3px 0 rgba(43,38,32,0.22);
   color: #2b2620;
 }
-#screen-arcade .panel .game-card:hover, #screen-arcade .panel .game-card:focus-visible,
-#ship-screen-menu .panel .mode-card:hover, #ship-screen-menu .panel .mode-card:focus-visible {
+#screen-arcade .panel .game-card:hover, #screen-arcade .panel .game-card:focus-visible {
   transform: translate(-1px, -2px);
   box-shadow: 5px 6px 0 rgba(43,38,32,0.3);
 }
-#screen-arcade .panel .game-card:active, #ship-screen-menu .panel .mode-card:active {
+#screen-arcade .panel .game-card:active {
   transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(43,38,32,0.25);
 }
-#screen-arcade .game-card-title, #ship-screen-menu .mode-name { color: #2b2620; text-shadow: none; }
-#screen-arcade .game-card-blurb, #ship-screen-menu .mode-sub { color: rgba(43,38,32,0.6); }
-#screen-arcade .meta-best, #ship-screen-menu .mode-meta { color: #2b2620; }
-#screen-arcade .meta-played, #ship-screen-menu #ship-menu-date { color: rgba(43,38,32,0.55); }
+#screen-arcade .game-card-title { color: #2b2620; text-shadow: none; }
+#screen-arcade .game-card-blurb { color: rgba(43,38,32,0.6); }
+#screen-arcade .meta-best { color: #2b2620; }
+#screen-arcade .meta-played { color: rgba(43,38,32,0.55); }
 #screen-arcade .meta-new { color: #c4552e; }
-#ship-screen-menu #ship-menu-streak { color: #9a6a14; }                               /* gold */
-/* buttons → Shepherd's ink button (cream text) — RECORDS + hub RELOAD */
-#screen-arcade .arcade-btn, #ship-screen-menu .arcade-btn {
+/* buttons → Shepherd's ink button (cream text) — hub RELOAD */
+#screen-arcade .arcade-btn {
   background: #2b2620; color: #f6efdf; border: 2px solid #2b2620;
   box-shadow: 4px 4px 0 rgba(20,18,12,0.4);
 }
-#screen-arcade .arcade-btn:hover, #screen-arcade .arcade-btn:focus-visible,
-#ship-screen-menu .arcade-btn:hover, #ship-screen-menu .arcade-btn:focus-visible {
+#screen-arcade .arcade-btn:hover, #screen-arcade .arcade-btn:focus-visible {
   background: #2b2620; transform: translate(-1px, -2px); box-shadow: 6px 7px 0 rgba(20,18,12,0.5);
 }
-#screen-arcade .arcade-btn:active, #ship-screen-menu .arcade-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(20,18,12,0.4); }
+#screen-arcade .arcade-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(20,18,12,0.4); }
 /* fail-safe empty state, recoloured for the cream panel */
 #screen-arcade .hub-empty-glyph { color: rgba(43,38,32,0.3); }
 #screen-arcade .hub-empty-title { color: #2b2620; }
@@ -1071,7 +1148,7 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
 .mode-name { font-family: var(--display); font-size: clamp(12px, 3.2vw, 14px); color: var(--teal-soft); }
 .mode-desc { font-size: 12px; color: rgba(234,246,255,0.55); line-height: 1.5; }
 .mode-meta { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: var(--amber); }
-#ship-menu-date { font-size: 11px; color: rgba(159,245,232,0.5); letter-spacing: 0.1em; }
+#neonvortex-menu-date { font-size: 11px; color: rgba(159,245,232,0.5); letter-spacing: 0.1em; }
 
 .best-line { font-size: 12px; letter-spacing: 0.1em; color: rgba(159,245,232,0.65); }
 .controls-hint { font-size: 11px; letter-spacing: 0.1em; color: rgba(234,246,255,0.62); }
@@ -1137,41 +1214,14 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
 }
 .back-btn:hover, .back-btn:focus-visible { border-color: var(--teal); outline: none; }
 
-/* ---------- game over ---------- */
-#ship-screen-over { gap: clamp(8px, 1.6vh, 12px); }
-#ship-over-mode { font-size: 11px; letter-spacing: 0.2em; color: rgba(159,245,232,0.55); }
-#ship-over-reason { font-family: var(--display); font-size: clamp(13px, 3.8vw, 16px); color: var(--pink); text-shadow: 0 0 14px rgba(255,90,120,0.7); }
-#ship-over-score {
-  font-family: var(--display);
-  font-size: clamp(34px, 10vw, 52px);
-  color: var(--ink);
-  text-shadow: 0 0 20px rgba(45,226,198,0.7);
-}
-#ship-over-best-banner {
-  display: none;
-  font-family: var(--display);
-  font-size: clamp(13px, 3.8vw, 16px);
-  color: var(--amber);
-  text-shadow: 0 0 18px rgba(255,195,77,0.9);
-  animation: bestPop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both, bestGlow 1.1s ease-in-out 0.45s infinite alternate;
-}
-#ship-over-best-banner.show { display: block; }
-@keyframes bestPop { from { transform: scale(0.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-@keyframes bestGlow { from { text-shadow: 0 0 10px rgba(255,195,77,0.6); } to { text-shadow: 0 0 26px rgba(255,195,77,1), 0 0 50px rgba(255,195,77,0.5); } }
-
-#ship-over-stats { width: min(320px, 88vw); display: flex; flex-direction: column; gap: 4px; }
+/* ---------- game over (shared base; reskinned below for #neonvortex-screen-over) ---------- */
 .stat-row { display: flex; justify-content: space-between; font-size: 13px; border-bottom: 1px dashed rgba(45,226,198,0.18); padding-bottom: 5px; }
 .stat-k { color: rgba(159,245,232,0.55); letter-spacing: 0.08em; }
 .stat-v { color: var(--ink); font-weight: 600; }
-#ship-over-spark {
-  width: min(320px, 88vw);
-  aspect-ratio: 320 / 60;
-  height: auto;
-  border: 1px dashed rgba(45,226,198,0.25);
-  border-radius: 10px;
-  background: rgba(8,20,32,0.6);
-}
-#ship-over-countdown { display: none; letter-spacing: 0.08em; }
+#neonvortex-over-countdown { display: none; letter-spacing: 0.08em; }
+#neonvortex-over-best-banner.show { display: inline-flex; }
+@keyframes bestPop { from { transform: scale(0.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes bestGlow { from { text-shadow: 0 0 10px rgba(255,186,32,0.6); } to { text-shadow: 0 0 26px rgba(255,186,32,1), 0 0 50px rgba(255,186,32,0.5); } }
 
 .btn-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
 .arcade-btn {
@@ -1203,7 +1253,7 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
 .haptic-toggle.available { display: inline-block; }
 
 /* ---------- records screen ---------- */
-#ship-records-body {
+#neonvortex-records-body {
   width: min(360px, 92vw);
   display: flex; flex-direction: column; gap: 14px;
   max-height: 62vh; overflow-y: auto;
@@ -1220,20 +1270,8 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
 .rec-day.empty .rec-day-score { color: rgba(234,246,255,0.25); }
 .rec-day .boss { color: var(--amber); margin-left: 6px; }
 
-/* ---------- rank + medals ---------- */
-#ship-over-rank {
-  font-family: var(--display);
-  font-size: clamp(13px, 3.6vw, 17px);
-  letter-spacing: 0.12em;
-  color: var(--amber);
-  text-shadow: 0 0 14px rgba(255,195,77,0.6);
-}
-#ship-over-rank.rank-recruit { color: var(--teal-soft); text-shadow: 0 0 12px rgba(159,245,232,0.5); }
-#ship-over-rank.rank-pilot { color: var(--teal); text-shadow: 0 0 12px rgba(45,226,198,0.6); }
-#ship-over-rank.rank-ace { color: var(--amber); text-shadow: 0 0 14px rgba(255,195,77,0.7); }
-#ship-over-rank.rank-legend { color: var(--pink); text-shadow: 0 0 18px rgba(255,90,120,0.9); }
-
-#ship-over-medals { display: none; flex-wrap: wrap; justify-content: center; gap: 8px; width: min(340px, 90vw); }
+/* ---------- rank + medals (rank colours reskinned in the over block below) ---------- */
+#neonvortex-over-medals { display: none; flex-wrap: wrap; justify-content: center; gap: 8px; width: min(340px, 90vw); }
 .medal {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 5px 10px;
@@ -1257,7 +1295,7 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
   color: var(--teal-soft);
   text-shadow: 0 0 18px rgba(45,226,198,0.7);
 }
-#ship-screen-howto .pause-title { color: var(--teal); }
+#neonvortex-screen-howto .pause-title { color: var(--teal); }
 .howto-list { display: flex; flex-direction: column; gap: 10px; width: min(420px, 90vw); text-align: left; }
 .howto-row { display: flex; gap: clamp(8px, 2vw, 12px); font-size: clamp(11px, 3vw, 13px); align-items: center; }
 /* Shepherd-style pill chip for the key (was a right-aligned label column) */
@@ -1270,7 +1308,7 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
 .howto-v { color: rgba(234,246,255,0.75); line-height: 1.5; }
 
 /* ---------- corner buttons (outside the scaled stage) ---------- */
-#ship-btn-mute, #ship-btn-pause, #ship-btn-fullscreen {
+#neonvortex-btn-mute, #neonvortex-btn-pause, #neonvortex-btn-fullscreen {
   position: fixed;
   top: calc(var(--safe-top) + 8px);
   z-index: 70;
@@ -1282,33 +1320,33 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
   cursor: pointer;
   transition: all 0.12s;
 }
-#ship-btn-mute:hover, #ship-btn-pause:hover, #ship-btn-fullscreen:hover { border-color: var(--teal); box-shadow: 0 0 14px rgba(45,226,198,0.3); }
+#neonvortex-btn-mute:hover, #neonvortex-btn-pause:hover, #neonvortex-btn-fullscreen:hover { border-color: var(--teal); box-shadow: 0 0 14px rgba(45,226,198,0.3); }
 /* pixel-line SVG glyphs (replace OS-variant emoji) — inherit the button color */
-#ship-btn-mute svg, #ship-btn-pause svg, #ship-btn-fullscreen svg { width: 20px; height: 20px; display: block; margin: auto; }
-#ship-btn-mute .spk, #ship-btn-pause rect { fill: currentColor; }
-#ship-btn-mute .waves path, #ship-btn-mute .slash, #ship-btn-fullscreen path {
+#neonvortex-btn-mute svg, #neonvortex-btn-pause svg, #neonvortex-btn-fullscreen svg { width: 20px; height: 20px; display: block; margin: auto; }
+#neonvortex-btn-mute .spk, #neonvortex-btn-pause rect { fill: currentColor; }
+#neonvortex-btn-mute .waves path, #neonvortex-btn-mute .slash, #neonvortex-btn-fullscreen path {
   fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
 }
-#ship-btn-mute .slash { display: none; }
-#ship-btn-mute.muted .waves { display: none; }
-#ship-btn-mute.muted .slash { display: inline; }
-#ship-btn-mute { right: calc(var(--safe-right) + 10px); }
-#ship-btn-fullscreen { right: calc(var(--safe-right) + 58px); display: none; }
-#ship-btn-fullscreen.available { display: block; }
+#neonvortex-btn-mute .slash { display: none; }
+#neonvortex-btn-mute.muted .waves { display: none; }
+#neonvortex-btn-mute.muted .slash { display: inline; }
+#neonvortex-btn-mute { right: calc(var(--safe-right) + 10px); }
+#neonvortex-btn-fullscreen { right: calc(var(--safe-right) + 58px); display: none; }
+#neonvortex-btn-fullscreen.available { display: block; }
 /* pause shows only during play (mute/fullscreen are then hidden), so it takes
    the flush corner slot — no floating gap. They never co-display. */
-#ship-btn-pause { right: calc(var(--safe-right) + 10px); display: none; font-family: var(--body); font-weight: 700; }
+#neonvortex-btn-pause { right: calc(var(--safe-right) + 10px); display: none; font-family: var(--body); font-weight: 700; }
 @media (max-width: 600px) {
-  #ship-btn-mute, #ship-btn-pause, #ship-btn-fullscreen { width: 38px; height: 38px; font-size: 16px; }
-  #ship-btn-mute { right: calc(var(--safe-right) + 8px); }
-  #ship-btn-fullscreen { right: calc(var(--safe-right) + 52px); }
-  #ship-btn-pause { right: calc(var(--safe-right) + 8px); }
-  #ship-hud { padding-right: calc(var(--safe-right) + 138px); }
+  #neonvortex-btn-mute, #neonvortex-btn-pause, #neonvortex-btn-fullscreen { width: 38px; height: 38px; font-size: 16px; }
+  #neonvortex-btn-mute { right: calc(var(--safe-right) + 8px); }
+  #neonvortex-btn-fullscreen { right: calc(var(--safe-right) + 52px); }
+  #neonvortex-btn-pause { right: calc(var(--safe-right) + 8px); }
+  #neonvortex-hud { padding-right: calc(var(--safe-right) + 138px); }
 }
 
 /* ---------- daily history ---------- */
-#ship-menu-streak { color: var(--teal); }
-#ship-menu-week { display: none; }
+#neonvortex-menu-streak { color: var(--teal); }
+#neonvortex-menu-week { display: none; }
 .day-cell {
   display: inline-block;
   width: 18px; height: 10px;
@@ -1345,43 +1383,561 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
    animations and replace the hit-flash with a single static tint. Gameplay is
    unaffected — only decorative DOM animation is suppressed. */
 @media (prefers-reduced-motion: reduce) {
-  #ship-hud-time.warn,
-  #ship-hud-hearts.low,
-  #ship-danger-vignette.active,
-  #ship-over-best-banner,
+  #neonvortex-hud-time.warn,
+  #neonvortex-hud-hearts.low,
+  #neonvortex-boss-hp,
+  #neonvortex-danger-vignette.active,
+  #neonvortex-over-best-banner,
+  #neonvortex-over-reason,
   .medal.is-new {
     animation: none !important;
   }
   /* keep the low-time warning legible without the blink */
-  #ship-hud-time.warn { opacity: 1; }
+  #neonvortex-hud-time.warn { opacity: 1; }
   /* danger stays readable as a steady vignette instead of a pulse */
-  #ship-danger-vignette.active { box-shadow: inset 0 0 90px 24px rgba(255,40,70,0.28); }
+  #neonvortex-danger-vignette.active { box-shadow: inset 0 0 90px 24px rgba(255,40,70,0.28); }
   /* NEW BEST! still appears, just without the pop+glow loop */
-  #ship-over-best-banner.show { animation: none !important; }
+  #neonvortex-over-best-banner.show { animation: none !important; }
   /* hit feedback becomes a brief static tint, no flash animation */
-  #ship-hit-flash.flash { animation: none !important; background: rgba(255,60,90,0.18); }
+  #neonvortex-hit-flash.flash { animation: none !important; background: rgba(255,60,90,0.18); }
   .mode-card, .game-card, .arcade-btn { transition: none !important; }
   #viewport.leaving { transition: none !important; opacity: 1; } /* JS also skips the fade under reduce */
 }
 
-/* ===== SHIP overrides: keyart title backdrop + dark neon menu =====
-   (the warm-palette menu rules above were mirrored from Zero Hour's hub;
-   SHIP uses a dark neon menu over the key art.) */
-#ship-screen-menu .panel {
-  background-image: linear-gradient(rgba(4,9,15,0.74), rgba(4,9,15,0.9)),
-    url('../assets/illustrations/zero-hour-keyart.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  border-color: #ff5a78;
+/* ===== NEON VORTEX — main MENU reskin (Stitch "_1" mockup) =====
+   Scoped strictly to #neonvortex-screen-menu. Dark navy void with a faint
+   cyan grid + blurred cyan glow blobs; centred two-line neon logo; angled-clip
+   menu buttons (gold accent on DAILY, cyan on FREE/RECORDS). Tokens/utils from
+   the M1 css/neonvortex.css :root. No remote images — pure CSS gradients. */
+#neonvortex-screen-menu {
+  background: var(--nv-bg);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
 }
-#ship-screen-menu .kicker { color: #ff8aa0; }
-#ship-screen-menu .game-title { color: #eaf6ff; text-shadow: 0 2px 14px rgba(0,0,0,0.6); }
-#ship-screen-menu .best-line { color: rgba(234,246,255,0.7); text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
-#ship-screen-menu .mode-card { background: rgba(8,20,32,0.72); border-color: #2de2c6; }
-#ship-screen-menu .mode-name { color: #eaf6ff; }
-#ship-screen-menu .mode-sub, #ship-screen-menu #ship-menu-date { color: rgba(234,246,255,0.62); }
-#ship-screen-menu .mode-meta, #ship-screen-menu #ship-menu-streak { color: #ffc34d; }
+#neonvortex-screen-menu .panel {
+  width: min(440px, 92vw);
+  /* faint cyan grid + two blurred cyan glow blobs over the navy void */
+  background-color: var(--nv-bg);
+  background-image:
+    radial-gradient(220px 220px at 18% 22%, rgba(0,219,231,0.16), transparent 70%),
+    radial-gradient(260px 260px at 88% 82%, rgba(0,219,231,0.12), transparent 72%),
+    linear-gradient(to right, rgba(0,219,231,0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,219,231,0.05) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 55%, transparent);
+  border-radius: 6px;
+  box-shadow: 0 0 28px rgba(0,219,231,0.14), inset 0 0 40px rgba(0,219,231,0.05);
+  color: var(--nv-on-surface);
+  gap: clamp(12px, 2.4vh, 20px);
+}
+
+/* ---- kicker: ARCADE_PILOT_OS — mono cyan, wide track, pulsing dot ---- */
+#neonvortex-screen-menu .kicker {
+  font-family: var(--nv-font-mono);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--nv-primary);
+  display: flex; align-items: center; gap: 8px;
+  align-self: flex-start;
+}
+#neonvortex-screen-menu .kicker::before {
+  content: "";
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--nv-primary);
+  box-shadow: 0 0 8px var(--nv-primary);
+  animation: nv-menu-dot 1.6s ease-in-out infinite;
+}
+@keyframes nv-menu-dot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.7); } }
+
+/* ---- centred two-line neon logo + ULTRA tag ---- */
+#neonvortex-screen-menu .nv-logo {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center;
+  align-self: center;
+  max-width: 100%;
+  overflow: visible;
+  text-align: center;
+  font-family: var(--nv-font-display);
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 0.9;
+  font-size: clamp(32px, 11vw, 46px);
+  margin: clamp(8px, 3vh, 22px) 0;
+  text-shadow: none;
+}
+#neonvortex-screen-menu .nv-logo-1 {
+  color: var(--nv-primary);
+  text-shadow: 0 0 8px rgba(0,219,231,0.8), 0 0 18px rgba(0,219,231,0.45);
+  animation: nv-logo-pulse 3s ease-in-out infinite;
+}
+@keyframes nv-logo-pulse {
+  0%,100% { text-shadow: 0 0 8px rgba(0,219,231,0.8), 0 0 18px rgba(0,219,231,0.4); }
+  50%     { text-shadow: 0 0 14px rgba(0,219,231,1), 0 0 30px rgba(0,219,231,0.6); }
+}
+#neonvortex-screen-menu .nv-logo-2 {
+  color: var(--nv-surface-highest);
+  -webkit-text-stroke: 1px rgba(0,219,231,0.55);
+  text-shadow: 0 0 6px rgba(0,219,231,0.3);
+}
+#neonvortex-screen-menu .nv-logo-tag {
+  position: absolute;
+  top: -0.6em; right: 0;
+  font-family: var(--nv-font-mono);
+  font-style: normal;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  padding: 3px 6px;
+  color: #ffffff;
+  background: var(--nv-threat);
+  border-radius: 3px;
+  transform: skewX(-15deg);
+  box-shadow: 0 0 10px rgba(255,36,228,0.5);
+}
+
+/* ---- best-line / footer text ---- */
+#neonvortex-screen-menu .best-line {
+  font-family: var(--nv-font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: rgba(0,219,231,0.7);
+}
+#neonvortex-screen-menu .nv-menu-footer {
+  font-family: var(--nv-font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: rgba(0,219,231,0.45);
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+/* ---- angled-clip menu cards (DAILY / FREE PLAY) + RECORDS button ---- */
+#neonvortex-screen-menu .panel .mode-card,
+#neonvortex-screen-menu .arcade-btn {
+  width: 100%;
+  background: rgba(0,219,231,0.04);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 70%, transparent);
+  border-radius: 0;
+  clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+  color: var(--nv-primary);
+  box-shadow: none;
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+}
+#neonvortex-screen-menu .panel .mode-card {
+  align-items: flex-start;
+  text-align: left;
+  padding: 16px 28px;
+}
+#neonvortex-screen-menu .arcade-btn { padding: 16px 28px; }
+
+#neonvortex-screen-menu .panel .mode-card:hover,
+#neonvortex-screen-menu .panel .mode-card:focus-visible,
+#neonvortex-screen-menu .arcade-btn:hover,
+#neonvortex-screen-menu .arcade-btn:focus-visible {
+  background: rgba(0,219,231,0.12);
+  box-shadow: 0 0 16px rgba(0,219,231,0.35);
+  transform: none;
+}
+#neonvortex-screen-menu .panel .mode-card:active,
+#neonvortex-screen-menu .arcade-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 0 10px rgba(0,219,231,0.3);
+}
+
+/* mode-card text colours */
+#neonvortex-screen-menu .mode-name {
+  font-family: var(--nv-font-display);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: inherit;
+  text-shadow: none;
+}
+#neonvortex-screen-menu .mode-sub,
+#neonvortex-screen-menu #neonvortex-menu-date {
+  color: var(--nv-on-surface-variant);
+}
+#neonvortex-screen-menu .mode-meta,
+#neonvortex-screen-menu #neonvortex-menu-streak {
+  font-family: var(--nv-font-mono);
+  font-size: 11px;
+  color: var(--nv-primary);
+}
+
+/* DAILY card → gold accent ("REWARDS_AVAILABLE") */
+#neonvortex-screen-menu #neonvortex-btn-daily {
+  color: var(--nv-value);
+  border-color: color-mix(in srgb, var(--nv-value) 70%, transparent);
+  background: rgba(255,186,32,0.05);
+}
+#neonvortex-screen-menu #neonvortex-btn-daily:hover,
+#neonvortex-screen-menu #neonvortex-btn-daily:focus-visible {
+  background: rgba(255,186,32,0.12);
+  box-shadow: 0 0 16px rgba(255,186,32,0.35);
+}
+#neonvortex-screen-menu #neonvortex-btn-daily:active {
+  box-shadow: 0 0 10px rgba(255,186,32,0.3);
+}
+#neonvortex-screen-menu #neonvortex-btn-daily .mode-meta,
+#neonvortex-screen-menu #neonvortex-btn-daily #neonvortex-menu-streak {
+  color: var(--nv-value);
+}
+
+/* RECORDS button → cyan label */
+#neonvortex-screen-menu .arcade-btn {
+  font-family: var(--nv-font-display);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+/* ===== NEON VORTEX — RESULT screen reskin (Stitch "_2" mockup) =====
+   Scoped strictly to #neonvortex-screen-over. A chamfered glass result CARD
+   over the navy void: VICTORY-style flickering cyan header + tick marks, big
+   cyan score, gold NEW BEST! pill, a 2-col stats grid with left accent borders,
+   a SEC_04 // ALPHA corner data-label, and chamfered cyan action buttons.
+   Tokens/utils from the M1 :root. No remote images — pure CSS. */
+#neonvortex-screen-over {
+  background: var(--nv-bg);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+
+/* ---- the .panel becomes the chamfered glass result card ---- */
+#neonvortex-screen-over .nv-result-card {
+  position: relative;
+  width: min(440px, 92vw);
+  /* Level-2 glass over the navy void (mirrors .nv-glass, tuned for the card) */
+  background-color: color-mix(in srgb, var(--nv-surface) 82%, transparent);
+  background-image:
+    radial-gradient(240px 200px at 14% 8%, rgba(0,219,231,0.10), transparent 70%),
+    radial-gradient(260px 220px at 92% 96%, rgba(0,219,231,0.08), transparent 72%);
+  -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 30%, transparent);
+  border-radius: 0;
+  /* 20px chamfer — top-left + bottom-right cut, matching the mockup card */
+  clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+  box-shadow: 0 0 40px rgba(0,0,0,0.5), inset 0 0 50px rgba(0,219,231,0.04);
+  color: var(--nv-on-surface);
+  padding: clamp(24px, 6vw, 34px) clamp(20px, 5vw, 28px);
+  gap: clamp(12px, 2.2vh, 18px);
+}
+/* SEC_04 // ALPHA data-label in the card's top-right corner */
+#neonvortex-screen-over .nv-result-card::after {
+  content: "SEC_04 // ALPHA";
+  position: absolute;
+  top: 10px; right: 14px;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: rgba(0,219,231,0.45);
+  pointer-events: none;
+}
+
+/* ---- VICTORY-style header: large Sora italic caps, cyan glow + flicker ---- */
+#neonvortex-screen-over #neonvortex-over-reason {
+  font-family: var(--nv-font-display);
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: clamp(26px, 8vw, 38px);
+  letter-spacing: 0.16em;
+  line-height: 1;
+  color: var(--nv-primary);
+  text-shadow: 0 0 14px rgba(0,219,231,0.8), 0 0 30px rgba(0,219,231,0.4);
+  animation: nv-flicker 3s ease-in-out infinite;
+  margin-top: 4px;
+}
+/* tick marks under the header (— · —) */
+#neonvortex-screen-over #neonvortex-over-reason::after {
+  content: "";
+  display: block;
+  width: 78px; height: 2px;
+  margin: 10px auto 0;
+  background: linear-gradient(to right,
+    var(--nv-primary) 0 38%, transparent 38% 46%,
+    var(--nv-primary) 46% 54%, transparent 54% 62%,
+    var(--nv-primary) 62% 100%);
+  box-shadow: 0 0 8px rgba(0,219,231,0.6);
+}
+
+/* ---- mode kicker (DAILY / FREE PLAY): mono cyan, wide track ---- */
+#neonvortex-screen-over .kicker {
+  font-family: var(--nv-font-mono);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(0,219,231,0.6);
+}
+
+/* ---- score block ---- */
+#neonvortex-screen-over .nv-score-block { text-align: center; }
+#neonvortex-screen-over .nv-score-label {
+  margin-bottom: 6px;
+  color: rgba(0,219,231,0.6);
+}
+#neonvortex-screen-over #neonvortex-over-score {
+  font-family: var(--nv-font-display);
+  font-weight: 800;
+  font-size: clamp(40px, 12vw, 60px);
+  line-height: 1;
+  color: var(--nv-primary);
+  text-shadow: 0 0 16px rgba(0,219,231,0.8), 0 0 34px rgba(0,219,231,0.4);
+}
+
+/* ---- rank badge (mono cyan; rank tiers tint the glyph) ---- */
+#neonvortex-screen-over #neonvortex-over-rank {
+  font-family: var(--nv-font-mono);
+  font-weight: 700;
+  font-size: clamp(12px, 3.2vw, 15px);
+  letter-spacing: 0.14em;
+  color: var(--nv-value);
+  text-shadow: 0 0 12px rgba(255,186,32,0.5);
+}
+#neonvortex-screen-over #neonvortex-over-rank.rank-recruit { color: var(--nv-primary); text-shadow: 0 0 12px rgba(0,219,231,0.5); }
+#neonvortex-screen-over #neonvortex-over-rank.rank-pilot { color: var(--nv-primary-bright); text-shadow: 0 0 12px rgba(0,219,231,0.6); }
+#neonvortex-screen-over #neonvortex-over-rank.rank-ace { color: var(--nv-value); text-shadow: 0 0 14px rgba(255,186,32,0.7); }
+#neonvortex-screen-over #neonvortex-over-rank.rank-legend { color: var(--nv-threat); text-shadow: 0 0 18px rgba(255,36,228,0.8); }
+
+/* ---- NEW BEST! gold pill ---- */
+#neonvortex-screen-over #neonvortex-over-best-banner {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  font-family: var(--nv-font-mono);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--nv-value);
+  background: rgba(255,186,32,0.10);
+  border: 1px solid color-mix(in srgb, var(--nv-value) 35%, transparent);
+  border-radius: 999px;
+  text-shadow: 0 0 12px rgba(255,186,32,0.6);
+  animation: bestPop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both, bestGlow 1.1s ease-in-out 0.45s infinite alternate;
+}
+
+/* ---- 2-col stats grid: dark tint cells, left cyan accent, mono value ---- */
+#neonvortex-screen-over #neonvortex-over-stats {
+  width: min(360px, 90vw);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+#neonvortex-screen-over .stat-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: none;
+  border-left: 2px solid color-mix(in srgb, var(--nv-primary) 55%, transparent);
+  background: rgba(0,219,231,0.05);
+  border-radius: 0 6px 6px 0;
+}
+/* every 4th cell (BOSS/CORE WARDEN row) gets the gold accent for variety */
+#neonvortex-screen-over .stat-row:nth-child(4n) {
+  border-left-color: color-mix(in srgb, var(--nv-value) 55%, transparent);
+  background: rgba(255,186,32,0.05);
+}
+#neonvortex-screen-over .stat-k {
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nv-on-surface-variant);
+}
+#neonvortex-screen-over .stat-v {
+  font-family: var(--nv-font-mono);
+  font-size: clamp(14px, 4vw, 18px);
+  font-weight: 700;
+  color: var(--nv-primary);
+  text-shadow: 0 0 10px rgba(0,219,231,0.4);
+}
+#neonvortex-screen-over .stat-row:nth-child(4n) .stat-v {
+  color: var(--nv-value);
+  text-shadow: 0 0 10px rgba(255,186,32,0.4);
+}
+
+/* ---- pace sparkline ---- */
+#neonvortex-screen-over #neonvortex-over-spark {
+  width: min(360px, 90vw);
+  aspect-ratio: 320 / 60;
+  height: auto;
+  border: 1px solid rgba(0,219,231,0.2);
+  border-radius: 4px;
+  background: rgba(0,219,231,0.03);
+}
+
+/* ---- earned-medal pills ---- */
+#neonvortex-screen-over .medal {
+  font-family: var(--nv-font-mono);
+  border-color: color-mix(in srgb, var(--nv-primary) 45%, transparent);
+  color: var(--nv-on-surface-variant);
+}
+#neonvortex-screen-over .medal.earned { border-color: var(--nv-primary); box-shadow: 0 0 10px rgba(0,219,231,0.25); }
+#neonvortex-screen-over .medal.is-new { border-color: var(--nv-value); color: var(--nv-value); box-shadow: 0 0 14px rgba(255,186,32,0.6); }
+
+/* ---- action buttons: solid cyan RETRY + outlined cyan SHARE/MENU ---- */
+#neonvortex-screen-over .btn-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+#neonvortex-screen-over .arcade-btn {
+  font-family: var(--nv-font-display);
+  font-weight: 800;
+  font-size: clamp(11px, 3vw, 13px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 0;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease, filter 0.15s ease;
+}
+/* RETRY → big solid cyan, full width, with glow */
+#neonvortex-screen-over #neonvortex-btn-retry {
+  grid-column: 1 / -1;
+  padding: 16px 24px;
+  color: var(--nv-bg);
+  background: var(--nv-primary);
+  border: 1px solid var(--nv-primary);
+  box-shadow: 0 0 20px rgba(0,219,231,0.4);
+}
+#neonvortex-screen-over #neonvortex-btn-retry:hover,
+#neonvortex-screen-over #neonvortex-btn-retry:focus-visible {
+  filter: brightness(1.1);
+  box-shadow: 0 0 28px rgba(0,219,231,0.6);
+  transform: none;
+}
+#neonvortex-screen-over #neonvortex-btn-retry:active { transform: scale(0.97); }
+/* SHARE / MENU → outlined cyan chamfer */
+#neonvortex-screen-over #neonvortex-btn-share,
+#neonvortex-screen-over #neonvortex-btn-menu {
+  padding: 12px 18px;
+  color: var(--nv-primary);
+  background: rgba(0,219,231,0.05);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 40%, transparent);
+  box-shadow: none;
+}
+#neonvortex-screen-over #neonvortex-btn-share:hover,
+#neonvortex-screen-over #neonvortex-btn-share:focus-visible,
+#neonvortex-screen-over #neonvortex-btn-menu:hover,
+#neonvortex-screen-over #neonvortex-btn-menu:focus-visible {
+  background: rgba(0,219,231,0.12);
+  box-shadow: 0 0 16px rgba(0,219,231,0.35);
+  transform: none;
+}
+#neonvortex-screen-over #neonvortex-btn-share:active,
+#neonvortex-screen-over #neonvortex-btn-menu:active { transform: scale(0.97); }
+/* when SHARE is hidden (free play), MENU spans the row */
+#neonvortex-screen-over #neonvortex-btn-share[style*="none"] + #neonvortex-btn-menu { grid-column: 1 / -1; }
+
+/* ---- countdown + help line: mono dim cyan ---- */
+#neonvortex-screen-over #neonvortex-over-countdown,
+#neonvortex-screen-over .kr-sub {
+  font-family: var(--nv-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: rgba(0,219,231,0.45);
+}
+
+/* ===== NEON VORTEX screen styles =====
+   Secondary dialog screens (PAUSE / HOW TO PLAY / RECORDS) reskinned to match
+   the menu + result look: dark glass .panel (translucent --nv-surface over the
+   --nv-bg void, cyan --nv-primary hairline + subtle glow), Sora display titles,
+   Space Mono kicker/key labels, readable --nv-on-surface-variant body copy.
+   Scoped strictly to the three #neonvortex-screen-* dialogs — no platform leak. */
+#neonvortex-screen-pause,
+#neonvortex-screen-howto,
+#neonvortex-screen-records {
+  background: color-mix(in srgb, var(--nv-bg) 88%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+#neonvortex-screen-pause .panel,
+#neonvortex-screen-howto .panel,
+#neonvortex-screen-records .panel {
+  width: min(440px, 92vw);
+  background: color-mix(in srgb, var(--nv-surface) 90%, transparent);
+  background-image: none;
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 30%, transparent);
+  border-radius: 14px;
+  box-shadow:
+    0 0 22px color-mix(in srgb, var(--nv-primary) 18%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--nv-primary) 12%, transparent);
+  color: var(--nv-on-surface);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+/* kicker: Space Mono, spaced cyan eyebrow with a leading tick */
+#neonvortex-screen-pause .kicker,
+#neonvortex-screen-howto .kicker,
+#neonvortex-screen-records .kicker {
+  font-family: var(--nv-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-primary) 75%, transparent);
+}
+/* title: Sora display, bright with a soft cyan bloom */
+#neonvortex-screen-pause .pause-title,
+#neonvortex-screen-howto .pause-title,
+#neonvortex-screen-records .pause-title {
+  font-family: var(--nv-font-display);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: var(--nv-on-surface);
+  text-shadow: 0 0 16px color-mix(in srgb, var(--nv-primary) 45%, transparent);
+}
+/* body / supporting copy */
+#neonvortex-screen-pause .controls-hint,
+#neonvortex-screen-howto .howto-v,
+#neonvortex-screen-records .rec-best-meta {
+  color: var(--nv-on-surface-variant);
+}
+#neonvortex-screen-records .rec-section-title,
+#neonvortex-screen-records .rec-day-date {
+  font-family: var(--nv-font-mono);
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 70%, transparent);
+}
+#neonvortex-screen-records .rec-best {
+  font-family: var(--nv-font-display);
+  color: var(--nv-primary-bright);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--nv-primary) 50%, transparent);
+}
+#neonvortex-screen-records .rec-day {
+  border-bottom-color: color-mix(in srgb, var(--nv-primary) 16%, transparent);
+}
+#neonvortex-screen-records .rec-streak,
+#neonvortex-screen-records .rec-day .boss { color: var(--nv-value); }
+/* how-to key chip: Space Mono pill, cyan hairline on a faint cyan wash */
+#neonvortex-screen-howto .howto-k {
+  font-family: var(--nv-font-mono) !important;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--nv-primary);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 40%, transparent);
+  background: color-mix(in srgb, var(--nv-primary) 12%, transparent);
+}
+
+/* ===== HUD polish — empty combo / inactive heat must not render a pill ===== */
+#neonvortex-hud-combo:empty,
+#neonvortex-hud-heat:not(.on) {
+  background: none;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+  text-shadow: none;
+}
 
 </style>
 <link rel="preload" as="image" href="assets/illustrations/ship_assets.png">
@@ -1563,8 +2119,8 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
       <div id="neonvortex-screen-menu" class="screen" data-screen-label="Ship — Main Menu">
         <button id="neonvortex-btn-arcade" class="back-btn" type="button">← ARCADE</button>
         <div class="panel">
-          <span class="kicker">NEON INTERCEPTOR</span>
-          <h1 class="game-title">SHIP</h1>
+          <span class="kicker">ARCADE_PILOT_OS</span>
+          <h1 class="game-title nv-logo"><span class="nv-logo-1">NEON</span><span class="nv-logo-2">VORTEX</span><span class="nv-logo-tag">ULTRA</span></h1>
           <div class="mode-row">
             <button id="neonvortex-btn-daily" class="mode-card" type="button">
               <span class="mode-name">DAILY</span>
@@ -1580,15 +2136,16 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
           <p id="neonvortex-menu-all-best" class="best-line">ALL-TIME BEST —</p>
           <p id="neonvortex-menu-week" class="best-line"></p>
           <button id="neonvortex-btn-records" class="arcade-btn" type="button">RECORDS</button>
+          <p class="nv-menu-footer">V_2.0 // PROD</p>
         </div>
       </div>
 
       <div id="neonvortex-screen-over" class="screen" data-screen-label="Ship — Game Over" role="dialog" aria-modal="true" aria-label="Game over — result">
-        <div class="panel">
-          <span id="neonvortex-over-mode" class="kicker">DAILY</span>
+        <div class="panel nv-result-card">
           <span id="neonvortex-over-reason">TIME UP</span>
-          <div>
-            <p class="hud-label" style="font-size: 10px; margin-bottom: 8px;">FINAL SCORE</p>
+          <span id="neonvortex-over-mode" class="kicker">DAILY</span>
+          <div class="nv-score-block">
+            <p class="hud-label nv-score-label">TOTAL_SCORE</p>
             <p id="neonvortex-over-score">0</p>
           </div>
           <div id="neonvortex-over-rank"></div>
@@ -1608,7 +2165,7 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
 
       <div id="neonvortex-screen-pause" class="screen" data-screen-label="Ship — Paused" role="dialog" aria-modal="true" aria-label="Paused">
         <div class="panel">
-          <span class="kicker">SHIP</span>
+          <span class="kicker">ARCADE_PILOT_OS</span>
           <span class="pause-title">PAUSED</span>
           <div class="btn-row">
             <button id="neonvortex-btn-resume" class="arcade-btn primary" type="button">RESUME</button>
@@ -1626,7 +2183,7 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
 
       <div id="neonvortex-screen-howto" class="screen" data-screen-label="Ship — How To Play" role="dialog" aria-modal="true" aria-label="How to play">
         <div class="panel">
-        <span class="kicker">SHIP</span>
+        <span class="kicker">ARCADE_PILOT_OS</span>
         <span class="pause-title">HOW TO PLAY</span>
         <div class="howto-list">
           <div class="howto-row"><span class="howto-k">MOVE</span><span class="howto-v">WASD / ARROW KEYS · 모바일: 화면 드래그</span></div>
@@ -1644,7 +2201,7 @@ body.portrait #ship-boss-hp { top: calc(var(--safe-top) + 78px); }
 
       <div id="neonvortex-screen-records" class="screen" data-screen-label="Ship — Records" role="dialog" aria-modal="true" aria-label="Records">
         <div class="panel">
-          <span class="kicker">SHIP</span>
+          <span class="kicker">ARCADE_PILOT_OS</span>
           <span class="pause-title">RECORDS</span>
           <div id="neonvortex-records-body"></div>
           <div class="btn-row">

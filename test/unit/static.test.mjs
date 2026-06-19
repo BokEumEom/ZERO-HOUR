@@ -97,3 +97,12 @@ test('no stale "ship" identifiers remain in the renamed game', () => {
   assert.ok(!/css\/ship\.css/.test(html), 'no css/ship.css link');
   assert.ok(!/["'(]ship-/.test(html), 'no ship- DOM id prefix');
 });
+
+test('neonvortex menu is reskinned to NEON VORTEX (no stale SHIP label)', () => {
+  const html = read('index.html');
+  assert.match(html, /class="game-title nv-logo"/, 'NEON VORTEX logo present');
+  assert.ok(!/<span class="kicker">SHIP<\/span>/.test(html), 'no stale SHIP kicker');
+  const css = read('css/neonvortex.css');
+  assert.ok(!css.includes('#ship-'), 'no ship-scoped CSS selectors remain');
+  assert.ok(css.includes('#neonvortex-screen-menu'), 'neonvortex menu scope present');
+});
