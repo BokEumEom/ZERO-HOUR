@@ -1,3 +1,35 @@
+/* ===== NEON VORTEX — Neon Syndicate design tokens (Stitch DESIGN.md) ===== */
+/* Custom props are namespaced --nv-*; they do not override platform tokens
+   unless explicitly consumed by neonvortex-scoped selectors. */
+:root {
+  /* Void & Vapor surfaces */
+  --nv-bg: #0a0a0f;
+  --nv-surface: #131318;
+  --nv-surface-low: #1b1b20;
+  --nv-surface-container: #1f1f25;
+  --nv-surface-high: #2a292f;
+  --nv-surface-highest: #35343a;
+  --nv-on-surface: #e4e1e9;
+  --nv-on-surface-variant: #b9cacb;
+  --nv-outline: #849495;
+  --nv-outline-variant: #3a494b;
+  /* Neon accents */
+  --nv-primary: #00dbe7;        /* cyan — player / positive */
+  --nv-primary-bright: #74f5ff;
+  --nv-threat: #ff24e4;         /* magenta — enemy / critical */
+  --nv-threat-soft: #fface8;
+  --nv-value: #ffba20;          /* gold — currency / advancement */
+  --nv-value-soft: #ffd58c;
+  --nv-error: #ffb4ab;
+  /* Type families (fallbacks keep the core working if Google Fonts fail) */
+  --nv-font-display: 'Sora', 'Press Start 2P', system-ui, sans-serif;
+  --nv-font-body: 'Hanken Grotesk', system-ui, sans-serif;
+  --nv-font-mono: 'Space Mono', 'IBM Plex Mono', ui-monospace, monospace;
+  /* 4px hard grid */
+  --nv-unit: 4px;
+  --nv-gutter: 16px;
+  --nv-margin: 24px;
+}
 /* Scoreyard - all UI styles (game canvas rendering lives in js/render.js)
    Mobile-first layout (ADR-0006): #stage (canvas+crt) is the ONLY scaled
    element; HUD / screens / buttons are viewport-level fixed DOM that never
