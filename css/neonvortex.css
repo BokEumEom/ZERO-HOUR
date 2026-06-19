@@ -1505,6 +1505,218 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   letter-spacing: 0.14em;
   color: color-mix(in srgb, var(--nv-on-surface-variant) 50%, transparent);
 }
+
+/* ===== RANKING console — reference UI (header / highscores title / matrix chart) ===== */
+/* full-bleed scrolling column so the chart, table and medals can breathe */
+#neonvortex-screen-records .nv-rank-shell {
+  width: min(460px, 94vw);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: left;
+  color: var(--nv-on-surface);
+}
+/* header: back control left, mono terminal tag right, hairline base */
+#neonvortex-screen-records .nv-rank-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--nv-primary) 20%, transparent);
+}
+#neonvortex-screen-records .nv-rank-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-primary) 78%, transparent);
+  transition: color 0.15s ease, transform 0.1s ease;
+}
+#neonvortex-screen-records .nv-rank-back:hover,
+#neonvortex-screen-records .nv-rank-back:focus-visible {
+  color: var(--nv-primary-bright);
+  outline: none;
+}
+#neonvortex-screen-records .nv-rank-back:active { transform: scale(0.96); }
+#neonvortex-screen-records .nv-rank-back-icon { width: 14px; height: 14px; }
+#neonvortex-screen-records .nv-rank-status {
+  font-family: var(--nv-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--nv-primary);
+}
+/* title: Sora extrabold italic with a cyan bloom, thin gradient rule beneath */
+#neonvortex-screen-records .nv-rank-title-wrap { display: flex; flex-direction: column; gap: 4px; }
+#neonvortex-screen-records .nv-rank-title {
+  font-family: var(--nv-font-display);
+  font-size: clamp(18px, 5.4vw, 24px);
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--nv-primary);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--nv-primary) 50%, transparent);
+}
+#neonvortex-screen-records .nv-rank-rule {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(to right,
+    color-mix(in srgb, var(--nv-primary) 45%, transparent), transparent);
+}
+/* records body becomes the column that stacks chart -> table -> achievements */
+#neonvortex-screen-records #neonvortex-records-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---- TACTICAL COMPARATIVE MATRIX: bordered chamfered telemetry card ---- */
+#neonvortex-screen-records .nv-mx-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--nv-bg) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 25%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--nv-primary) 12%, transparent);
+  overflow: hidden;
+}
+/* chamfered corners — a small clipped notch top-right / bottom-left */
+#neonvortex-screen-records .nv-mx-card.clip-chamfer {
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+}
+/* subtle animated pulse on the card top border */
+#neonvortex-screen-records .nv-mx-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 2px;
+  background: linear-gradient(to right, transparent,
+    color-mix(in srgb, var(--nv-primary) 40%, transparent), transparent);
+  animation: nv-mx-pulse 2.6s ease-in-out infinite;
+}
+@keyframes nv-mx-pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.9; } }
+@media (prefers-reduced-motion: reduce) {
+  #neonvortex-screen-records .nv-mx-card::before { animation: none; opacity: 0.6; }
+}
+#neonvortex-screen-records .nv-mx-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+#neonvortex-screen-records .nv-mx-head-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+#neonvortex-screen-records .nv-mx-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--nv-font-display);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--nv-on-surface);
+}
+#neonvortex-screen-records .nv-mx-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--nv-primary);
+  box-shadow: 0 0 8px var(--nv-primary);
+}
+#neonvortex-screen-records .nv-mx-sub {
+  font-family: var(--nv-font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 60%, transparent);
+}
+#neonvortex-screen-records .nv-mx-anl {
+  flex-shrink: 0;
+  font-family: var(--nv-font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  border-radius: 5px;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 75%, transparent);
+  background: color-mix(in srgb, var(--nv-surface-high) 50%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 12%, transparent);
+}
+#neonvortex-screen-records .nv-mx-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--nv-font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+#neonvortex-screen-records .nv-mx-leg { display: inline-flex; align-items: center; gap: 5px; }
+#neonvortex-screen-records .nv-mx-leg-cyan { color: var(--nv-primary); }
+#neonvortex-screen-records .nv-mx-leg-gold { color: var(--nv-value); }
+#neonvortex-screen-records .nv-mx-swatch {
+  width: 10px; height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}
+#neonvortex-screen-records .nv-mx-leg-cyan .nv-mx-swatch {
+  background: color-mix(in srgb, var(--nv-primary) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 80%, transparent);
+}
+#neonvortex-screen-records .nv-mx-leg-gold .nv-mx-swatch {
+  background: color-mix(in srgb, var(--nv-value) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-value) 80%, transparent);
+}
+#neonvortex-screen-records .nv-mx-plot { width: 100%; }
+#neonvortex-screen-records .nv-mx-svg { width: 100%; height: auto; display: block; }
+/* SVG element styling (attributes can't carry these) */
+#neonvortex-screen-records .nv-mx-grid { stroke: rgba(255, 255, 255, 0.05); stroke-width: 1; }
+#neonvortex-screen-records .nv-mx-axis { stroke: rgba(255, 255, 255, 0.15); stroke-width: 1.2; }
+#neonvortex-screen-records .nv-mx-divider {
+  stroke: color-mix(in srgb, var(--nv-primary) 25%, transparent);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+}
+#neonvortex-screen-records .nv-mx-ylabel {
+  fill: color-mix(in srgb, var(--nv-on-surface-variant) 60%, transparent);
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  font-weight: 600;
+}
+#neonvortex-screen-records .nv-mx-cap-cyan { stroke: var(--nv-primary-bright); stroke-width: 1.5; }
+#neonvortex-screen-records .nv-mx-cap-gold { stroke: var(--nv-value-soft); stroke-width: 1.5; }
+#neonvortex-screen-records .nv-mx-tag {
+  fill: color-mix(in srgb, var(--nv-on-surface-variant) 60%, transparent);
+  font-family: var(--nv-font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+}
+#neonvortex-screen-records .nv-mx-empty {
+  fill: color-mix(in srgb, var(--nv-on-surface-variant) 45%, transparent);
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+#neonvortex-screen-records .nv-mx-grouplabel {
+  font-family: var(--nv-font-mono);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+#neonvortex-screen-records .nv-mx-grouplabel-cyan { fill: var(--nv-primary); }
+#neonvortex-screen-records .nv-mx-grouplabel-gold { fill: var(--nv-value); }
+
 /* ===== SETTINGS console — reference UI (header / title / control + info cards) ===== */
 /* The settings screen drops the shared .panel; it is a full-bleed scrolling
    console column so the two cards can breathe and scroll on tall phones. */

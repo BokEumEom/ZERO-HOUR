@@ -191,6 +191,104 @@
   }
 
   // ---------- records screen ----------
+  // K-format an axis value (>=1000 -> "12K"), used only for the chart's Y labels
+  const kFmt = (v) => (v >= 1000 ? Math.round(v / 1000) + 'K' : String(Math.round(v)));
+
+  // Build the TACTICAL COMPARATIVE MATRIX as an inline-SVG bar chart (display-only).
+  // cyanRows: top-5 ranked scores (cumulative leaders); goldDays: recent daily
+  // history (newest-first). All values are REAL local records — no fabricated data.
+  function buildMatrixChart(cyanRows, goldDays) {
+    const cyan = cyanRows.slice(0, 5).map((r) => ({ score: Number(r.score) || 0 }));
+    // recent daily runs, chronological (oldest -> newest), most recent 5
+    const gold = goldDays
+      .filter((d) => d.rec)
+      .slice(0, 5)
+      .reverse()
+      .map((d) => ({ score: Number(d.rec.score) || 0 }));
+
+    // Y ceiling: max real score, rounded up to a clean step; floor of 1000 so an
+    // empty/sparse board still renders sensible gridlines.
+    const peak = Math.max(0, ...cyan.map((c) => c.score), ...gold.map((g) => g.score));
+    const step = peak >= 1000 ? 1000 : 100;
+    const yCeil = Math.max(step, Math.ceil(peak / step) * step) || 1000;
+
+    const X0 = 55, X1 = 485, Y_TOP = 15, Y_BASE = 155, H = Y_BASE - Y_TOP; // plot frame
+    const MID = 262; // divider between cyan (left) and gold (right) groups
+    const barW = 24, gap = 36;
+
+    const barY = (score) => Y_BASE - Math.max(3, (score / yCeil) * H);
+    const barH = (score) => Math.max(3, (score / yCeil) * H);
+
+    // Y gridlines + labels at 0/25/50/75/100%
+    let grid = '';
+    [0, 0.25, 0.5, 0.75, 1].forEach((ratio) => {
+      const y = Y_TOP + (1 - ratio) * H;
+      const val = Math.round(ratio * yCeil);
+      const label = val === 0 ? '0' : kFmt(val);
+      grid += '<line class="nv-mx-grid" x1="' + X0 + '" y1="' + y + '" x2="' + X1 + '" y2="' + y + '"/>' +
+        '<text class="nv-mx-ylabel" x="48" y="' + (y + 3.5) + '" text-anchor="end">' + label + '</text>';
+    });
+
+    // cyan bars (left group)
+    let cyanBars = '';
+    cyan.forEach((c, i) => {
+      const x = X0 + 15 + i * gap;
+      cyanBars += '<rect class="nv-mx-bar" x="' + x + '" y="' + barY(c.score) + '" width="' + barW +
+        '" height="' + barH(c.score) + '" rx="2" fill="url(#nvMxCyan)"/>' +
+        '<line class="nv-mx-cap nv-mx-cap-cyan" x1="' + x + '" y1="' + barY(c.score) + '" x2="' + (x + barW) + '" y2="' + barY(c.score) + '"/>' +
+        '<text class="nv-mx-tag" x="' + (x + barW / 2) + '" y="166" text-anchor="middle">#' + (i + 1) + '</text>';
+    });
+
+    // gold bars (right group) — or a faint "no recent runs" note
+    let goldBars = '';
+    if (gold.length) {
+      gold.forEach((g, i) => {
+        const x = MID + 20 + i * gap;
+        goldBars += '<rect class="nv-mx-bar" x="' + x + '" y="' + barY(g.score) + '" width="' + barW +
+          '" height="' + barH(g.score) + '" rx="2" fill="url(#nvMxGold)"/>' +
+          '<line class="nv-mx-cap nv-mx-cap-gold" x1="' + x + '" y1="' + barY(g.score) + '" x2="' + (x + barW) + '" y2="' + barY(g.score) + '"/>' +
+          '<text class="nv-mx-tag" x="' + (x + barW / 2) + '" y="166" text-anchor="middle">R' + (i + 1) + '</text>';
+      });
+    } else {
+      goldBars = '<text class="nv-mx-empty" x="373" y="88" text-anchor="middle">최근 런 없음</text>';
+    }
+
+    const svg = '<svg class="nv-mx-svg" viewBox="0 0 500 180" preserveAspectRatio="xMidYMid meet" aria-hidden="true">' +
+      '<defs>' +
+        '<linearGradient id="nvMxCyan" x1="0" y1="0" x2="0" y2="1">' +
+          '<stop offset="0%" stop-color="#00dbe7" stop-opacity="0.95"/>' +
+          '<stop offset="100%" stop-color="#00dbe7" stop-opacity="0.15"/>' +
+        '</linearGradient>' +
+        '<linearGradient id="nvMxGold" x1="0" y1="0" x2="0" y2="1">' +
+          '<stop offset="0%" stop-color="#ffba20" stop-opacity="0.95"/>' +
+          '<stop offset="100%" stop-color="#ffba20" stop-opacity="0.15"/>' +
+        '</linearGradient>' +
+      '</defs>' +
+      grid +
+      '<line class="nv-mx-divider" x1="' + MID + '" y1="10" x2="' + MID + '" y2="162"/>' +
+      '<line class="nv-mx-axis" x1="' + X0 + '" y1="' + Y_BASE + '" x2="' + X1 + '" y2="' + Y_BASE + '"/>' +
+      '<line class="nv-mx-axis" x1="' + X0 + '" y1="' + Y_TOP + '" x2="' + X0 + '" y2="' + Y_BASE + '"/>' +
+      cyanBars + goldBars +
+      '<text class="nv-mx-grouplabel nv-mx-grouplabel-cyan" x="137" y="178" text-anchor="middle">누적 TOP</text>' +
+      '<text class="nv-mx-grouplabel nv-mx-grouplabel-gold" x="373" y="178" text-anchor="middle">최근 런</text>' +
+      '</svg>';
+
+    return '<section class="nv-mx-card clip-chamfer">' +
+      '<header class="nv-mx-head">' +
+        '<div class="nv-mx-head-text">' +
+          '<span class="nv-mx-title"><span class="nv-mx-dot"></span>TACTICAL COMPARATIVE MATRIX</span>' +
+          '<span class="nv-mx-sub">SYSTEM TELEMETRY // TOP-5 점수 vs 최근 런</span>' +
+        '</div>' +
+        '<span class="nv-mx-anl">TCE_ANL_V3</span>' +
+      '</header>' +
+      '<div class="nv-mx-legend">' +
+        '<span class="nv-mx-leg nv-mx-leg-cyan"><span class="nv-mx-swatch"></span>누적 TOP</span>' +
+        '<span class="nv-mx-leg nv-mx-leg-gold"><span class="nv-mx-swatch"></span>최근 런</span>' +
+      '</div>' +
+      '<div class="nv-mx-plot">' + svg + '</div>' +
+      '</section>';
+  }
+
   async function renderRecords() {
     const [days, streak, owned] = await Promise.all([
       gameStore.loadRecentDailies(14),
@@ -217,7 +315,11 @@
     }
     rows.sort((x, y) => y.score - x.score);
 
-    let html = '<div class="nv-lb">';
+    // TACTICAL COMPARATIVE MATRIX: cyan = cumulative top-5 (same ranked rows
+    // the table uses), gold = recent daily-run progression (chronological).
+    let html = buildMatrixChart(rows, days);
+
+    html += '<div class="nv-lb">';
     html += '<div class="nv-lb-head"><span class="nv-lb-rank">RANK</span>' +
       '<span class="nv-lb-pilot">PILOT_FILE</span>' +
       '<span class="nv-lb-score">SCORE</span></div>';

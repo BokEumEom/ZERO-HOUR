@@ -305,13 +305,21 @@
       </div>
 
       <div id="neonvortex-screen-records" class="screen" data-screen-label="NEON VORTEX — Ranking" role="dialog" aria-modal="true" aria-label="Ranking">
-        <div class="panel">
-          <span class="kicker">ARCADE_PILOT_OS</span>
-          <span class="pause-title">RANKING</span>
-          <div id="neonvortex-records-body"></div>
-          <div class="btn-row">
-            <button id="neonvortex-btn-records-back" class="arcade-btn primary" type="button">BACK</button>
+        <div class="nv-rank-shell">
+          <header class="nv-rank-head">
+            <button id="neonvortex-btn-records-back" class="nv-rank-back" type="button">
+              <svg class="nv-rank-back-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>LOBBY_CONTROL</span>
+            </button>
+            <span class="nv-rank-status">▣ SECURE_DATABASE // READY</span>
+          </header>
+
+          <div class="nv-rank-title-wrap">
+            <h1 class="nv-rank-title">ARCADE PILOT HIGHSCORES</h1>
+            <div class="nv-rank-rule"></div>
           </div>
+
+          <div id="neonvortex-records-body"></div>
         </div>
       </div>
       <div id="neonvortex-screen-settings" class="screen" data-screen-label="NEON VORTEX — Settings" role="dialog" aria-modal="true" aria-label="Settings">
