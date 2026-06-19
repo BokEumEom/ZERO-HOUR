@@ -2854,6 +2854,57 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 }
 #neonvortex-screen-challenge .nv-chal-launch:active { transform: scale(0.98); }
 
+/* ===== shared base for the display-only meta pages =====
+   Hangar / System Overhaul / Achievements / Pilot Log each fill .nv-page-body;
+   per-page styling is appended by each page. This base gives a scrollable,
+   padded, dark-grid shell with a back control. */
+#neonvortex-screen-hangar .nv-page-shell,
+#neonvortex-screen-overhaul .nv-page-shell,
+#neonvortex-screen-achievements .nv-page-shell,
+#neonvortex-screen-pilotlog .nv-page-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: clamp(18px, 5vw, 28px) clamp(16px, 4.5vw, 26px) 32px;
+  overflow-y: auto;
+}
+#neonvortex-screen-hangar .nv-page-back,
+#neonvortex-screen-overhaul .nv-page-back,
+#neonvortex-screen-achievements .nv-page-back,
+#neonvortex-screen-pilotlog .nv-page-back {
+  align-self: flex-start;
+  flex: 0 0 auto;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  font-family: var(--nv-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--nv-primary);
+  cursor: pointer;
+  transition: color 0.15s ease, transform 0.12s ease;
+}
+#neonvortex-screen-hangar .nv-page-back:hover,
+#neonvortex-screen-overhaul .nv-page-back:hover,
+#neonvortex-screen-achievements .nv-page-back:hover,
+#neonvortex-screen-pilotlog .nv-page-back:hover { color: var(--nv-primary-bright); }
+#neonvortex-screen-hangar .nv-page-back:active,
+#neonvortex-screen-overhaul .nv-page-back:active,
+#neonvortex-screen-achievements .nv-page-back:active,
+#neonvortex-screen-pilotlog .nv-page-back:active { transform: scale(0.96); }
+#neonvortex-screen-hangar .nv-page-body,
+#neonvortex-screen-overhaul .nv-page-body,
+#neonvortex-screen-achievements .nv-page-body,
+#neonvortex-screen-pilotlog .nv-page-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 </style>
 <link rel="preload" as="image" href="assets/illustrations/ship_assets.png">
 <link rel="preload" as="image" href="assets/illustrations/zero-hour-keyart.png">
@@ -3067,9 +3118,25 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
               <svg class="nv-mi-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="9" rx="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7 12.5h3M8.5 11v3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="15.5" cy="11.5" r="1.1" fill="currentColor"/><circle cx="17.6" cy="13.6" r="1.1" fill="currentColor"/></svg>
               <span class="nv-mi-sub">무작위 시드 아레나</span>
             </button>
+            <button id="neonvortex-btn-hangar" class="nv-menu-item" type="button">
+              <span class="nv-mi-label">HANGAR</span>
+              <svg class="nv-mi-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M15.5 8.5l-2.2 4.8-4.8 2.2 2.2-4.8z" fill="currentColor"/></svg>
+            </button>
+            <button id="neonvortex-btn-overhaul" class="nv-menu-item" type="button">
+              <span class="nv-mi-label">SYSTEM OVERHAUL</span>
+              <svg class="nv-mi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 00-5.4 5.4l-5 5 2 2 5-5a4 4 0 005.4-5.4l-2.3 2.3-2-2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+            </button>
             <button id="neonvortex-btn-records" class="nv-menu-item" type="button">
               <span class="nv-mi-label">RANKING</span>
               <svg class="nv-mi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V11M12 21V4M19 21v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <button id="neonvortex-btn-achievements" class="nv-menu-item" type="button">
+              <span class="nv-mi-label">ACHIEVEMENTS</span>
+              <svg class="nv-mi-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 13l-1.5 8 4.5-3 4.5 3L15 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+            </button>
+            <button id="neonvortex-btn-pilotlog" class="nv-menu-item" type="button">
+              <span class="nv-mi-label">PILOT LOG</span>
+              <svg class="nv-mi-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 8h8M8 12h8M8 16h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
             </button>
             <button id="neonvortex-btn-settings" class="nv-menu-item" type="button">
               <span class="nv-mi-label">SETTINGS</span>
@@ -3305,6 +3372,34 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
           <button id="neonvortex-btn-challenge-launch" class="nv-chal-launch" type="button">
             <span class="nv-chal-launch-label">▶ 작전 개시 (LAUNCH SEQUENCE)</span>
           </button>
+        </div>
+      </div>
+
+      <div id="neonvortex-screen-hangar" class="screen" data-screen-label="NEON VORTEX — Hangar" role="dialog" aria-modal="true" aria-label="Striker Hangar">
+        <div class="nv-page-shell">
+          <button id="neonvortex-btn-hangar-back" class="nv-page-back" type="button">← RETURN_TO_BASE</button>
+          <div id="neonvortex-hangar-body" class="nv-page-body"></div>
+        </div>
+      </div>
+
+      <div id="neonvortex-screen-overhaul" class="screen" data-screen-label="NEON VORTEX — System Overhaul" role="dialog" aria-modal="true" aria-label="System Overhaul">
+        <div class="nv-page-shell">
+          <button id="neonvortex-btn-overhaul-back" class="nv-page-back" type="button">← RETURN_TO_BASE</button>
+          <div id="neonvortex-overhaul-body" class="nv-page-body"></div>
+        </div>
+      </div>
+
+      <div id="neonvortex-screen-achievements" class="screen" data-screen-label="NEON VORTEX — Achievements" role="dialog" aria-modal="true" aria-label="Tactical Badges">
+        <div class="nv-page-shell">
+          <button id="neonvortex-btn-achievements-back" class="nv-page-back" type="button">← RETURN_TO_BASE</button>
+          <div id="neonvortex-achievements-body" class="nv-page-body"></div>
+        </div>
+      </div>
+
+      <div id="neonvortex-screen-pilotlog" class="screen" data-screen-label="NEON VORTEX — Pilot Log" role="dialog" aria-modal="true" aria-label="Pilot Log">
+        <div class="nv-page-shell">
+          <button id="neonvortex-btn-pilotlog-back" class="nv-page-back" type="button">← RETURN TO COMMAND BASE</button>
+          <div id="neonvortex-pilotlog-body" class="nv-page-body"></div>
         </div>
       </div>
   </div>
@@ -6937,9 +7032,13 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     'screen-records': 'btn-records-back',
     'screen-settings': 'btn-settings-back',
     'screen-challenge': 'btn-challenge-launch', // a11y: focus the CTA on open
+    'screen-hangar': 'btn-hangar-back',
+    'screen-overhaul': 'btn-overhaul-back',
+    'screen-achievements': 'btn-achievements-back',
+    'screen-pilotlog': 'btn-pilotlog-back',
   };
   function show(screenId) {
-    for (const id of ['screen-menu', 'screen-over', 'screen-pause', 'screen-howto', 'screen-records', 'screen-settings', 'screen-challenge']) {
+    for (const id of ['screen-menu', 'screen-over', 'screen-pause', 'screen-howto', 'screen-records', 'screen-settings', 'screen-challenge', 'screen-hangar', 'screen-overhaul', 'screen-achievements', 'screen-pilotlog']) {
       $(id).classList.toggle('visible', id === screenId);
     }
     if (screenId !== 'screen-over') stopCountdown();
@@ -7185,6 +7284,14 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     const streakPct = Math.max(0, Math.min(100, (streak / 7) * 100));
     $('chal-streak-fill').style.width = streakPct.toFixed(0) + '%';
   }
+
+  // ---- display-only meta pages; implemented per-page. Each only READS recs /
+  // recs.lifetime / medals and renders into its *-body via createElement; none
+  // touch the simulation, score, drops, or the daily seed. ----
+  function renderHangar() {}
+  function renderOverhaul() {}
+  function renderAchievements() {}
+  function renderPilotLog() {}
 
   let pendingMode = null;
   function startGame(mode) {
@@ -7502,6 +7609,17 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   $('btn-records-back').addEventListener('click', () => show('screen-menu'));
   $('btn-challenge-launch').addEventListener('click', () => startGame('daily'));
   $('btn-challenge-back').addEventListener('click', () => show('screen-menu'));
+  // ---- display-only meta pages (Hangar / Overhaul / Achievements / Pilot Log) ----
+  // render* bodies are implemented per-page; they only READ recs/lifetime/medals
+  // and never mutate gameplay, score, or the daily seed.
+  $('btn-hangar').addEventListener('click', () => { renderHangar(); show('screen-hangar'); });
+  $('btn-hangar-back').addEventListener('click', () => show('screen-menu'));
+  $('btn-overhaul').addEventListener('click', () => { renderOverhaul(); show('screen-overhaul'); });
+  $('btn-overhaul-back').addEventListener('click', () => show('screen-menu'));
+  $('btn-achievements').addEventListener('click', () => { renderAchievements(); show('screen-achievements'); });
+  $('btn-achievements-back').addEventListener('click', () => show('screen-menu'));
+  $('btn-pilotlog').addEventListener('click', () => { renderPilotLog(); show('screen-pilotlog'); });
+  $('btn-pilotlog-back').addEventListener('click', () => show('screen-menu'));
 
   // ---------- settings screen (gear-opened; reuses the pause-menu toggle logic) ----------
   function openSettings() {
@@ -7534,6 +7652,14 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       if (e.code === 'Escape' || e.code === 'KeyM') $('btn-settings-back').click();
     } else if ($('screen-challenge').classList.contains('visible')) {
       if (e.code === 'Escape' || e.code === 'KeyM') $('btn-challenge-back').click();
+    } else if ($('screen-hangar').classList.contains('visible')) {
+      if (e.code === 'Escape' || e.code === 'KeyM') $('btn-hangar-back').click();
+    } else if ($('screen-overhaul').classList.contains('visible')) {
+      if (e.code === 'Escape' || e.code === 'KeyM') $('btn-overhaul-back').click();
+    } else if ($('screen-achievements').classList.contains('visible')) {
+      if (e.code === 'Escape' || e.code === 'KeyM') $('btn-achievements-back').click();
+    } else if ($('screen-pilotlog').classList.contains('visible')) {
+      if (e.code === 'Escape' || e.code === 'KeyM') $('btn-pilotlog-back').click();
     } else if (G.phase === 'paused') {
       if (e.code === 'Escape' || e.code === 'KeyP') resumeGame();
     } else if (G.phase === 'playing' || G.phase === 'ready') {

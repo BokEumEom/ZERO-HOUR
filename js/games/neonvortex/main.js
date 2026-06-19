@@ -152,9 +152,13 @@
     'screen-records': 'btn-records-back',
     'screen-settings': 'btn-settings-back',
     'screen-challenge': 'btn-challenge-launch', // a11y: focus the CTA on open
+    'screen-hangar': 'btn-hangar-back',
+    'screen-overhaul': 'btn-overhaul-back',
+    'screen-achievements': 'btn-achievements-back',
+    'screen-pilotlog': 'btn-pilotlog-back',
   };
   function show(screenId) {
-    for (const id of ['screen-menu', 'screen-over', 'screen-pause', 'screen-howto', 'screen-records', 'screen-settings', 'screen-challenge']) {
+    for (const id of ['screen-menu', 'screen-over', 'screen-pause', 'screen-howto', 'screen-records', 'screen-settings', 'screen-challenge', 'screen-hangar', 'screen-overhaul', 'screen-achievements', 'screen-pilotlog']) {
       $(id).classList.toggle('visible', id === screenId);
     }
     if (screenId !== 'screen-over') stopCountdown();
@@ -400,6 +404,14 @@
     const streakPct = Math.max(0, Math.min(100, (streak / 7) * 100));
     $('chal-streak-fill').style.width = streakPct.toFixed(0) + '%';
   }
+
+  // ---- display-only meta pages; implemented per-page. Each only READS recs /
+  // recs.lifetime / medals and renders into its *-body via createElement; none
+  // touch the simulation, score, drops, or the daily seed. ----
+  function renderHangar() {}
+  function renderOverhaul() {}
+  function renderAchievements() {}
+  function renderPilotLog() {}
 
   let pendingMode = null;
   function startGame(mode) {
@@ -717,6 +729,17 @@
   $('btn-records-back').addEventListener('click', () => show('screen-menu'));
   $('btn-challenge-launch').addEventListener('click', () => startGame('daily'));
   $('btn-challenge-back').addEventListener('click', () => show('screen-menu'));
+  // ---- display-only meta pages (Hangar / Overhaul / Achievements / Pilot Log) ----
+  // render* bodies are implemented per-page; they only READ recs/lifetime/medals
+  // and never mutate gameplay, score, or the daily seed.
+  $('btn-hangar').addEventListener('click', () => { renderHangar(); show('screen-hangar'); });
+  $('btn-hangar-back').addEventListener('click', () => show('screen-menu'));
+  $('btn-overhaul').addEventListener('click', () => { renderOverhaul(); show('screen-overhaul'); });
+  $('btn-overhaul-back').addEventListener('click', () => show('screen-menu'));
+  $('btn-achievements').addEventListener('click', () => { renderAchievements(); show('screen-achievements'); });
+  $('btn-achievements-back').addEventListener('click', () => show('screen-menu'));
+  $('btn-pilotlog').addEventListener('click', () => { renderPilotLog(); show('screen-pilotlog'); });
+  $('btn-pilotlog-back').addEventListener('click', () => show('screen-menu'));
 
   // ---------- settings screen (gear-opened; reuses the pause-menu toggle logic) ----------
   function openSettings() {
@@ -749,6 +772,14 @@
       if (e.code === 'Escape' || e.code === 'KeyM') $('btn-settings-back').click();
     } else if ($('screen-challenge').classList.contains('visible')) {
       if (e.code === 'Escape' || e.code === 'KeyM') $('btn-challenge-back').click();
+    } else if ($('screen-hangar').classList.contains('visible')) {
+      if (e.code === 'Escape' || e.code === 'KeyM') $('btn-hangar-back').click();
+    } else if ($('screen-overhaul').classList.contains('visible')) {
+      if (e.code === 'Escape' || e.code === 'KeyM') $('btn-overhaul-back').click();
+    } else if ($('screen-achievements').classList.contains('visible')) {
+      if (e.code === 'Escape' || e.code === 'KeyM') $('btn-achievements-back').click();
+    } else if ($('screen-pilotlog').classList.contains('visible')) {
+      if (e.code === 'Escape' || e.code === 'KeyM') $('btn-pilotlog-back').click();
     } else if (G.phase === 'paused') {
       if (e.code === 'Escape' || e.code === 'KeyP') resumeGame();
     } else if (G.phase === 'playing' || G.phase === 'ready') {
