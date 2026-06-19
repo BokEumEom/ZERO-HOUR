@@ -30,6 +30,33 @@
   --nv-gutter: 16px;
   --nv-margin: 24px;
 }
+/* ===== NEON VORTEX — reusable effect utilities (ready for M2 screens) ===== */
+.nv-scanlines {            /* 3% 수평 스캔라인 오버레이 */
+  background: linear-gradient(to bottom, transparent 50%, rgba(0, 219, 231, 0.05) 50%);
+  background-size: 100% 4px;
+  pointer-events: none;
+}
+.nv-hexgrid {              /* 헥스 메시 배경(레이디얼 마스크) */
+  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0l17.32 10v20L20 40 2.68 30V10z' fill='none' stroke='%2300dbe7' stroke-width='0.5' stroke-opacity='0.1'/%3E%3C/svg%3E");
+  -webkit-mask-image: radial-gradient(circle, #000 40%, transparent 90%);
+  mask-image: radial-gradient(circle, #000 40%, transparent 90%);
+}
+.nv-segment {              /* 분절 HUD 바 한 칸 (슬랜트 칩) */
+  clip-path: polygon(20% 0%, 100% 0%, 80% 100%, 0% 100%);
+}
+.nv-glass {                /* Level-2 글래스 패널 */
+  background: color-mix(in srgb, var(--nv-surface-high) 80%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 25%, transparent);
+}
+.nv-chamfer {              /* 45° 모서리 클립(버튼/카드) */
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+.nv-glow-primary { box-shadow: 0 0 15px color-mix(in srgb, var(--nv-primary) 40%, transparent); }
+.nv-glow-threat  { box-shadow: 0 0 15px color-mix(in srgb, var(--nv-threat) 45%, transparent); }
+@keyframes nv-flicker { 0%,100% { opacity: 1; } 50% { opacity: 0.82; } }
+.nv-flicker { animation: nv-flicker 1s infinite; }
 /* Scoreyard - all UI styles (game canvas rendering lives in js/render.js)
    Mobile-first layout (ADR-0006): #stage (canvas+crt) is the ONLY scaled
    element; HUD / screens / buttons are viewport-level fixed DOM that never
