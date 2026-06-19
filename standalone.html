@@ -1465,7 +1465,9 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   text-transform: uppercase;
   letter-spacing: -0.02em;
   line-height: 0.9;
-  font-size: clamp(32px, 11vw, 46px);
+  /* slightly smaller + inline breathing room so the italic VORTEX never clips the panel edge */
+  font-size: clamp(28px, 9.5vw, 40px);
+  padding: 0 0.3em;
   margin: clamp(8px, 3vh, 22px) 0;
   text-shadow: none;
 }
@@ -2427,7 +2429,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       <div id="neonvortex-danger-vignette"></div>
       <div id="neonvortex-hit-flash"></div>
 
-      <div id="neonvortex-screen-menu" class="screen" data-screen-label="Ship — Main Menu">
+      <div id="neonvortex-screen-menu" class="screen" data-screen-label="NEON VORTEX — Main Menu">
         <button id="neonvortex-btn-arcade" class="back-btn" type="button">← ARCADE</button>
         <div class="panel">
           <div class="nv-menu-top">
@@ -2468,7 +2470,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         </div>
       </div>
 
-      <div id="neonvortex-screen-over" class="screen" data-screen-label="Ship — Game Over" role="dialog" aria-modal="true" aria-label="Game over — result">
+      <div id="neonvortex-screen-over" class="screen" data-screen-label="NEON VORTEX — Game Over" role="dialog" aria-modal="true" aria-label="Game over — result">
         <div class="panel nv-result-card">
           <span id="neonvortex-over-reason">TIME UP</span>
           <span id="neonvortex-over-mode" class="kicker">DAILY</span>
@@ -2492,7 +2494,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         </div>
       </div>
 
-      <div id="neonvortex-screen-pause" class="screen" data-screen-label="Ship — Paused" role="dialog" aria-modal="true" aria-label="Paused">
+      <div id="neonvortex-screen-pause" class="screen" data-screen-label="NEON VORTEX — Paused" role="dialog" aria-modal="true" aria-label="Paused">
         <div class="panel">
           <span class="kicker">ARCADE_PILOT_OS</span>
           <span class="pause-title">PAUSED</span>
@@ -2510,7 +2512,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         </div>
       </div>
 
-      <div id="neonvortex-screen-howto" class="screen" data-screen-label="Ship — How To Play" role="dialog" aria-modal="true" aria-label="How to play">
+      <div id="neonvortex-screen-howto" class="screen" data-screen-label="NEON VORTEX — How To Play" role="dialog" aria-modal="true" aria-label="How to play">
         <div class="panel">
         <span class="kicker">ARCADE_PILOT_OS</span>
         <span class="pause-title">HOW TO PLAY</span>
@@ -2528,7 +2530,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         </div>
       </div>
 
-      <div id="neonvortex-screen-records" class="screen" data-screen-label="Ship — Records" role="dialog" aria-modal="true" aria-label="Records">
+      <div id="neonvortex-screen-records" class="screen" data-screen-label="NEON VORTEX — Records" role="dialog" aria-modal="true" aria-label="Records">
         <div class="panel">
           <span class="kicker">ARCADE_PILOT_OS</span>
           <span class="pause-title">RECORDS</span>

@@ -786,7 +786,9 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   text-transform: uppercase;
   letter-spacing: -0.02em;
   line-height: 0.9;
-  font-size: clamp(32px, 11vw, 46px);
+  /* slightly smaller + inline breathing room so the italic VORTEX never clips the panel edge */
+  font-size: clamp(28px, 9.5vw, 40px);
+  padding: 0 0.3em;
   margin: clamp(8px, 3vh, 22px) 0;
   text-shadow: none;
 }
