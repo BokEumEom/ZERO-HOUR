@@ -823,7 +823,117 @@
     body.appendChild(grid);
   }
 
-  function renderPilotLog() {}
+  // PILOT TELEMETRY BLACKBOX — 파일럿 비행 기록 블랙박스 (DISPLAY-ONLY). Reads
+  // only persisted records: recs.lifetime ({score,crystals,runs}), recs.bestAll
+  // (record score), the owned Zero Hour medal set (for the perfect-flight count),
+  // and the recent daily history (gameStore.loadRecentDailies). It writes no
+  // record, touches no simulation/score/drop/seed state — and intentionally has
+  // NO data-purge action (unlike the reference): the page only READS.
+  async function renderPilotLog() {
+    const [days, owned] = await Promise.all([
+      gameStore.loadRecentDailies(14),
+      gameStore.loadMedals(),
+    ]);
+    const ownedSet = new Set(owned);
+    const lt = recs.lifetime || { score: 0, crystals: 0, runs: 0 };
+
+    // logged runs: every recent day that has a daily record, most-recent first
+    // (loadRecentDailies already returns newest-first, so it is the natural order)
+    const entries = days.filter((d) => d.rec);
+
+    // PERFECT FLIGHTS — derive from the owned no-hit / flawless Zero Hour medal
+    // (the only persisted flawless-run signal). Owned => 1+; otherwise 0. No
+    // per-run "took no damage" flag is persisted, so it is never fabricated.
+    const hasPerfect = ownedSet.has('nohit') || ownedSet.has('flawless');
+    const perfectVal = hasPerfect ? '1+' : '0';
+
+    const body = $('pilotlog-body');
+    body.replaceChildren(); // clear (no innerHTML)
+
+    // ---- header ----
+    const header = nvEl('header', 'nv-plg-head');
+    const tag = nvEl('div', 'nv-plg-tag');
+    const status = nvEl('span', 'nv-plg-tag-kicker');
+    status.appendChild(nvEl('span', 'nv-plg-tag-dot'));
+    status.appendChild(document.createTextNode('RECORDER ONLINE'));
+    tag.appendChild(status);
+    tag.appendChild(nvEl('span', 'nv-plg-tag-code', 'BLACKBOX_OK'));
+    header.appendChild(tag);
+    const titleWrap = nvEl('div', 'nv-plg-title-wrap');
+    titleWrap.appendChild(nvEl('h2', 'nv-plg-title', 'PILOT TELEMETRY BLACKBOX'));
+    titleWrap.appendChild(nvEl('p', 'nv-plg-subtitle', '파일럿 비행 기록 블랙박스'));
+    titleWrap.appendChild(nvEl('p', 'nv-plg-subtitle-kr',
+      '암호화된 비행 데이터 복구 및 전투 종합 기록 분석서'));
+    header.appendChild(titleWrap);
+    header.appendChild(nvEl('div', 'nv-plg-rule'));
+    body.appendChild(header);
+
+    // ---- summary stat grid (4 chips from real persisted data) ----
+    const strip = nvEl('section', 'nv-plg-strip');
+    const chip = (labelEN, labelKR, value, accent) => {
+      const c = nvEl('div', 'nv-plg-chip' + (accent ? ' nv-plg-chip-' + accent : ''));
+      const labels = nvEl('div', 'nv-plg-chip-labels');
+      labels.appendChild(nvEl('span', 'nv-plg-chip-label', labelEN));
+      labels.appendChild(nvEl('span', 'nv-plg-chip-label-kr', labelKR));
+      c.appendChild(labels);
+      c.appendChild(nvEl('span', 'nv-plg-chip-val', value));
+      return c;
+    };
+    strip.appendChild(chip('TOTAL MISSIONS', '총 작전 수행 수', fmt(lt.runs || 0), null));
+    strip.appendChild(chip('PERFECT FLIGHTS', '무결점 완벽 비행', perfectVal, 'green'));
+    strip.appendChild(chip('CRYSTAL YIELD', '획득 차원 결정', fmt(lt.crystals || 0), 'cyan'));
+    strip.appendChild(chip('RECORD SCORE', '역대 최고 점수',
+      recs.bestAll ? fmt(recs.bestAll.score) : '—', 'gold'));
+    body.appendChild(strip);
+
+    // ---- flight log list ----
+    const list = nvEl('section', 'nv-plg-list');
+    if (entries.length === 0) {
+      const empty = nvEl('div', 'nv-plg-empty');
+      empty.appendChild(nvEl('span', 'nv-plg-empty-glyph', '⌖'));
+      empty.appendChild(nvEl('p', 'nv-plg-empty-text',
+        '탐지된 비행 로그가 없습니다. 스트라이커 기체를 첫 전투에 출격시키십시오.'));
+      list.appendChild(empty);
+    } else {
+      for (const d of entries) {
+        const rec = d.rec;
+        const tier = SY.nvMeta.rankTier(rec.score); // display-only pilot grade
+        const card = nvEl('article', 'nv-plg-entry');
+
+        // top row: date + boss flag, then the pilot-grade badge
+        const head = nvEl('header', 'nv-plg-entry-head');
+        const ident = nvEl('div', 'nv-plg-entry-ident');
+        ident.appendChild(nvEl('time', 'nv-plg-entry-date', d.date));
+        const flags = nvEl('div', 'nv-plg-entry-flags');
+        flags.appendChild(nvEl('span', 'nv-plg-entry-mode', 'DAILY SORTIE'));
+        if (rec.bossDown) flags.appendChild(nvEl('span', 'nv-plg-entry-boss', 'BOSS'));
+        ident.appendChild(flags);
+        head.appendChild(ident);
+        const grade = nvEl('span', 'nv-plg-entry-grade', tier.name);
+        grade.style.color = tier.color;
+        grade.style.borderColor = tier.color;
+        head.appendChild(grade);
+        card.appendChild(head);
+
+        // detail row: SCORE RECORD + YIELD (×combo) detail
+        const detail = nvEl('div', 'nv-plg-entry-detail');
+        const scoreCell = nvEl('div', 'nv-plg-entry-cell');
+        scoreCell.appendChild(nvEl('span', 'nv-plg-entry-cell-label', 'SCORE RECORD'));
+        scoreCell.appendChild(nvEl('span', 'nv-plg-entry-cell-val', fmt(rec.score)));
+        detail.appendChild(scoreCell);
+        const yieldCell = nvEl('div', 'nv-plg-entry-cell');
+        yieldCell.appendChild(nvEl('span', 'nv-plg-entry-cell-label', 'YIELD'));
+        const yieldVal = nvEl('span', 'nv-plg-entry-cell-val nv-plg-entry-yield',
+          rec.combo ? '×' + rec.combo : '×1');
+        yieldCell.appendChild(yieldVal);
+        detail.appendChild(yieldCell);
+        card.appendChild(detail);
+
+        list.appendChild(card);
+      }
+    }
+    body.appendChild(list);
+  }
 
   let pendingMode = null;
   function startGame(mode) {

@@ -3817,6 +3817,283 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   box-shadow: 0 0 10px color-mix(in srgb, var(--nv-primary) 18%, transparent);
 }
 
+/* ===== PILOT LOG — PILOT TELEMETRY BLACKBOX (display-only) ===== */
+#neonvortex-screen-pilotlog .nv-plg-head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#neonvortex-screen-pilotlog .nv-plg-tag {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+#neonvortex-screen-pilotlog .nv-plg-tag-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--nv-primary);
+}
+#neonvortex-screen-pilotlog .nv-plg-tag-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--nv-primary-bright);
+  box-shadow: 0 0 8px var(--nv-primary-bright);
+  animation: nv-plg-ping 1.6s ease-in-out infinite;
+}
+@keyframes nv-plg-ping { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+#neonvortex-screen-pilotlog .nv-plg-tag-code {
+  color: color-mix(in srgb, var(--nv-primary) 60%, transparent);
+}
+#neonvortex-screen-pilotlog .nv-plg-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+#neonvortex-screen-pilotlog .nv-plg-title {
+  margin: 0;
+  font-family: var(--nv-font-display);
+  font-size: clamp(20px, 6vw, 28px);
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--nv-primary);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--nv-primary) 50%, transparent);
+}
+#neonvortex-screen-pilotlog .nv-plg-subtitle {
+  margin: 0;
+  font-family: var(--nv-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 80%, transparent);
+}
+#neonvortex-screen-pilotlog .nv-plg-subtitle-kr {
+  margin: 0;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 55%, transparent);
+}
+#neonvortex-screen-pilotlog .nv-plg-rule {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(to right,
+    color-mix(in srgb, var(--nv-primary) 45%, transparent), transparent);
+}
+
+/* summary stat grid — 4 chips */
+#neonvortex-screen-pilotlog .nv-plg-strip {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+#neonvortex-screen-pilotlog .nv-plg-chip {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  background: color-mix(in srgb, var(--nv-primary) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 20%, transparent);
+}
+#neonvortex-screen-pilotlog .nv-plg-chip-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+#neonvortex-screen-pilotlog .nv-plg-chip-label {
+  font-family: var(--nv-font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 75%, transparent);
+}
+#neonvortex-screen-pilotlog .nv-plg-chip-label-kr {
+  font-family: var(--nv-font-mono);
+  font-size: 7.5px;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 50%, transparent);
+}
+#neonvortex-screen-pilotlog .nv-plg-chip-val {
+  font-family: var(--nv-font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #fff;
+}
+#neonvortex-screen-pilotlog .nv-plg-chip-cyan .nv-plg-chip-val { color: var(--nv-primary-bright); }
+#neonvortex-screen-pilotlog .nv-plg-chip-cyan {
+  background: color-mix(in srgb, var(--nv-primary) 6%, transparent);
+  border-color: color-mix(in srgb, var(--nv-primary) 30%, transparent);
+}
+#neonvortex-screen-pilotlog .nv-plg-chip-green .nv-plg-chip-val { color: #34d399; }
+#neonvortex-screen-pilotlog .nv-plg-chip-green {
+  background: color-mix(in srgb, #34d399 6%, transparent);
+  border-color: color-mix(in srgb, #34d399 30%, transparent);
+}
+#neonvortex-screen-pilotlog .nv-plg-chip-gold .nv-plg-chip-val { color: var(--nv-value); }
+#neonvortex-screen-pilotlog .nv-plg-chip-gold {
+  background: color-mix(in srgb, var(--nv-value) 5%, transparent);
+  border-color: color-mix(in srgb, var(--nv-value) 30%, transparent);
+}
+
+/* flight log list */
+#neonvortex-screen-pilotlog .nv-plg-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#neonvortex-screen-pilotlog .nv-plg-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 44px 20px;
+  border-radius: 14px;
+  border: 1px dashed color-mix(in srgb, var(--nv-primary) 24%, transparent);
+  background: color-mix(in srgb, var(--nv-primary) 3%, transparent);
+}
+#neonvortex-screen-pilotlog .nv-plg-empty-glyph {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 30%, transparent);
+  font-size: 20px;
+  color: color-mix(in srgb, var(--nv-primary) 65%, transparent);
+  animation: nv-plg-ping 2.2s ease-in-out infinite;
+}
+#neonvortex-screen-pilotlog .nv-plg-empty-text {
+  margin: 0;
+  max-width: 280px;
+  text-align: center;
+  font-family: var(--nv-font-mono);
+  font-size: 10px;
+  line-height: 1.7;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 70%, transparent);
+}
+
+/* log entry card */
+#neonvortex-screen-pilotlog .nv-plg-entry {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px 12px 16px;
+  border-radius: 12px;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  background: color-mix(in srgb, var(--nv-primary) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 18%, transparent);
+}
+#neonvortex-screen-pilotlog .nv-plg-entry::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--nv-primary);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--nv-primary) 60%, transparent);
+}
+#neonvortex-screen-pilotlog .nv-plg-entry-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+#neonvortex-screen-pilotlog .nv-plg-entry-ident {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+#neonvortex-screen-pilotlog .nv-plg-entry-date {
+  font-family: var(--nv-font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #fff;
+}
+#neonvortex-screen-pilotlog .nv-plg-entry-flags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#neonvortex-screen-pilotlog .nv-plg-entry-mode {
+  font-family: var(--nv-font-mono);
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 60%, transparent);
+}
+#neonvortex-screen-pilotlog .nv-plg-entry-boss {
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-family: var(--nv-font-mono);
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nv-value);
+  background: color-mix(in srgb, var(--nv-value) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-value) 40%, transparent);
+}
+#neonvortex-screen-pilotlog .nv-plg-entry-grade {
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-family: var(--nv-font-display);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+}
+#neonvortex-screen-pilotlog .nv-plg-entry-detail {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding-top: 9px;
+  border-top: 1px solid color-mix(in srgb, var(--nv-primary) 12%, transparent);
+}
+#neonvortex-screen-pilotlog .nv-plg-entry-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+#neonvortex-screen-pilotlog .nv-plg-entry-cell-label {
+  font-family: var(--nv-font-mono);
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 60%, transparent);
+}
+#neonvortex-screen-pilotlog .nv-plg-entry-cell-val {
+  font-family: var(--nv-font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 92%, #fff);
+}
+#neonvortex-screen-pilotlog .nv-plg-entry-yield { color: var(--nv-primary-bright); }
+
 </style>
 <link rel="preload" as="image" href="assets/illustrations/ship_assets.png">
 <link rel="preload" as="image" href="assets/illustrations/zero-hour-keyart.png">
@@ -8615,7 +8892,117 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     body.appendChild(grid);
   }
 
-  function renderPilotLog() {}
+  // PILOT TELEMETRY BLACKBOX — 파일럿 비행 기록 블랙박스 (DISPLAY-ONLY). Reads
+  // only persisted records: recs.lifetime ({score,crystals,runs}), recs.bestAll
+  // (record score), the owned Zero Hour medal set (for the perfect-flight count),
+  // and the recent daily history (gameStore.loadRecentDailies). It writes no
+  // record, touches no simulation/score/drop/seed state — and intentionally has
+  // NO data-purge action (unlike the reference): the page only READS.
+  async function renderPilotLog() {
+    const [days, owned] = await Promise.all([
+      gameStore.loadRecentDailies(14),
+      gameStore.loadMedals(),
+    ]);
+    const ownedSet = new Set(owned);
+    const lt = recs.lifetime || { score: 0, crystals: 0, runs: 0 };
+
+    // logged runs: every recent day that has a daily record, most-recent first
+    // (loadRecentDailies already returns newest-first, so it is the natural order)
+    const entries = days.filter((d) => d.rec);
+
+    // PERFECT FLIGHTS — derive from the owned no-hit / flawless Zero Hour medal
+    // (the only persisted flawless-run signal). Owned => 1+; otherwise 0. No
+    // per-run "took no damage" flag is persisted, so it is never fabricated.
+    const hasPerfect = ownedSet.has('nohit') || ownedSet.has('flawless');
+    const perfectVal = hasPerfect ? '1+' : '0';
+
+    const body = $('pilotlog-body');
+    body.replaceChildren(); // clear (no innerHTML)
+
+    // ---- header ----
+    const header = nvEl('header', 'nv-plg-head');
+    const tag = nvEl('div', 'nv-plg-tag');
+    const status = nvEl('span', 'nv-plg-tag-kicker');
+    status.appendChild(nvEl('span', 'nv-plg-tag-dot'));
+    status.appendChild(document.createTextNode('RECORDER ONLINE'));
+    tag.appendChild(status);
+    tag.appendChild(nvEl('span', 'nv-plg-tag-code', 'BLACKBOX_OK'));
+    header.appendChild(tag);
+    const titleWrap = nvEl('div', 'nv-plg-title-wrap');
+    titleWrap.appendChild(nvEl('h2', 'nv-plg-title', 'PILOT TELEMETRY BLACKBOX'));
+    titleWrap.appendChild(nvEl('p', 'nv-plg-subtitle', '파일럿 비행 기록 블랙박스'));
+    titleWrap.appendChild(nvEl('p', 'nv-plg-subtitle-kr',
+      '암호화된 비행 데이터 복구 및 전투 종합 기록 분석서'));
+    header.appendChild(titleWrap);
+    header.appendChild(nvEl('div', 'nv-plg-rule'));
+    body.appendChild(header);
+
+    // ---- summary stat grid (4 chips from real persisted data) ----
+    const strip = nvEl('section', 'nv-plg-strip');
+    const chip = (labelEN, labelKR, value, accent) => {
+      const c = nvEl('div', 'nv-plg-chip' + (accent ? ' nv-plg-chip-' + accent : ''));
+      const labels = nvEl('div', 'nv-plg-chip-labels');
+      labels.appendChild(nvEl('span', 'nv-plg-chip-label', labelEN));
+      labels.appendChild(nvEl('span', 'nv-plg-chip-label-kr', labelKR));
+      c.appendChild(labels);
+      c.appendChild(nvEl('span', 'nv-plg-chip-val', value));
+      return c;
+    };
+    strip.appendChild(chip('TOTAL MISSIONS', '총 작전 수행 수', fmt(lt.runs || 0), null));
+    strip.appendChild(chip('PERFECT FLIGHTS', '무결점 완벽 비행', perfectVal, 'green'));
+    strip.appendChild(chip('CRYSTAL YIELD', '획득 차원 결정', fmt(lt.crystals || 0), 'cyan'));
+    strip.appendChild(chip('RECORD SCORE', '역대 최고 점수',
+      recs.bestAll ? fmt(recs.bestAll.score) : '—', 'gold'));
+    body.appendChild(strip);
+
+    // ---- flight log list ----
+    const list = nvEl('section', 'nv-plg-list');
+    if (entries.length === 0) {
+      const empty = nvEl('div', 'nv-plg-empty');
+      empty.appendChild(nvEl('span', 'nv-plg-empty-glyph', '⌖'));
+      empty.appendChild(nvEl('p', 'nv-plg-empty-text',
+        '탐지된 비행 로그가 없습니다. 스트라이커 기체를 첫 전투에 출격시키십시오.'));
+      list.appendChild(empty);
+    } else {
+      for (const d of entries) {
+        const rec = d.rec;
+        const tier = SY.nvMeta.rankTier(rec.score); // display-only pilot grade
+        const card = nvEl('article', 'nv-plg-entry');
+
+        // top row: date + boss flag, then the pilot-grade badge
+        const head = nvEl('header', 'nv-plg-entry-head');
+        const ident = nvEl('div', 'nv-plg-entry-ident');
+        ident.appendChild(nvEl('time', 'nv-plg-entry-date', d.date));
+        const flags = nvEl('div', 'nv-plg-entry-flags');
+        flags.appendChild(nvEl('span', 'nv-plg-entry-mode', 'DAILY SORTIE'));
+        if (rec.bossDown) flags.appendChild(nvEl('span', 'nv-plg-entry-boss', 'BOSS'));
+        ident.appendChild(flags);
+        head.appendChild(ident);
+        const grade = nvEl('span', 'nv-plg-entry-grade', tier.name);
+        grade.style.color = tier.color;
+        grade.style.borderColor = tier.color;
+        head.appendChild(grade);
+        card.appendChild(head);
+
+        // detail row: SCORE RECORD + YIELD (×combo) detail
+        const detail = nvEl('div', 'nv-plg-entry-detail');
+        const scoreCell = nvEl('div', 'nv-plg-entry-cell');
+        scoreCell.appendChild(nvEl('span', 'nv-plg-entry-cell-label', 'SCORE RECORD'));
+        scoreCell.appendChild(nvEl('span', 'nv-plg-entry-cell-val', fmt(rec.score)));
+        detail.appendChild(scoreCell);
+        const yieldCell = nvEl('div', 'nv-plg-entry-cell');
+        yieldCell.appendChild(nvEl('span', 'nv-plg-entry-cell-label', 'YIELD'));
+        const yieldVal = nvEl('span', 'nv-plg-entry-cell-val nv-plg-entry-yield',
+          rec.combo ? '×' + rec.combo : '×1');
+        yieldCell.appendChild(yieldVal);
+        detail.appendChild(yieldCell);
+        card.appendChild(detail);
+
+        list.appendChild(card);
+      }
+    }
+    body.appendChild(list);
+  }
 
   let pendingMode = null;
   function startGame(mode) {
