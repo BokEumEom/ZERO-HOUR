@@ -358,11 +358,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 
 /* Fraunces is a variable font — display headings need an explicit heavy weight
    and tight tracking (the old pixel tracking looks wrong on a serif) */
-.arcade-wordmark, .game-title, .pause-title, #ship-over-reason, #ship-over-score,
+.arcade-wordmark, .game-title, .pause-title,
 .bigscore, .game-card-title, .mode-name, .rec-best, .hub-empty-title {
   font-weight: 900; letter-spacing: -0.01em;
 }
-#ship-over-rank, #ship-over-best-banner { font-weight: 700; letter-spacing: 0.01em; }
 /* keep the how-to key as a readable Cabin pill, not a tiny serif */
 .howto-k { font-family: var(--body) !important; font-weight: 700; }
 
@@ -536,41 +535,14 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 }
 .back-btn:hover, .back-btn:focus-visible { border-color: var(--teal); outline: none; }
 
-/* ---------- game over ---------- */
-#ship-screen-over { gap: clamp(8px, 1.6vh, 12px); }
-#ship-over-mode { font-size: 11px; letter-spacing: 0.2em; color: rgba(159,245,232,0.55); }
-#ship-over-reason { font-family: var(--display); font-size: clamp(13px, 3.8vw, 16px); color: var(--pink); text-shadow: 0 0 14px rgba(255,90,120,0.7); }
-#ship-over-score {
-  font-family: var(--display);
-  font-size: clamp(34px, 10vw, 52px);
-  color: var(--ink);
-  text-shadow: 0 0 20px rgba(45,226,198,0.7);
-}
-#ship-over-best-banner {
-  display: none;
-  font-family: var(--display);
-  font-size: clamp(13px, 3.8vw, 16px);
-  color: var(--amber);
-  text-shadow: 0 0 18px rgba(255,195,77,0.9);
-  animation: bestPop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both, bestGlow 1.1s ease-in-out 0.45s infinite alternate;
-}
-#ship-over-best-banner.show { display: block; }
-@keyframes bestPop { from { transform: scale(0.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-@keyframes bestGlow { from { text-shadow: 0 0 10px rgba(255,195,77,0.6); } to { text-shadow: 0 0 26px rgba(255,195,77,1), 0 0 50px rgba(255,195,77,0.5); } }
-
-#ship-over-stats { width: min(320px, 88vw); display: flex; flex-direction: column; gap: 4px; }
+/* ---------- game over (shared base; reskinned below for #neonvortex-screen-over) ---------- */
 .stat-row { display: flex; justify-content: space-between; font-size: 13px; border-bottom: 1px dashed rgba(45,226,198,0.18); padding-bottom: 5px; }
 .stat-k { color: rgba(159,245,232,0.55); letter-spacing: 0.08em; }
 .stat-v { color: var(--ink); font-weight: 600; }
-#ship-over-spark {
-  width: min(320px, 88vw);
-  aspect-ratio: 320 / 60;
-  height: auto;
-  border: 1px dashed rgba(45,226,198,0.25);
-  border-radius: 10px;
-  background: rgba(8,20,32,0.6);
-}
-#ship-over-countdown { display: none; letter-spacing: 0.08em; }
+#neonvortex-over-countdown { display: none; letter-spacing: 0.08em; }
+#neonvortex-over-best-banner.show { display: inline-flex; }
+@keyframes bestPop { from { transform: scale(0.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes bestGlow { from { text-shadow: 0 0 10px rgba(255,186,32,0.6); } to { text-shadow: 0 0 26px rgba(255,186,32,1), 0 0 50px rgba(255,186,32,0.5); } }
 
 .btn-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
 .arcade-btn {
@@ -619,20 +591,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 .rec-day.empty .rec-day-score { color: rgba(234,246,255,0.25); }
 .rec-day .boss { color: var(--amber); margin-left: 6px; }
 
-/* ---------- rank + medals ---------- */
-#ship-over-rank {
-  font-family: var(--display);
-  font-size: clamp(13px, 3.6vw, 17px);
-  letter-spacing: 0.12em;
-  color: var(--amber);
-  text-shadow: 0 0 14px rgba(255,195,77,0.6);
-}
-#ship-over-rank.rank-recruit { color: var(--teal-soft); text-shadow: 0 0 12px rgba(159,245,232,0.5); }
-#ship-over-rank.rank-pilot { color: var(--teal); text-shadow: 0 0 12px rgba(45,226,198,0.6); }
-#ship-over-rank.rank-ace { color: var(--amber); text-shadow: 0 0 14px rgba(255,195,77,0.7); }
-#ship-over-rank.rank-legend { color: var(--pink); text-shadow: 0 0 18px rgba(255,90,120,0.9); }
-
-#ship-over-medals { display: none; flex-wrap: wrap; justify-content: center; gap: 8px; width: min(340px, 90vw); }
+/* ---------- rank + medals (rank colours reskinned in the over block below) ---------- */
+#neonvortex-over-medals { display: none; flex-wrap: wrap; justify-content: center; gap: 8px; width: min(340px, 90vw); }
 .medal {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 5px 10px;
@@ -748,7 +708,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   #neonvortex-hud-hearts.low,
   #neonvortex-boss-hp,
   #ship-danger-vignette.active,
-  #ship-over-best-banner,
+  #neonvortex-over-best-banner,
+  #neonvortex-over-reason,
   .medal.is-new {
     animation: none !important;
   }
@@ -757,7 +718,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   /* danger stays readable as a steady vignette instead of a pulse */
   #ship-danger-vignette.active { box-shadow: inset 0 0 90px 24px rgba(255,40,70,0.28); }
   /* NEW BEST! still appears, just without the pop+glow loop */
-  #ship-over-best-banner.show { animation: none !important; }
+  #neonvortex-over-best-banner.show { animation: none !important; }
   /* hit feedback becomes a brief static tint, no flash animation */
   #ship-hit-flash.flash { animation: none !important; background: rgba(255,60,90,0.18); }
   .mode-card, .game-card, .arcade-btn { transition: none !important; }
@@ -953,4 +914,258 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   font-family: var(--nv-font-display);
   font-weight: 800;
   letter-spacing: 0.06em;
+}
+
+/* ===== NEON VORTEX — RESULT screen reskin (Stitch "_2" mockup) =====
+   Scoped strictly to #neonvortex-screen-over. A chamfered glass result CARD
+   over the navy void: VICTORY-style flickering cyan header + tick marks, big
+   cyan score, gold NEW BEST! pill, a 2-col stats grid with left accent borders,
+   a SEC_04 // ALPHA corner data-label, and chamfered cyan action buttons.
+   Tokens/utils from the M1 :root. No remote images — pure CSS. */
+#neonvortex-screen-over {
+  background: var(--nv-bg);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+
+/* ---- the .panel becomes the chamfered glass result card ---- */
+#neonvortex-screen-over .nv-result-card {
+  position: relative;
+  width: min(440px, 92vw);
+  /* Level-2 glass over the navy void (mirrors .nv-glass, tuned for the card) */
+  background-color: color-mix(in srgb, var(--nv-surface) 82%, transparent);
+  background-image:
+    radial-gradient(240px 200px at 14% 8%, rgba(0,219,231,0.10), transparent 70%),
+    radial-gradient(260px 220px at 92% 96%, rgba(0,219,231,0.08), transparent 72%);
+  -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 30%, transparent);
+  border-radius: 0;
+  /* 20px chamfer — top-left + bottom-right cut, matching the mockup card */
+  clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+  box-shadow: 0 0 40px rgba(0,0,0,0.5), inset 0 0 50px rgba(0,219,231,0.04);
+  color: var(--nv-on-surface);
+  padding: clamp(24px, 6vw, 34px) clamp(20px, 5vw, 28px);
+  gap: clamp(12px, 2.2vh, 18px);
+}
+/* SEC_04 // ALPHA data-label in the card's top-right corner */
+#neonvortex-screen-over .nv-result-card::after {
+  content: "SEC_04 // ALPHA";
+  position: absolute;
+  top: 10px; right: 14px;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: rgba(0,219,231,0.45);
+  pointer-events: none;
+}
+
+/* ---- VICTORY-style header: large Sora italic caps, cyan glow + flicker ---- */
+#neonvortex-screen-over #neonvortex-over-reason {
+  font-family: var(--nv-font-display);
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: clamp(26px, 8vw, 38px);
+  letter-spacing: 0.16em;
+  line-height: 1;
+  color: var(--nv-primary);
+  text-shadow: 0 0 14px rgba(0,219,231,0.8), 0 0 30px rgba(0,219,231,0.4);
+  animation: nv-flicker 3s ease-in-out infinite;
+  margin-top: 4px;
+}
+/* tick marks under the header (— · —) */
+#neonvortex-screen-over #neonvortex-over-reason::after {
+  content: "";
+  display: block;
+  width: 78px; height: 2px;
+  margin: 10px auto 0;
+  background: linear-gradient(to right,
+    var(--nv-primary) 0 38%, transparent 38% 46%,
+    var(--nv-primary) 46% 54%, transparent 54% 62%,
+    var(--nv-primary) 62% 100%);
+  box-shadow: 0 0 8px rgba(0,219,231,0.6);
+}
+
+/* ---- mode kicker (DAILY / FREE PLAY): mono cyan, wide track ---- */
+#neonvortex-screen-over .kicker {
+  font-family: var(--nv-font-mono);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(0,219,231,0.6);
+}
+
+/* ---- score block ---- */
+#neonvortex-screen-over .nv-score-block { text-align: center; }
+#neonvortex-screen-over .nv-score-label {
+  margin-bottom: 6px;
+  color: rgba(0,219,231,0.6);
+}
+#neonvortex-screen-over #neonvortex-over-score {
+  font-family: var(--nv-font-display);
+  font-weight: 800;
+  font-size: clamp(40px, 12vw, 60px);
+  line-height: 1;
+  color: var(--nv-primary);
+  text-shadow: 0 0 16px rgba(0,219,231,0.8), 0 0 34px rgba(0,219,231,0.4);
+}
+
+/* ---- rank badge (mono cyan; rank tiers tint the glyph) ---- */
+#neonvortex-screen-over #neonvortex-over-rank {
+  font-family: var(--nv-font-mono);
+  font-weight: 700;
+  font-size: clamp(12px, 3.2vw, 15px);
+  letter-spacing: 0.14em;
+  color: var(--nv-value);
+  text-shadow: 0 0 12px rgba(255,186,32,0.5);
+}
+#neonvortex-screen-over #neonvortex-over-rank.rank-recruit { color: var(--nv-primary); text-shadow: 0 0 12px rgba(0,219,231,0.5); }
+#neonvortex-screen-over #neonvortex-over-rank.rank-pilot { color: var(--nv-primary-bright); text-shadow: 0 0 12px rgba(0,219,231,0.6); }
+#neonvortex-screen-over #neonvortex-over-rank.rank-ace { color: var(--nv-value); text-shadow: 0 0 14px rgba(255,186,32,0.7); }
+#neonvortex-screen-over #neonvortex-over-rank.rank-legend { color: var(--nv-threat); text-shadow: 0 0 18px rgba(255,36,228,0.8); }
+
+/* ---- NEW BEST! gold pill ---- */
+#neonvortex-screen-over #neonvortex-over-best-banner {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  font-family: var(--nv-font-mono);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--nv-value);
+  background: rgba(255,186,32,0.10);
+  border: 1px solid color-mix(in srgb, var(--nv-value) 35%, transparent);
+  border-radius: 999px;
+  text-shadow: 0 0 12px rgba(255,186,32,0.6);
+  animation: bestPop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both, bestGlow 1.1s ease-in-out 0.45s infinite alternate;
+}
+
+/* ---- 2-col stats grid: dark tint cells, left cyan accent, mono value ---- */
+#neonvortex-screen-over #neonvortex-over-stats {
+  width: min(360px, 90vw);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+#neonvortex-screen-over .stat-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: none;
+  border-left: 2px solid color-mix(in srgb, var(--nv-primary) 55%, transparent);
+  background: rgba(0,219,231,0.05);
+  border-radius: 0 6px 6px 0;
+}
+/* every 4th cell (BOSS/CORE WARDEN row) gets the gold accent for variety */
+#neonvortex-screen-over .stat-row:nth-child(4n) {
+  border-left-color: color-mix(in srgb, var(--nv-value) 55%, transparent);
+  background: rgba(255,186,32,0.05);
+}
+#neonvortex-screen-over .stat-k {
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nv-on-surface-variant);
+}
+#neonvortex-screen-over .stat-v {
+  font-family: var(--nv-font-mono);
+  font-size: clamp(14px, 4vw, 18px);
+  font-weight: 700;
+  color: var(--nv-primary);
+  text-shadow: 0 0 10px rgba(0,219,231,0.4);
+}
+#neonvortex-screen-over .stat-row:nth-child(4n) .stat-v {
+  color: var(--nv-value);
+  text-shadow: 0 0 10px rgba(255,186,32,0.4);
+}
+
+/* ---- pace sparkline ---- */
+#neonvortex-screen-over #neonvortex-over-spark {
+  width: min(360px, 90vw);
+  aspect-ratio: 320 / 60;
+  height: auto;
+  border: 1px solid rgba(0,219,231,0.2);
+  border-radius: 4px;
+  background: rgba(0,219,231,0.03);
+}
+
+/* ---- earned-medal pills ---- */
+#neonvortex-screen-over .medal {
+  font-family: var(--nv-font-mono);
+  border-color: color-mix(in srgb, var(--nv-primary) 45%, transparent);
+  color: var(--nv-on-surface-variant);
+}
+#neonvortex-screen-over .medal.earned { border-color: var(--nv-primary); box-shadow: 0 0 10px rgba(0,219,231,0.25); }
+#neonvortex-screen-over .medal.is-new { border-color: var(--nv-value); color: var(--nv-value); box-shadow: 0 0 14px rgba(255,186,32,0.6); }
+
+/* ---- action buttons: solid cyan RETRY + outlined cyan SHARE/MENU ---- */
+#neonvortex-screen-over .btn-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+#neonvortex-screen-over .arcade-btn {
+  font-family: var(--nv-font-display);
+  font-weight: 800;
+  font-size: clamp(11px, 3vw, 13px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 0;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease, filter 0.15s ease;
+}
+/* RETRY → big solid cyan, full width, with glow */
+#neonvortex-screen-over #neonvortex-btn-retry {
+  grid-column: 1 / -1;
+  padding: 16px 24px;
+  color: var(--nv-bg);
+  background: var(--nv-primary);
+  border: 1px solid var(--nv-primary);
+  box-shadow: 0 0 20px rgba(0,219,231,0.4);
+}
+#neonvortex-screen-over #neonvortex-btn-retry:hover,
+#neonvortex-screen-over #neonvortex-btn-retry:focus-visible {
+  filter: brightness(1.1);
+  box-shadow: 0 0 28px rgba(0,219,231,0.6);
+  transform: none;
+}
+#neonvortex-screen-over #neonvortex-btn-retry:active { transform: scale(0.97); }
+/* SHARE / MENU → outlined cyan chamfer */
+#neonvortex-screen-over #neonvortex-btn-share,
+#neonvortex-screen-over #neonvortex-btn-menu {
+  padding: 12px 18px;
+  color: var(--nv-primary);
+  background: rgba(0,219,231,0.05);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 40%, transparent);
+  box-shadow: none;
+}
+#neonvortex-screen-over #neonvortex-btn-share:hover,
+#neonvortex-screen-over #neonvortex-btn-share:focus-visible,
+#neonvortex-screen-over #neonvortex-btn-menu:hover,
+#neonvortex-screen-over #neonvortex-btn-menu:focus-visible {
+  background: rgba(0,219,231,0.12);
+  box-shadow: 0 0 16px rgba(0,219,231,0.35);
+  transform: none;
+}
+#neonvortex-screen-over #neonvortex-btn-share:active,
+#neonvortex-screen-over #neonvortex-btn-menu:active { transform: scale(0.97); }
+/* when SHARE is hidden (free play), MENU spans the row */
+#neonvortex-screen-over #neonvortex-btn-share[style*="none"] + #neonvortex-btn-menu { grid-column: 1 / -1; }
+
+/* ---- countdown + help line: mono dim cyan ---- */
+#neonvortex-screen-over #neonvortex-over-countdown,
+#neonvortex-screen-over .kr-sub {
+  font-family: var(--nv-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: rgba(0,219,231,0.45);
 }
