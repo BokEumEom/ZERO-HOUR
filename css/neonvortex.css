@@ -2748,3 +2748,392 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   color: color-mix(in srgb, var(--nv-on-surface-variant) 65%, transparent);
   cursor: not-allowed;
 }
+
+/* ===== STRIKER HANGAR — 격납고 제원 관제소 (display-only spec sheet) ===== */
+#neonvortex-screen-hangar .nv-hgr-head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#neonvortex-screen-hangar .nv-hgr-tag {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+#neonvortex-screen-hangar .nv-hgr-tag-kicker { color: var(--nv-primary); }
+#neonvortex-screen-hangar .nv-hgr-tag-code {
+  color: color-mix(in srgb, var(--nv-primary) 60%, transparent);
+  text-align: right;
+}
+#neonvortex-screen-hangar .nv-hgr-title-wrap { display: flex; flex-direction: column; gap: 4px; }
+#neonvortex-screen-hangar .nv-hgr-title {
+  margin: 0;
+  font-family: var(--nv-font-display);
+  font-size: clamp(22px, 6.5vw, 30px);
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--nv-primary);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--nv-primary) 50%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-subtitle {
+  margin: 0;
+  font-family: var(--nv-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 80%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-rule {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(to right,
+    color-mix(in srgb, var(--nv-primary) 45%, transparent), transparent);
+}
+
+/* ship showcase — player sprite on a holographic grid plinth */
+#neonvortex-screen-hangar .nv-hgr-show {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 26px 16px 18px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--nv-primary) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 20%, transparent);
+  overflow: hidden;
+}
+#neonvortex-screen-hangar .nv-hgr-show-deco {
+  position: absolute;
+  top: 9px;
+  font-family: var(--nv-font-mono);
+  font-size: 7.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-primary) 55%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-show-deco-l { left: 12px; }
+#neonvortex-screen-hangar .nv-hgr-show-deco-r {
+  right: 12px;
+  color: var(--nv-primary);
+}
+#neonvortex-screen-hangar .nv-hgr-plinth {
+  position: relative;
+  width: 100%;
+  max-width: 280px;
+  aspect-ratio: 26 / 23;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  /* holographic grid + radial glow backdrop */
+  background:
+    radial-gradient(circle at 50% 52%,
+      color-mix(in srgb, var(--nv-primary) 24%, transparent), transparent 62%),
+    repeating-linear-gradient(0deg,
+      color-mix(in srgb, var(--nv-primary) 9%, transparent) 0 1px, transparent 1px 22px),
+    repeating-linear-gradient(90deg,
+      color-mix(in srgb, var(--nv-primary) 9%, transparent) 0 1px, transparent 1px 22px),
+    color-mix(in srgb, var(--nv-bg) 80%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-canvas {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  /* cosmetic float/pulse — display-only flair */
+  animation: nv-hgr-float 4.5s ease-in-out infinite;
+}
+@keyframes nv-hgr-float {
+  0%, 100% { transform: translateY(-3px); }
+  50%      { transform: translateY(3px); }
+}
+#neonvortex-screen-hangar .nv-hgr-model {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+#neonvortex-screen-hangar .nv-hgr-model-name {
+  font-family: var(--nv-font-display);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--nv-on-surface);
+}
+#neonvortex-screen-hangar .nv-hgr-coating {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-family: var(--nv-font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nv-primary);
+  background: color-mix(in srgb, var(--nv-primary) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 32%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-coating-dot { font-size: 9px; }
+
+/* SYSTEM SPECS card */
+#neonvortex-screen-hangar .nv-hgr-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--nv-surface-high) 35%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 20%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+#neonvortex-screen-hangar .nv-hgr-card-titles { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+#neonvortex-screen-hangar .nv-hgr-card-title {
+  margin: 0;
+  font-family: var(--nv-font-display);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nv-on-surface);
+}
+#neonvortex-screen-hangar .nv-hgr-card-title-kr {
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 70%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-tce {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  max-width: 42%;
+}
+#neonvortex-screen-hangar .nv-hgr-tce-val {
+  font-family: var(--nv-font-mono);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--nv-primary);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--nv-primary) 50%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-tce-label {
+  font-family: var(--nv-font-mono);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: right;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 65%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+#neonvortex-screen-hangar .nv-hgr-bar-row { display: flex; flex-direction: column; gap: 5px; }
+#neonvortex-screen-hangar .nv-hgr-bar-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+#neonvortex-screen-hangar .nv-hgr-bar-names { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+#neonvortex-screen-hangar .nv-hgr-bar-name {
+  font-family: var(--nv-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 88%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-bar-name-kr {
+  font-family: var(--nv-font-mono);
+  font-size: 8px;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 55%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-bar-pct {
+  flex: 0 0 auto;
+  font-family: var(--nv-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+#neonvortex-screen-hangar .nv-hgr-bar-track {
+  height: 8px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--nv-bg) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-on-surface-variant) 14%, transparent);
+  overflow: hidden;
+}
+#neonvortex-screen-hangar .nv-hgr-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+}
+/* accent colors for the spec readout bars/labels */
+#neonvortex-screen-hangar .nv-hgr-acc-gold { color: var(--nv-value); }
+#neonvortex-screen-hangar .nv-hgr-bar-fill.nv-hgr-acc-gold {
+  background: var(--nv-value);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--nv-value) 55%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-acc-green { color: #34d399; }
+#neonvortex-screen-hangar .nv-hgr-bar-fill.nv-hgr-acc-green {
+  background: #34d399;
+  box-shadow: 0 0 8px color-mix(in srgb, #34d399 55%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-acc-sky { color: #38bdf8; }
+#neonvortex-screen-hangar .nv-hgr-bar-fill.nv-hgr-acc-sky {
+  background: #38bdf8;
+  box-shadow: 0 0 8px color-mix(in srgb, #38bdf8 55%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-acc-violet { color: #a78bfa; }
+#neonvortex-screen-hangar .nv-hgr-bar-fill.nv-hgr-acc-violet {
+  background: #a78bfa;
+  box-shadow: 0 0 8px color-mix(in srgb, #a78bfa 55%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-spec-note {
+  margin: 0;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.03em;
+  color: color-mix(in srgb, var(--nv-value) 65%, transparent);
+}
+
+/* PHYSICAL TELEMETRY card */
+#neonvortex-screen-hangar .nv-hgr-tele {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--nv-surface) 60%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-on-surface-variant) 14%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-tele-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--nv-on-surface-variant) 12%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-tele-title {
+  font-family: var(--nv-font-display);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 75%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-tele-code {
+  font-family: var(--nv-font-mono);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 50%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-tele-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+#neonvortex-screen-hangar .nv-hgr-tele-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 9px 6px;
+  border-radius: 9px;
+  text-align: center;
+  background: color-mix(in srgb, var(--nv-bg) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-on-surface-variant) 12%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-tele-label {
+  font-family: var(--nv-font-mono);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 60%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-tele-label-kr {
+  font-family: var(--nv-font-mono);
+  font-size: 7px;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 42%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-tele-val {
+  margin-top: 2px;
+  font-family: var(--nv-font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--nv-on-surface);
+}
+
+/* PILOT RECOGNITION chip */
+#neonvortex-screen-hangar .nv-hgr-pilot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--nv-primary) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 22%, transparent);
+  border-left: 3px solid color-mix(in srgb, var(--nv-primary) 55%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-pilot-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+#neonvortex-screen-hangar .nv-hgr-pilot-label {
+  font-family: var(--nv-font-mono);
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 60%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-pilot-call {
+  font-family: var(--nv-font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--nv-on-surface);
+}
+#neonvortex-screen-hangar .nv-hgr-pilot-rank {
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-family: var(--nv-font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+}
+#neonvortex-screen-hangar .nv-hgr-pilot-status {
+  flex: 0 0 auto;
+  padding: 5px 11px;
+  border-radius: 8px;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nv-primary);
+  background: color-mix(in srgb, var(--nv-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 40%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--nv-primary) 18%, transparent);
+}

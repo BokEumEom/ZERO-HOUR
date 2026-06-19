@@ -408,7 +408,174 @@
   // ---- display-only meta pages; implemented per-page. Each only READS recs /
   // recs.lifetime / medals and renders into its *-body via createElement; none
   // touch the simulation, score, drops, or the daily seed. ----
-  function renderHangar() {}
+  // STRIKER HANGAR — 격납고 제원 관제소 (DISPLAY-ONLY spec sheet). Reads only
+  // recs.lifetime.score (for the pilot rank-tier chip, same as the menu pilot
+  // card) and the SY.nvSprites atlas (to blit the player striker). It writes no
+  // record, touches no simulation/score/drop/seed state. The SYSTEM SPECS bars
+  // and PHYSICAL TELEMETRY are FIXED FLAVOR readouts (the base striker loadout),
+  // NOT the live game balance — purely a presentation matrix.
+  const NV_HGR_SPECS = [
+    { titleEN: 'LASER CANNON CAPACITY', titleKR: '레이저 위력 등급', pct: 60, accent: 'gold' },
+    { titleEN: 'REINFORCED CHASSIS HP', titleKR: '강화 선체 내구도', pct: 60, accent: 'green' },
+    { titleEN: 'NANO CRYSTAL MAGNET', titleKR: '나노 입자 흡착기', pct: 40, accent: 'sky' },
+    { titleEN: 'WARP BOOST UNIT', titleKR: '워프 부스터 엔진', pct: 100, accent: 'violet' },
+  ];
+  const NV_HGR_TELEMETRY = [
+    { labelEN: 'DRY MASS', labelKR: '순 기동 질량', value: '14.2 MET TON' },
+    { labelEN: 'WINGSPAN', labelKR: '주익 너비', value: '11.8 METERS' },
+    { labelEN: 'ION REACTOR CORES', labelKR: '이온 원자로 코어', value: 'TWIN TRITIUM' },
+  ];
+  // TOTAL COMBAT EFFICIENCY — derived only from the fixed spec readout above, so
+  // it is a deterministic display number (not the live balance).
+  const NV_HGR_TCE = Math.round(
+    NV_HGR_SPECS.reduce((sum, s) => sum + s.pct, 0) / NV_HGR_SPECS.length
+  );
+
+  // Blit the player striker sprite, scaled up and centred, onto the holographic
+  // plinth canvas. The atlas may not have decoded yet on first open, so guard on
+  // isReady() and redraw on the sheet's decode/load if needed (no throw on a
+  // cold cache; the plinth backdrop is CSS so it never looks empty).
+  function drawHangarShip(canvas) {
+    const SP = SY.nvSprites;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    const r = SP && SP.atlas && SP.atlas.player; // player source rect in the atlas
+    const sheet = SP && SP.image;
+    // gate on the image being decoded (works for the standalone data-URI atlas,
+    // where the module's onload-driven isReady() may not have fired yet)
+    if (!r || !sheet || !sheet.complete || !sheet.naturalWidth) return false;
+    // fit the player rect into the canvas with margin, preserving aspect
+    const margin = 0.62;
+    const sc = Math.min((w * margin) / r.w, (h * margin) / r.h);
+    const dw = r.w * sc, dh = r.h * sc;
+    ctx.save();
+    ctx.shadowBlur = 28;
+    ctx.shadowColor = 'rgba(0, 219, 231, 0.55)'; // cyan hologram glow
+    ctx.drawImage(sheet, r.x, r.y, r.w, r.h, w / 2 - dw / 2, h / 2 - dh / 2, dw, dh);
+    ctx.restore();
+    return true;
+  }
+
+  function renderHangar() {
+    const lt = recs.lifetime || { score: 0, crystals: 0, runs: 0 };
+    const tier = SY.nvMeta.rankTier(lt.score); // display-only pilot rank
+
+    const body = $('hangar-body');
+    body.replaceChildren(); // clear (no innerHTML)
+
+    // ---- header ----
+    const header = nvEl('header', 'nv-hgr-head');
+    const tag = nvEl('div', 'nv-hgr-tag');
+    tag.appendChild(nvEl('span', 'nv-hgr-tag-kicker', 'HANGAR_BAY_OK'));
+    tag.appendChild(nvEl('span', 'nv-hgr-tag-code', 'TACTICAL DECK // SPECIFICATION MATRIX'));
+    header.appendChild(tag);
+    const titleWrap = nvEl('div', 'nv-hgr-title-wrap');
+    titleWrap.appendChild(nvEl('h2', 'nv-hgr-title', 'STRIKER HANGAR'));
+    titleWrap.appendChild(nvEl('p', 'nv-hgr-subtitle', '격납고 제원 관제소'));
+    header.appendChild(titleWrap);
+    header.appendChild(nvEl('div', 'nv-hgr-rule'));
+    body.appendChild(header);
+
+    // ---- ship showcase: player sprite on a holographic grid plinth ----
+    const show = nvEl('section', 'nv-hgr-show clip-chamfer');
+    show.appendChild(nvEl('span', 'nv-hgr-show-deco nv-hgr-show-deco-l', 'SYS_RENDERER // ONLINE'));
+    show.appendChild(nvEl('span', 'nv-hgr-show-deco nv-hgr-show-deco-r', 'SCANNING'));
+    const plinth = nvEl('div', 'nv-hgr-plinth');
+    const canvas = document.createElement('canvas');
+    canvas.className = 'nv-hgr-canvas';
+    canvas.width = 260;
+    canvas.height = 230;
+    plinth.appendChild(canvas);
+    show.appendChild(plinth);
+    // model name + EQUIPPED COATING chip (display only)
+    const model = nvEl('div', 'nv-hgr-model');
+    model.appendChild(nvEl('span', 'nv-hgr-model-name', 'MODEL: X-77 STRIKER INTERCEPTOR'));
+    const coating = nvEl('span', 'nv-hgr-coating');
+    coating.appendChild(nvEl('span', 'nv-hgr-coating-dot', '◆'));
+    coating.appendChild(document.createTextNode(' EQUIPPED COATING · NEON MATRIX'));
+    model.appendChild(coating);
+    show.appendChild(model);
+    body.appendChild(show);
+
+    // draw the striker now; if the atlas hasn't decoded, redraw on decode/load
+    if (drawHangarShip(canvas) === false) {
+      const sheet = SY.nvSprites && SY.nvSprites.image;
+      if (sheet) {
+        const redraw = () => drawHangarShip(canvas);
+        if (sheet.decode) sheet.decode().then(redraw).catch(() => {});
+        sheet.addEventListener('load', redraw, { once: true });
+      }
+    }
+
+    // ---- SYSTEM SPECS card (fixed flavor readout) ----
+    const specCard = nvEl('section', 'nv-hgr-card clip-chamfer');
+    const specHead = nvEl('div', 'nv-hgr-card-head');
+    const specTitles = nvEl('div', 'nv-hgr-card-titles');
+    specTitles.appendChild(nvEl('h3', 'nv-hgr-card-title', 'SYSTEM SPECS'));
+    specTitles.appendChild(nvEl('span', 'nv-hgr-card-title-kr', '서브시스템 명세 · 제원 표시'));
+    specHead.appendChild(specTitles);
+    // TOTAL COMBAT EFFICIENCY ring
+    const tce = nvEl('div', 'nv-hgr-tce');
+    tce.appendChild(nvEl('span', 'nv-hgr-tce-val', NV_HGR_TCE + '%'));
+    tce.appendChild(nvEl('span', 'nv-hgr-tce-label', 'TOTAL COMBAT EFFICIENCY'));
+    specHead.appendChild(tce);
+    specCard.appendChild(specHead);
+
+    const bars = nvEl('div', 'nv-hgr-bars');
+    for (const sp of NV_HGR_SPECS) {
+      const row = nvEl('div', 'nv-hgr-bar-row');
+      const rowHead = nvEl('div', 'nv-hgr-bar-head');
+      const names = nvEl('div', 'nv-hgr-bar-names');
+      names.appendChild(nvEl('span', 'nv-hgr-bar-name', sp.titleEN));
+      names.appendChild(nvEl('span', 'nv-hgr-bar-name-kr', sp.titleKR));
+      rowHead.appendChild(names);
+      rowHead.appendChild(nvEl('span', 'nv-hgr-bar-pct nv-hgr-acc-' + sp.accent, sp.pct + '%'));
+      row.appendChild(rowHead);
+      const track = nvEl('div', 'nv-hgr-bar-track');
+      const fill = nvEl('div', 'nv-hgr-bar-fill nv-hgr-acc-' + sp.accent);
+      fill.style.width = sp.pct + '%';
+      track.appendChild(fill);
+      row.appendChild(track);
+      bars.appendChild(row);
+    }
+    specCard.appendChild(bars);
+    specCard.appendChild(nvEl('p', 'nv-hgr-spec-note',
+      '* 제원 표시 전용 · 실제 게임 밸런스가 아닙니다'));
+    body.appendChild(specCard);
+
+    // ---- PHYSICAL TELEMETRY card (static flavor stats) ----
+    const teleCard = nvEl('section', 'nv-hgr-tele');
+    const teleHead = nvEl('div', 'nv-hgr-tele-head');
+    teleHead.appendChild(nvEl('span', 'nv-hgr-tele-title', 'PHYSICAL TELEMETRY · 선체 물리 제원'));
+    teleHead.appendChild(nvEl('span', 'nv-hgr-tele-code', 'ST_X77_SYS'));
+    teleCard.appendChild(teleHead);
+    const teleGrid = nvEl('div', 'nv-hgr-tele-grid');
+    for (const m of NV_HGR_TELEMETRY) {
+      const cell = nvEl('div', 'nv-hgr-tele-cell');
+      cell.appendChild(nvEl('span', 'nv-hgr-tele-label', m.labelEN));
+      cell.appendChild(nvEl('span', 'nv-hgr-tele-label-kr', m.labelKR));
+      cell.appendChild(nvEl('span', 'nv-hgr-tele-val', m.value));
+      teleGrid.appendChild(cell);
+    }
+    teleCard.appendChild(teleGrid);
+    body.appendChild(teleCard);
+
+    // ---- PILOT RECOGNITION chip (callsign + display-only rank tier) ----
+    const pilot = nvEl('section', 'nv-hgr-pilot');
+    const pilotInfo = nvEl('div', 'nv-hgr-pilot-info');
+    pilotInfo.appendChild(nvEl('span', 'nv-hgr-pilot-label', 'PILOT RECOGNITION · 인증 파일럿'));
+    pilotInfo.appendChild(nvEl('span', 'nv-hgr-pilot-call', 'CALLSIGN · PILOT_YOU'));
+    const rankChip = nvEl('span', 'nv-hgr-pilot-rank', tier.name);
+    rankChip.style.color = tier.color;
+    rankChip.style.borderColor = tier.color;
+    pilotInfo.appendChild(rankChip);
+    pilot.appendChild(pilotInfo);
+    const status = nvEl('span', 'nv-hgr-pilot-status', 'GRID READY');
+    pilot.appendChild(status);
+    body.appendChild(pilot);
+  }
 
   // SYSTEM OVERHAUL — 신디케이트 오버홀 (DISPLAY-ONLY PREVIEW). This page is a
   // non-functional mock of the reference shop: it READS recs.lifetime.crystals

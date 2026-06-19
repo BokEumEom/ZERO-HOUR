@@ -3428,6 +3428,395 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   cursor: not-allowed;
 }
 
+/* ===== STRIKER HANGAR — 격납고 제원 관제소 (display-only spec sheet) ===== */
+#neonvortex-screen-hangar .nv-hgr-head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#neonvortex-screen-hangar .nv-hgr-tag {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+#neonvortex-screen-hangar .nv-hgr-tag-kicker { color: var(--nv-primary); }
+#neonvortex-screen-hangar .nv-hgr-tag-code {
+  color: color-mix(in srgb, var(--nv-primary) 60%, transparent);
+  text-align: right;
+}
+#neonvortex-screen-hangar .nv-hgr-title-wrap { display: flex; flex-direction: column; gap: 4px; }
+#neonvortex-screen-hangar .nv-hgr-title {
+  margin: 0;
+  font-family: var(--nv-font-display);
+  font-size: clamp(22px, 6.5vw, 30px);
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--nv-primary);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--nv-primary) 50%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-subtitle {
+  margin: 0;
+  font-family: var(--nv-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 80%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-rule {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(to right,
+    color-mix(in srgb, var(--nv-primary) 45%, transparent), transparent);
+}
+
+/* ship showcase — player sprite on a holographic grid plinth */
+#neonvortex-screen-hangar .nv-hgr-show {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 26px 16px 18px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--nv-primary) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 20%, transparent);
+  overflow: hidden;
+}
+#neonvortex-screen-hangar .nv-hgr-show-deco {
+  position: absolute;
+  top: 9px;
+  font-family: var(--nv-font-mono);
+  font-size: 7.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-primary) 55%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-show-deco-l { left: 12px; }
+#neonvortex-screen-hangar .nv-hgr-show-deco-r {
+  right: 12px;
+  color: var(--nv-primary);
+}
+#neonvortex-screen-hangar .nv-hgr-plinth {
+  position: relative;
+  width: 100%;
+  max-width: 280px;
+  aspect-ratio: 26 / 23;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  /* holographic grid + radial glow backdrop */
+  background:
+    radial-gradient(circle at 50% 52%,
+      color-mix(in srgb, var(--nv-primary) 24%, transparent), transparent 62%),
+    repeating-linear-gradient(0deg,
+      color-mix(in srgb, var(--nv-primary) 9%, transparent) 0 1px, transparent 1px 22px),
+    repeating-linear-gradient(90deg,
+      color-mix(in srgb, var(--nv-primary) 9%, transparent) 0 1px, transparent 1px 22px),
+    color-mix(in srgb, var(--nv-bg) 80%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-canvas {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  /* cosmetic float/pulse — display-only flair */
+  animation: nv-hgr-float 4.5s ease-in-out infinite;
+}
+@keyframes nv-hgr-float {
+  0%, 100% { transform: translateY(-3px); }
+  50%      { transform: translateY(3px); }
+}
+#neonvortex-screen-hangar .nv-hgr-model {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+#neonvortex-screen-hangar .nv-hgr-model-name {
+  font-family: var(--nv-font-display);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--nv-on-surface);
+}
+#neonvortex-screen-hangar .nv-hgr-coating {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-family: var(--nv-font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nv-primary);
+  background: color-mix(in srgb, var(--nv-primary) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 32%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-coating-dot { font-size: 9px; }
+
+/* SYSTEM SPECS card */
+#neonvortex-screen-hangar .nv-hgr-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--nv-surface-high) 35%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 20%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+#neonvortex-screen-hangar .nv-hgr-card-titles { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+#neonvortex-screen-hangar .nv-hgr-card-title {
+  margin: 0;
+  font-family: var(--nv-font-display);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nv-on-surface);
+}
+#neonvortex-screen-hangar .nv-hgr-card-title-kr {
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 70%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-tce {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  max-width: 42%;
+}
+#neonvortex-screen-hangar .nv-hgr-tce-val {
+  font-family: var(--nv-font-mono);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--nv-primary);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--nv-primary) 50%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-tce-label {
+  font-family: var(--nv-font-mono);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: right;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 65%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+#neonvortex-screen-hangar .nv-hgr-bar-row { display: flex; flex-direction: column; gap: 5px; }
+#neonvortex-screen-hangar .nv-hgr-bar-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+#neonvortex-screen-hangar .nv-hgr-bar-names { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+#neonvortex-screen-hangar .nv-hgr-bar-name {
+  font-family: var(--nv-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 88%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-bar-name-kr {
+  font-family: var(--nv-font-mono);
+  font-size: 8px;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 55%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-bar-pct {
+  flex: 0 0 auto;
+  font-family: var(--nv-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+#neonvortex-screen-hangar .nv-hgr-bar-track {
+  height: 8px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--nv-bg) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-on-surface-variant) 14%, transparent);
+  overflow: hidden;
+}
+#neonvortex-screen-hangar .nv-hgr-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+}
+/* accent colors for the spec readout bars/labels */
+#neonvortex-screen-hangar .nv-hgr-acc-gold { color: var(--nv-value); }
+#neonvortex-screen-hangar .nv-hgr-bar-fill.nv-hgr-acc-gold {
+  background: var(--nv-value);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--nv-value) 55%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-acc-green { color: #34d399; }
+#neonvortex-screen-hangar .nv-hgr-bar-fill.nv-hgr-acc-green {
+  background: #34d399;
+  box-shadow: 0 0 8px color-mix(in srgb, #34d399 55%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-acc-sky { color: #38bdf8; }
+#neonvortex-screen-hangar .nv-hgr-bar-fill.nv-hgr-acc-sky {
+  background: #38bdf8;
+  box-shadow: 0 0 8px color-mix(in srgb, #38bdf8 55%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-acc-violet { color: #a78bfa; }
+#neonvortex-screen-hangar .nv-hgr-bar-fill.nv-hgr-acc-violet {
+  background: #a78bfa;
+  box-shadow: 0 0 8px color-mix(in srgb, #a78bfa 55%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-spec-note {
+  margin: 0;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.03em;
+  color: color-mix(in srgb, var(--nv-value) 65%, transparent);
+}
+
+/* PHYSICAL TELEMETRY card */
+#neonvortex-screen-hangar .nv-hgr-tele {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--nv-surface) 60%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-on-surface-variant) 14%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-tele-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--nv-on-surface-variant) 12%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-tele-title {
+  font-family: var(--nv-font-display);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 75%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-tele-code {
+  font-family: var(--nv-font-mono);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 50%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-tele-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+#neonvortex-screen-hangar .nv-hgr-tele-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 9px 6px;
+  border-radius: 9px;
+  text-align: center;
+  background: color-mix(in srgb, var(--nv-bg) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-on-surface-variant) 12%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-tele-label {
+  font-family: var(--nv-font-mono);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 60%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-tele-label-kr {
+  font-family: var(--nv-font-mono);
+  font-size: 7px;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 42%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-tele-val {
+  margin-top: 2px;
+  font-family: var(--nv-font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--nv-on-surface);
+}
+
+/* PILOT RECOGNITION chip */
+#neonvortex-screen-hangar .nv-hgr-pilot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--nv-primary) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 22%, transparent);
+  border-left: 3px solid color-mix(in srgb, var(--nv-primary) 55%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-pilot-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+#neonvortex-screen-hangar .nv-hgr-pilot-label {
+  font-family: var(--nv-font-mono);
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 60%, transparent);
+}
+#neonvortex-screen-hangar .nv-hgr-pilot-call {
+  font-family: var(--nv-font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--nv-on-surface);
+}
+#neonvortex-screen-hangar .nv-hgr-pilot-rank {
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-family: var(--nv-font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+}
+#neonvortex-screen-hangar .nv-hgr-pilot-status {
+  flex: 0 0 auto;
+  padding: 5px 11px;
+  border-radius: 8px;
+  font-family: var(--nv-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nv-primary);
+  background: color-mix(in srgb, var(--nv-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-primary) 40%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--nv-primary) 18%, transparent);
+}
+
 </style>
 <link rel="preload" as="image" href="assets/illustrations/ship_assets.png">
 <link rel="preload" as="image" href="assets/illustrations/zero-hour-keyart.png">
@@ -7811,7 +8200,174 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // ---- display-only meta pages; implemented per-page. Each only READS recs /
   // recs.lifetime / medals and renders into its *-body via createElement; none
   // touch the simulation, score, drops, or the daily seed. ----
-  function renderHangar() {}
+  // STRIKER HANGAR — 격납고 제원 관제소 (DISPLAY-ONLY spec sheet). Reads only
+  // recs.lifetime.score (for the pilot rank-tier chip, same as the menu pilot
+  // card) and the SY.nvSprites atlas (to blit the player striker). It writes no
+  // record, touches no simulation/score/drop/seed state. The SYSTEM SPECS bars
+  // and PHYSICAL TELEMETRY are FIXED FLAVOR readouts (the base striker loadout),
+  // NOT the live game balance — purely a presentation matrix.
+  const NV_HGR_SPECS = [
+    { titleEN: 'LASER CANNON CAPACITY', titleKR: '레이저 위력 등급', pct: 60, accent: 'gold' },
+    { titleEN: 'REINFORCED CHASSIS HP', titleKR: '강화 선체 내구도', pct: 60, accent: 'green' },
+    { titleEN: 'NANO CRYSTAL MAGNET', titleKR: '나노 입자 흡착기', pct: 40, accent: 'sky' },
+    { titleEN: 'WARP BOOST UNIT', titleKR: '워프 부스터 엔진', pct: 100, accent: 'violet' },
+  ];
+  const NV_HGR_TELEMETRY = [
+    { labelEN: 'DRY MASS', labelKR: '순 기동 질량', value: '14.2 MET TON' },
+    { labelEN: 'WINGSPAN', labelKR: '주익 너비', value: '11.8 METERS' },
+    { labelEN: 'ION REACTOR CORES', labelKR: '이온 원자로 코어', value: 'TWIN TRITIUM' },
+  ];
+  // TOTAL COMBAT EFFICIENCY — derived only from the fixed spec readout above, so
+  // it is a deterministic display number (not the live balance).
+  const NV_HGR_TCE = Math.round(
+    NV_HGR_SPECS.reduce((sum, s) => sum + s.pct, 0) / NV_HGR_SPECS.length
+  );
+
+  // Blit the player striker sprite, scaled up and centred, onto the holographic
+  // plinth canvas. The atlas may not have decoded yet on first open, so guard on
+  // isReady() and redraw on the sheet's decode/load if needed (no throw on a
+  // cold cache; the plinth backdrop is CSS so it never looks empty).
+  function drawHangarShip(canvas) {
+    const SP = SY.nvSprites;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    const r = SP && SP.atlas && SP.atlas.player; // player source rect in the atlas
+    const sheet = SP && SP.image;
+    // gate on the image being decoded (works for the standalone data-URI atlas,
+    // where the module's onload-driven isReady() may not have fired yet)
+    if (!r || !sheet || !sheet.complete || !sheet.naturalWidth) return false;
+    // fit the player rect into the canvas with margin, preserving aspect
+    const margin = 0.62;
+    const sc = Math.min((w * margin) / r.w, (h * margin) / r.h);
+    const dw = r.w * sc, dh = r.h * sc;
+    ctx.save();
+    ctx.shadowBlur = 28;
+    ctx.shadowColor = 'rgba(0, 219, 231, 0.55)'; // cyan hologram glow
+    ctx.drawImage(sheet, r.x, r.y, r.w, r.h, w / 2 - dw / 2, h / 2 - dh / 2, dw, dh);
+    ctx.restore();
+    return true;
+  }
+
+  function renderHangar() {
+    const lt = recs.lifetime || { score: 0, crystals: 0, runs: 0 };
+    const tier = SY.nvMeta.rankTier(lt.score); // display-only pilot rank
+
+    const body = $('hangar-body');
+    body.replaceChildren(); // clear (no innerHTML)
+
+    // ---- header ----
+    const header = nvEl('header', 'nv-hgr-head');
+    const tag = nvEl('div', 'nv-hgr-tag');
+    tag.appendChild(nvEl('span', 'nv-hgr-tag-kicker', 'HANGAR_BAY_OK'));
+    tag.appendChild(nvEl('span', 'nv-hgr-tag-code', 'TACTICAL DECK // SPECIFICATION MATRIX'));
+    header.appendChild(tag);
+    const titleWrap = nvEl('div', 'nv-hgr-title-wrap');
+    titleWrap.appendChild(nvEl('h2', 'nv-hgr-title', 'STRIKER HANGAR'));
+    titleWrap.appendChild(nvEl('p', 'nv-hgr-subtitle', '격납고 제원 관제소'));
+    header.appendChild(titleWrap);
+    header.appendChild(nvEl('div', 'nv-hgr-rule'));
+    body.appendChild(header);
+
+    // ---- ship showcase: player sprite on a holographic grid plinth ----
+    const show = nvEl('section', 'nv-hgr-show clip-chamfer');
+    show.appendChild(nvEl('span', 'nv-hgr-show-deco nv-hgr-show-deco-l', 'SYS_RENDERER // ONLINE'));
+    show.appendChild(nvEl('span', 'nv-hgr-show-deco nv-hgr-show-deco-r', 'SCANNING'));
+    const plinth = nvEl('div', 'nv-hgr-plinth');
+    const canvas = document.createElement('canvas');
+    canvas.className = 'nv-hgr-canvas';
+    canvas.width = 260;
+    canvas.height = 230;
+    plinth.appendChild(canvas);
+    show.appendChild(plinth);
+    // model name + EQUIPPED COATING chip (display only)
+    const model = nvEl('div', 'nv-hgr-model');
+    model.appendChild(nvEl('span', 'nv-hgr-model-name', 'MODEL: X-77 STRIKER INTERCEPTOR'));
+    const coating = nvEl('span', 'nv-hgr-coating');
+    coating.appendChild(nvEl('span', 'nv-hgr-coating-dot', '◆'));
+    coating.appendChild(document.createTextNode(' EQUIPPED COATING · NEON MATRIX'));
+    model.appendChild(coating);
+    show.appendChild(model);
+    body.appendChild(show);
+
+    // draw the striker now; if the atlas hasn't decoded, redraw on decode/load
+    if (drawHangarShip(canvas) === false) {
+      const sheet = SY.nvSprites && SY.nvSprites.image;
+      if (sheet) {
+        const redraw = () => drawHangarShip(canvas);
+        if (sheet.decode) sheet.decode().then(redraw).catch(() => {});
+        sheet.addEventListener('load', redraw, { once: true });
+      }
+    }
+
+    // ---- SYSTEM SPECS card (fixed flavor readout) ----
+    const specCard = nvEl('section', 'nv-hgr-card clip-chamfer');
+    const specHead = nvEl('div', 'nv-hgr-card-head');
+    const specTitles = nvEl('div', 'nv-hgr-card-titles');
+    specTitles.appendChild(nvEl('h3', 'nv-hgr-card-title', 'SYSTEM SPECS'));
+    specTitles.appendChild(nvEl('span', 'nv-hgr-card-title-kr', '서브시스템 명세 · 제원 표시'));
+    specHead.appendChild(specTitles);
+    // TOTAL COMBAT EFFICIENCY ring
+    const tce = nvEl('div', 'nv-hgr-tce');
+    tce.appendChild(nvEl('span', 'nv-hgr-tce-val', NV_HGR_TCE + '%'));
+    tce.appendChild(nvEl('span', 'nv-hgr-tce-label', 'TOTAL COMBAT EFFICIENCY'));
+    specHead.appendChild(tce);
+    specCard.appendChild(specHead);
+
+    const bars = nvEl('div', 'nv-hgr-bars');
+    for (const sp of NV_HGR_SPECS) {
+      const row = nvEl('div', 'nv-hgr-bar-row');
+      const rowHead = nvEl('div', 'nv-hgr-bar-head');
+      const names = nvEl('div', 'nv-hgr-bar-names');
+      names.appendChild(nvEl('span', 'nv-hgr-bar-name', sp.titleEN));
+      names.appendChild(nvEl('span', 'nv-hgr-bar-name-kr', sp.titleKR));
+      rowHead.appendChild(names);
+      rowHead.appendChild(nvEl('span', 'nv-hgr-bar-pct nv-hgr-acc-' + sp.accent, sp.pct + '%'));
+      row.appendChild(rowHead);
+      const track = nvEl('div', 'nv-hgr-bar-track');
+      const fill = nvEl('div', 'nv-hgr-bar-fill nv-hgr-acc-' + sp.accent);
+      fill.style.width = sp.pct + '%';
+      track.appendChild(fill);
+      row.appendChild(track);
+      bars.appendChild(row);
+    }
+    specCard.appendChild(bars);
+    specCard.appendChild(nvEl('p', 'nv-hgr-spec-note',
+      '* 제원 표시 전용 · 실제 게임 밸런스가 아닙니다'));
+    body.appendChild(specCard);
+
+    // ---- PHYSICAL TELEMETRY card (static flavor stats) ----
+    const teleCard = nvEl('section', 'nv-hgr-tele');
+    const teleHead = nvEl('div', 'nv-hgr-tele-head');
+    teleHead.appendChild(nvEl('span', 'nv-hgr-tele-title', 'PHYSICAL TELEMETRY · 선체 물리 제원'));
+    teleHead.appendChild(nvEl('span', 'nv-hgr-tele-code', 'ST_X77_SYS'));
+    teleCard.appendChild(teleHead);
+    const teleGrid = nvEl('div', 'nv-hgr-tele-grid');
+    for (const m of NV_HGR_TELEMETRY) {
+      const cell = nvEl('div', 'nv-hgr-tele-cell');
+      cell.appendChild(nvEl('span', 'nv-hgr-tele-label', m.labelEN));
+      cell.appendChild(nvEl('span', 'nv-hgr-tele-label-kr', m.labelKR));
+      cell.appendChild(nvEl('span', 'nv-hgr-tele-val', m.value));
+      teleGrid.appendChild(cell);
+    }
+    teleCard.appendChild(teleGrid);
+    body.appendChild(teleCard);
+
+    // ---- PILOT RECOGNITION chip (callsign + display-only rank tier) ----
+    const pilot = nvEl('section', 'nv-hgr-pilot');
+    const pilotInfo = nvEl('div', 'nv-hgr-pilot-info');
+    pilotInfo.appendChild(nvEl('span', 'nv-hgr-pilot-label', 'PILOT RECOGNITION · 인증 파일럿'));
+    pilotInfo.appendChild(nvEl('span', 'nv-hgr-pilot-call', 'CALLSIGN · PILOT_YOU'));
+    const rankChip = nvEl('span', 'nv-hgr-pilot-rank', tier.name);
+    rankChip.style.color = tier.color;
+    rankChip.style.borderColor = tier.color;
+    pilotInfo.appendChild(rankChip);
+    pilot.appendChild(pilotInfo);
+    const status = nvEl('span', 'nv-hgr-pilot-status', 'GRID READY');
+    pilot.appendChild(status);
+    body.appendChild(pilot);
+  }
 
   // SYSTEM OVERHAUL — 신디케이트 오버홀 (DISPLAY-ONLY PREVIEW). This page is a
   // non-functional mock of the reference shop: it READS recs.lifetime.crystals
