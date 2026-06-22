@@ -145,12 +145,13 @@
   }
 
   // Pure: choose the hull frame for the current player state. Cosmetic only —
-  // reads no RNG and mutates nothing. Priority: the shield bubble hides the
+  // reads no RNG and mutates nothing. `st` is a non-null { shield, hp, boost }
+  // object (caller's responsibility). Priority: the shield bubble hides the
   // hull (wins), then low-hull danger reads over boost flair, else default.
   function pickHullFrame(st) {
-    if (st && st.shield) return 'shielded';
-    if (st && st.hp <= 1) return 'damaged';
-    if (st && st.boost > 0) return 'boosted';
+    if (st.shield) return 'shielded';
+    if (st.hp <= 1) return 'damaged';
+    if (st.boost > 0) return 'boosted';
     return 'player';
   }
 

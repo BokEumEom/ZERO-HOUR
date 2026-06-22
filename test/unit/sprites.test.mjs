@@ -7,6 +7,7 @@ const load = () => loadModules(['js/games/neonvortex/sprites.js']).SY.nvSprites;
 test('pickHullFrame maps player state to the right hull frame', () => {
   const SP = load();
   const pick = SP.pickHullFrame;
+  // fixtures use the adapter shape render.js passes: { shield: bool, hp: number, boost: s.fx.BOOST (0 when inactive) }
   assert.equal(pick({ shield: false, hp: 3, boost: 0 }), 'player', 'default');
   assert.equal(pick({ shield: false, hp: 3, boost: 1.5 }), 'boosted', 'boost flair');
   assert.equal(pick({ shield: false, hp: 1, boost: 0 }), 'damaged', 'last hull');

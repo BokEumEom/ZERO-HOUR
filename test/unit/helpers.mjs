@@ -67,7 +67,16 @@ export function loadModules(files, opts = {}) {
     queueMicrotask,
     // minimal Image stub so sprite modules (new Image() at load) run headless;
     // never decodes (complete=false) so SP.isReady() stays false in tests.
-    Image: class { constructor() { this.onload = null; this.complete = false; this.naturalWidth = 0; this._src = ''; } set src(v) { this._src = v; } get src() { return this._src; } },
+    Image: class {
+      constructor() {
+        this.onload = null;
+        this.complete = false;
+        this.naturalWidth = 0;
+        this._src = '';
+      }
+      set src(v) { this._src = v; }
+      get src() { return this._src; }
+    },
     Date: opts.nowIso ? frozenDateClass(opts.nowIso) : Date,
     indexedDB: opts.idb || fakeIndexedDB(),
     __listeners: {},
