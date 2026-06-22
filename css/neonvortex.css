@@ -1414,18 +1414,24 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 /* full-bleed scrolling column so the chart, table and medals can breathe */
 #neonvortex-screen-records .nv-rank-shell {
   width: min(460px, 94vw);
+  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  overflow-y: auto;
   text-align: left;
   color: var(--nv-on-surface);
 }
-/* header: back control left, mono terminal tag right, hairline base */
+/* header: back control left, mono terminal tag right, hairline base — pinned to top */
 #neonvortex-screen-records .nv-rank-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 12px;
+  padding: 4px 0 12px;
+  background: var(--nv-bg);
   border-bottom: 1px solid color-mix(in srgb, var(--nv-primary) 20%, transparent);
 }
 #neonvortex-screen-records .nv-rank-status {
@@ -1603,18 +1609,24 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
    console column so the two cards can breathe and scroll on tall phones. */
 #neonvortex-screen-settings .nv-set-shell {
   width: min(420px, 94vw);
+  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 18px;
+  overflow-y: auto;
   text-align: left;
   color: var(--nv-on-surface);
 }
-/* header: back control left, mono OK status right, hairline base */
+/* header: back control left, mono OK status right, hairline base — pinned to top */
 #neonvortex-screen-settings .nv-set-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 12px;
+  padding: 4px 0 12px;
+  background: var(--nv-bg);
   border-bottom: 1px solid color-mix(in srgb, var(--nv-primary) 20%, transparent);
 }
 #neonvortex-screen-settings .nv-set-status {
@@ -1844,18 +1856,24 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 }
 #neonvortex-screen-challenge .nv-chal-shell {
   width: min(460px, 94vw);
+  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  overflow-y: auto;
   text-align: left;
   color: var(--nv-on-surface);
 }
 /* header: back control left, mono terminal tag right, hairline base */
 #neonvortex-screen-challenge .nv-chal-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 12px;
+  padding: 4px 0 12px;
+  background: var(--nv-bg);
   border-bottom: 1px solid color-mix(in srgb, var(--nv-primary) 20%, transparent);
 }
 #neonvortex-screen-challenge .nv-chal-status {
