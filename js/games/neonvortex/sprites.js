@@ -88,7 +88,9 @@
   // the first in-game frame never pays the build cost.
   function setPaint(id) {
     paint = PAINTS[id] !== undefined ? id : 'neon';
-    if (paint !== 'neon') playerCanvas('player', paint); // warm default hull (no-op if !ready)
+    // warm every hull frame's tinted cache so no in-game state transition pays
+    // the first-build cost (no-op until the atlas decodes).
+    if (paint !== 'neon') HULL_FRAMES.forEach((frameKey) => playerCanvas(frameKey, paint));
   }
   function getPaint() { return paint; }
 
@@ -110,7 +112,7 @@
   // non-neon coating, blits the CACHED tinted canvas (built once, never rebuilt
   // per frame) instead of the atlas — same scale/rotate math.
   function draw(ctx, key, x, y, size, rot) {
-    if (!ready) return false;
+    if (!decoded()) return false;
     const r = A[key];
     if (!r) return false;
     const sc = size / Math.max(r.w, r.h);
@@ -137,6 +139,7 @@
     if (!ready) return false;
     const r = A[key];
     if (!r) return false;
+    // note: drawFit blits the raw atlas (no paint tint) — not for hull frames.
     if (rot) {
       ctx.save();
       ctx.translate(x, y);

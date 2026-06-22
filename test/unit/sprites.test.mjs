@@ -26,9 +26,9 @@ test('atlas exposes hull-state frames and renames shieldDome', () => {
   assert.ok(A.boosted, 'boosted rect exists');
   assert.ok(A.damaged, 'damaged rect exists');
   assert.equal(A.shieldDome, undefined, 'old shieldDome key removed');
-  // Note: A lives in a vm sandbox (cross-realm object), so we compare properties
-  // individually rather than using deepStrictEqual (which fails on prototype mismatch).
-  const r = A.shielded;
-  assert.equal(r.x, 1050); assert.equal(r.y, 826);
-  assert.equal(r.w, 142);  assert.equal(r.h, 142);
+  // Note: A lives in a vm sandbox (cross-realm object), so spread into a
+  // sandbox-side plain object before deepEqual (avoids prototype-mismatch trips).
+  assert.deepEqual({ ...A.shielded }, { x: 1050, y: 826, w: 142, h: 142 });
+  assert.deepEqual({ ...A.boosted }, { x: 907, y: 827, w: 109, h: 133 });
+  assert.deepEqual({ ...A.damaged }, { x: 1209, y: 833, w: 122, h: 126 });
 });
