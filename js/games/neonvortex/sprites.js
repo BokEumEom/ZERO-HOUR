@@ -55,11 +55,12 @@
 
   // Build (once) a native-size offscreen canvas of frame `frameKey` re-tinted
   // for `id`. Returns the canvas, or null for `neon` / before the atlas decodes.
+  // Cache is nested (playerCache[frameKey][id]) so hot-path hits allocate nothing.
   function playerCanvas(frameKey, id) {
     const def = PAINTS[id];
     if (!def) return null;            // neon (or unknown) -> atlas sprite
-    const cacheKey = frameKey + ':' + id;
-    const cached = playerCache[cacheKey];
+    let byFrame = playerCache[frameKey];
+    const cached = byFrame && byFrame[id];
     if (cached && cached.builtReady) return cached.canvas; // already good
     if (!decoded()) return null;      // can't build yet — fall back to atlas
     const r = A[frameKey];
@@ -80,7 +81,8 @@
     cx.globalCompositeOperation = 'destination-in';
     cx.drawImage(sheet, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
     cx.globalCompositeOperation = 'source-over';
-    playerCache[cacheKey] = { canvas: c, builtReady: true };
+    if (!byFrame) byFrame = playerCache[frameKey] = {};
+    byFrame[id] = { canvas: c, builtReady: true };
     return c;
   }
 
