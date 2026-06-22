@@ -74,6 +74,9 @@ Vercel에 정적 사이트로 배포됩니다 — 메인 게임은 `/`, 단일 �
 Retro Arcade Shooter/
 ├── index.html                # 메인 진입점 (HTML/화면 마크업)
 ├── standalone.html           # 단일 파일 번들 버전 (생성 산출물 — 직접 수정 금지)
+├── assets/                    # 아트 자산
+│   ├── sprite-atlas.png      # 게임 스프라이트 아틀라스 (sprites.js가 로드)
+│   └── sprite-reference.png / sprite-elements.png / ui-kit.png / keyart.png  # 디자인 참조 (코드 미사용)
 ├── css/
 │   ├── tokens.css            # 디자인 토큰 (팔레트·폰트·safe-area) — 단일 출처
 │   └── neonvortex.css        # 전체 UI 스타일 + 게임 아트 디렉션 (tokens.css의 변수 사용)

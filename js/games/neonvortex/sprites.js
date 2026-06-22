@@ -1,5 +1,5 @@
-// Neon Vortex — sprite atlas for the ship_assets.png sheet
-// (assets/illustrations/ship_assets.png — a labeled, sectioned sprite kit).
+// Neon Vortex — sprite atlas for the sprite-atlas.png sheet
+// (assets/sprite-atlas.png — a labeled, sectioned sprite kit).
 // Rects were extracted by a connected-component sweep of the sheet's black
 // background, then hand-verified against per-sprite crops. Drawing uses the
 // 9-arg drawImage crop (no per-frame allocation) so it is safe on the 60fps
@@ -14,7 +14,7 @@
   // the standalone data-URI atlas, where onload may not have run yet)
   const decoded = () => ready || (sheet.complete && sheet.naturalWidth > 0);
   // relative path works both from index.html and the generated standalone.html
-  sheet.src = 'assets/illustrations/ship_assets.png';
+  sheet.src = 'assets/sprite-atlas.png';
 
   // { x, y, w, h } source rects in the 1448×1086 sheet.
   const A = {

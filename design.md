@@ -132,6 +132,22 @@ shell.js  requestAnimationFrame(loop):
 - 화면 단축키는 phase가 아닌 **DOM visibility**로 가드(over 화면은 650ms 지연 표시).
 - 셸이 호출하는 `enter/exit/frame`을 등록(`SY.registerGame`).
 
+### `assets/` — 아트 자산 & `sprites.js`(`SY.nvSprites`)
+`sprites.js`가 `assets/sprite-atlas.png`(1448×1086) 단일 시트를 9-arg `drawImage`
+크롭으로 그린다. 디코드 전·실패 시 벡터 도형 폴백(핫패스 무할당). 도색
+(neon/stealth/solar)은 코팅별 오프스크린 캔버스 1회 프리캐시 — 시뮬·RNG 무관 코스메틱.
+
+| 파일 | 용도 | 코드 사용 |
+|---|---|---|
+| `sprite-atlas.png` | 게임 스프라이트 아틀라스 (13키 중 9키 렌더) | ✅ `sprites.js` + `index.html` preload |
+| `sprite-reference.png` | 라벨 스프라이트 설계 참조 시트 | ✗ 디자인 참조 |
+| `sprite-elements.png` | 낱개 스프라이트 요소 렌더 | ✗ 디자인 참조 |
+| `ui-kit.png` | HUD/UI 목업 키트 | ✗ 디자인 참조 |
+| `keyart.png` | 키아트(히어로 배너) | ✗ 디자인 참조 |
+
+미사용 아틀라스 키 4개(`enemyMid`·`beam`·`burst`·`shieldDome`) — 보스 빔·폭발·실드는
+현재 벡터/파티클로 렌더. 참조 이미지 4개는 코드 미로드(설계 자료).
+
 ---
 
 ## 5. 런 상태 구조 (`G.state`)

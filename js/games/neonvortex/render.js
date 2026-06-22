@@ -1,5 +1,5 @@
 // Neon Vortex — canvas renderer. Entities are drawn as sprites cut from
-// ship_assets.png (via SY.nvSprites). Each draw falls back to the original
+// sprite-atlas.png (via SY.nvSprites). Each draw falls back to the original
 // vector shape until the sheet decodes (or if it fails to load), so the game
 // stays playable with no image — mirroring the no-framework core invariant.
 (function () {
