@@ -851,8 +851,9 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 #neonvortex-screen-menu .nv-mi-tile {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: clamp(11px, 2.6vw, 14px) clamp(11px, 3vw, 15px);
+  justify-content: center;
+  gap: 8px;
+  padding: clamp(11px, 2.6vw, 14px) clamp(10px, 2.4vw, 13px);
   background: rgba(0,219,231,0.04);
   border: 1px solid color-mix(in srgb, var(--nv-primary) 42%, transparent);
   clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
@@ -1475,29 +1476,6 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   padding-bottom: 12px;
   border-bottom: 1px solid color-mix(in srgb, var(--nv-primary) 20%, transparent);
 }
-#neonvortex-screen-records .nv-rank-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 2px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: var(--nv-font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--nv-primary) 78%, transparent);
-  transition: color 0.15s ease, transform 0.1s ease;
-}
-#neonvortex-screen-records .nv-rank-back:hover,
-#neonvortex-screen-records .nv-rank-back:focus-visible {
-  color: var(--nv-primary-bright);
-  outline: none;
-}
-#neonvortex-screen-records .nv-rank-back:active { transform: scale(0.96); }
-#neonvortex-screen-records .nv-rank-back-icon { width: 14px; height: 14px; }
 #neonvortex-screen-records .nv-rank-status {
   font-family: var(--nv-font-mono);
   font-size: 10px;
@@ -1687,29 +1665,6 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   padding-bottom: 12px;
   border-bottom: 1px solid color-mix(in srgb, var(--nv-primary) 20%, transparent);
 }
-#neonvortex-screen-settings .nv-set-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 2px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: var(--nv-font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--nv-primary) 78%, transparent);
-  transition: color 0.15s ease, transform 0.1s ease;
-}
-#neonvortex-screen-settings .nv-set-back:hover,
-#neonvortex-screen-settings .nv-set-back:focus-visible {
-  color: var(--nv-primary-bright);
-  outline: none;
-}
-#neonvortex-screen-settings .nv-set-back:active { transform: scale(0.96); }
-#neonvortex-screen-settings .nv-set-back-icon { width: 14px; height: 14px; }
 #neonvortex-screen-settings .nv-set-status {
   font-family: var(--nv-font-mono);
   font-size: 10px;
@@ -1951,29 +1906,6 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   padding-bottom: 12px;
   border-bottom: 1px solid color-mix(in srgb, var(--nv-primary) 20%, transparent);
 }
-#neonvortex-screen-challenge .nv-chal-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 2px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: var(--nv-font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--nv-primary) 78%, transparent);
-  transition: color 0.15s ease, transform 0.1s ease;
-}
-#neonvortex-screen-challenge .nv-chal-back:hover,
-#neonvortex-screen-challenge .nv-chal-back:focus-visible {
-  color: var(--nv-primary-bright);
-  outline: none;
-}
-#neonvortex-screen-challenge .nv-chal-back:active { transform: scale(0.96); }
-#neonvortex-screen-challenge .nv-chal-back-icon { width: 14px; height: 14px; }
 #neonvortex-screen-challenge .nv-chal-status {
   font-family: var(--nv-font-mono);
   font-size: 10px;
