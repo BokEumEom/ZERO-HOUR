@@ -68,10 +68,6 @@
       active = g;
       if (active.enter) active.enter();
     },
-    // No hub in the single-game build; kept as a safe no-op for callers that
-    // expect the multi-game shell API.
-    exitToHub() {},
-    activeId() { return active ? active.id : null; },
   };
 
   // ---------- boot ----------

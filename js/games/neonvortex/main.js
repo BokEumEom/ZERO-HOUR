@@ -30,7 +30,7 @@
     loadRecords();
   }
   async function loadRecords() {
-    await SY.store.migrate('neonvortex'); // one-time: legacy keys -> ship:*
+    await SY.store.migrate('neonvortex'); // one-time: legacy keys -> neonvortex:*
     const gr = await gameStore.loadAll();
     recs.bestAll = gr.bestAll;
     recs.dailyBest = gr.dailyBest;
@@ -42,10 +42,10 @@
   function exit() {
     G.toMenu();
     releaseStick();
-    show(null);            // hide all Zero Hour screens
+    show(null);            // hide all screens
     $('hud').style.visibility = 'hidden';
   }
-  // called every frame by the shell while Zero Hour is the active game
+  // called every frame by the shell while this game is active
   function frame(dt, ctx) {
     G.update(dt);
     SY.nvRender(ctx);
@@ -724,7 +724,7 @@
 
   // TACTICAL BADGES (display-only). `earned` is computed from REAL persisted
   // data only — recs.lifetime ({score,crystals,runs}) for the cumulative
-  // milestones and the owned Zero Hour medal set (gameStore.loadMedals()) for
+  // milestones and the owned medal set (gameStore.loadMedals()) for
   // the combat badges. Where no real signal exists (5-consecutive-perfect runs
   // are not persisted), the badge stays LOCKED — it is never fake-earned.
   const NV_BADGES = [
@@ -847,7 +847,7 @@
 
   // PILOT TELEMETRY BLACKBOX — 파일럿 비행 기록 블랙박스 (DISPLAY-ONLY). Reads
   // only persisted records: recs.lifetime ({score,crystals,runs}), recs.bestAll
-  // (record score), the owned Zero Hour medal set (for the perfect-flight count),
+  // (record score), the owned medal set (for the perfect-flight count),
   // and the recent daily history (gameStore.loadRecentDailies). It writes no
   // record, touches no simulation/score/drop/seed state — and intentionally has
   // NO data-purge action (unlike the reference): the page only READS.
@@ -863,7 +863,7 @@
     // (loadRecentDailies already returns newest-first, so it is the natural order)
     const entries = days.filter((d) => d.rec);
 
-    // PERFECT FLIGHTS — derive from the owned no-hit / flawless Zero Hour medal
+    // PERFECT FLIGHTS — derive from the owned no-hit / flawless medal
     // (the only persisted flawless-run signal). Owned => 1+; otherwise 0. No
     // per-run "took no damage" flag is persisted, so it is never fabricated.
     const hasPerfect = ownedSet.has('nohit') || ownedSet.has('flawless');
@@ -1162,7 +1162,7 @@
     const filled = Math.max(0, Math.min(cells, Math.round(res.score / 1500)));
     const bar = '\ud83d\udfe9'.repeat(filled) + '\u2b1b'.repeat(cells - filled);
     return [
-      'SHIP \u00b7 Daily ' + recs.today,
+      'NEON VORTEX \u00b7 Daily ' + recs.today,
       'SCORE ' + fmt(res.score) + ' \u00b7 MAX COMBO \u00d7' + res.maxCombo,
       (res.bossDown ? '\ud83d\udc8e CORE WARDEN CLEARED' : '\u2b21 core survived\u2026'),
       bar,
