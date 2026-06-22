@@ -123,3 +123,9 @@ test('neonvortex meta stays cosmetic (lifetime/crystalsCollected never drive the
   const main = read(`${NV}/main.js`);
   assert.ok(/nvMeta\.accumulateLifetime/.test(main), 'lifetime accumulation happens in main.js');
 });
+
+test('render.js drives the player hull via state frames', () => {
+  const src = read(`${NV}/render.js`);
+  assert.ok(src.includes('pickHullFrame'), 'drawPlayer must select a hull frame');
+  assert.ok(/frame === 'shielded'/.test(src), 'shielded frame replaces the vector ring path');
+});

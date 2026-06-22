@@ -170,9 +170,13 @@
       ctx.setLineDash([]);
       ctx.restore();
     }
-    // hull sprite (points up; +90° aligns sprite nose with p.angle).
-    // aspect-preserving draw — the DEFAULT ship is a wide triangle.
-    if (!SP.draw(ctx, 'player', p.x, p.y, 42, p.angle + Math.PI / 2)) {
+    // hull sprite — frame reacts to state (shielded/damaged/boosted/default).
+    // shielded is the hull+bubble composite, so it draws larger; +90° aligns
+    // the sprite nose with p.angle. Pure choice, no per-frame allocation churn.
+    const frame = SP.pickHullFrame({ shield: s.shield, hp: p.hp, boost: s.fx.BOOST });
+    const size = frame === 'shielded' ? 64 : 42;
+    const drew = SP.draw(ctx, frame, p.x, p.y, size, p.angle + Math.PI / 2);
+    if (!drew) {
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(p.angle + Math.PI / 2);
@@ -192,8 +196,9 @@
       ctx.fill();
       ctx.restore();
     }
-    // shield ring (vector overlay)
-    if (s.shield) {
+    // shield ring (vector) — only when the sprite bubble wasn't drawn (atlas not
+    // ready/failed). When the 'shielded' sprite drew, its bubble already shows.
+    if (s.shield && !(drew && frame === 'shielded')) {
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.beginPath();
