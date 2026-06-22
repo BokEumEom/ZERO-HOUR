@@ -10,6 +10,11 @@
 
   const MONO = '"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace';
 
+  // hull sprite target size (longest-edge px). 'shielded' is a hull+bubble
+  // composite, so it needs extra room than the bare hull frames.
+  const HULL_SIZE = 42;
+  const HULL_SIZE_SHIELDED = 64;
+
   function poly(ctx, x, y, r, n, rot) {
     ctx.beginPath();
     for (let i = 0; i < n; i++) {
@@ -174,7 +179,7 @@
     // shielded is the hull+bubble composite, so it draws larger; +90° aligns
     // the sprite nose with p.angle. Pure choice, no per-frame allocation churn.
     const frame = SP.pickHullFrame({ shield: s.shield, hp: p.hp, boost: s.fx.BOOST });
-    const size = frame === 'shielded' ? 64 : 42;
+    const size = frame === 'shielded' ? HULL_SIZE_SHIELDED : HULL_SIZE;
     const drew = SP.draw(ctx, frame, p.x, p.y, size, p.angle + Math.PI / 2);
     if (!drew) {
       ctx.save();
@@ -198,7 +203,8 @@
     }
     // shield ring (vector) — only when the sprite bubble wasn't drawn (atlas not
     // ready/failed). When the 'shielded' sprite drew, its bubble already shows.
-    if (s.shield && !(drew && frame === 'shielded')) {
+    const bubbleDrawn = drew && frame === 'shielded';
+    if (s.shield && !bubbleDrawn) {
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.beginPath();
