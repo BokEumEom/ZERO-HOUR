@@ -29,7 +29,9 @@
     bulletPink:  { x: 964,  y: 274, w: 50,  h: 114 }, // enemy/boss shot (red missile)
     beam:        { x: 1152, y: 274, w: 52,  h: 114 }, // boss beam column
     burst:       { x: 1224, y: 278, w: 98,  h: 90  }, // destruction explosion
-    shieldDome:  { x: 1050, y: 826, w: 142, h: 142 }, // shielded-ship dome
+    shielded:    { x: 1050, y: 826, w: 142, h: 142 }, // SHIELDED frame (hull + hex bubble)
+    boosted:     { x: 907,  y: 827, w: 109, h: 133 }, // BOOSTED frame (large triple flames)
+    damaged:     { x: 1209, y: 833, w: 122, h: 126 }, // DAMAGED frame (cracks + sparks)
   };
 
   // ---- hull coatings (cosmetic paint) -------------------------------------
@@ -48,23 +50,26 @@
   // when this cache was built; if not, rebuild once the atlas decodes).
   const playerCache = {};
 
-  // Build (once) a native-size offscreen canvas of the player sprite re-tinted
+  // hull-family frame keys: these get the cosmetic paint-coating treatment.
+  const HULL_FRAMES = new Set(['player', 'boosted', 'damaged', 'shielded']);
+
+  // Build (once) a native-size offscreen canvas of frame `frameKey` re-tinted
   // for `id`. Returns the canvas, or null for `neon` / before the atlas decodes.
-  function playerCanvas(id) {
+  function playerCanvas(frameKey, id) {
     const def = PAINTS[id];
     if (!def) return null;            // neon (or unknown) -> atlas sprite
-    const cached = playerCache[id];
+    const cacheKey = frameKey + ':' + id;
+    const cached = playerCache[cacheKey];
     if (cached && cached.builtReady) return cached.canvas; // already good
     if (!decoded()) return null;      // can't build yet — fall back to atlas
-    const r = A.player;
+    const r = A[frameKey];
     const c = (cached && cached.canvas) || document.createElement('canvas');
     c.width = r.w;
     c.height = r.h;
     const cx = c.getContext('2d');
     cx.clearRect(0, 0, r.w, r.h);
-    // 1) the base sprite, 2) a translucent tint clipped to the sprite's pixels
-    // (source-atop keeps the existing alpha/shading), 3) a multiply shade pass
-    // to deepen the color so it reads clearly as the coating.
+    // 1) base sprite, 2) translucent tint clipped to sprite pixels, 3) multiply
+    // shade, 4) re-mask to the sprite's alpha.
     cx.drawImage(sheet, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
     cx.globalCompositeOperation = 'source-atop';
     cx.fillStyle = def.tint;
@@ -72,10 +77,10 @@
     cx.globalCompositeOperation = 'multiply';
     cx.fillStyle = def.shade;
     cx.fillRect(0, 0, r.w, r.h);
-    cx.globalCompositeOperation = 'destination-in'; // re-mask to sprite alpha
+    cx.globalCompositeOperation = 'destination-in';
     cx.drawImage(sheet, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
     cx.globalCompositeOperation = 'source-over';
-    playerCache[id] = { canvas: c, builtReady: true };
+    playerCache[cacheKey] = { canvas: c, builtReady: true };
     return c;
   }
 
@@ -83,7 +88,7 @@
   // the first in-game frame never pays the build cost.
   function setPaint(id) {
     paint = PAINTS[id] !== undefined ? id : 'neon';
-    if (paint !== 'neon') playerCanvas(paint); // warm the cache (no-op if !ready)
+    if (paint !== 'neon') playerCanvas('player', paint); // warm default hull (no-op if !ready)
   }
   function getPaint() { return paint; }
 
@@ -93,7 +98,7 @@
   function drawPlayer(ctx, dx, dy, dw, dh) {
     if (!decoded()) return false;
     const r = A.player;
-    const tinted = playerCanvas(paint);
+    const tinted = playerCanvas('player', paint);
     if (tinted) ctx.drawImage(tinted, dx, dy, dw, dh);
     else ctx.drawImage(sheet, r.x, r.y, r.w, r.h, dx, dy, dw, dh);
     return true;
@@ -110,7 +115,7 @@
     if (!r) return false;
     const sc = size / Math.max(r.w, r.h);
     const dw = r.w * sc, dh = r.h * sc;
-    const tinted = key === 'player' ? playerCanvas(paint) : null;
+    const tinted = HULL_FRAMES.has(key) ? playerCanvas(key, paint) : null;
     if (rot) {
       ctx.save();
       ctx.translate(x, y);
