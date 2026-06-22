@@ -1,0 +1,20 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { loadModules } from './helpers.mjs';
+
+const load = () => loadModules(['js/games/neonvortex/sprites.js']).SY.nvSprites;
+
+test('pickHullFrame maps player state to the right hull frame', () => {
+  const SP = load();
+  const pick = SP.pickHullFrame;
+  assert.equal(pick({ shield: false, hp: 3, boost: 0 }), 'player', 'default');
+  assert.equal(pick({ shield: false, hp: 3, boost: 1.5 }), 'boosted', 'boost flair');
+  assert.equal(pick({ shield: false, hp: 1, boost: 0 }), 'damaged', 'last hull');
+  assert.equal(pick({ shield: true, hp: 3, boost: 0 }), 'shielded', 'shield bubble');
+});
+
+test('pickHullFrame priority: shield > damaged > boosted', () => {
+  const pick = load().pickHullFrame;
+  assert.equal(pick({ shield: true, hp: 1, boost: 2 }), 'shielded', 'shield wins over all');
+  assert.equal(pick({ shield: false, hp: 1, boost: 2 }), 'damaged', 'danger beats flair');
+});

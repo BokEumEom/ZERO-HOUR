@@ -144,5 +144,15 @@
     return true;
   }
 
-  SY.nvSprites = { draw, drawFit, drawPlayer, setPaint, getPaint, atlas: A, isReady: () => ready, image: sheet };
+  // Pure: choose the hull frame for the current player state. Cosmetic only —
+  // reads no RNG and mutates nothing. Priority: the shield bubble hides the
+  // hull (wins), then low-hull danger reads over boost flair, else default.
+  function pickHullFrame(st) {
+    if (st && st.shield) return 'shielded';
+    if (st && st.hp <= 1) return 'damaged';
+    if (st && st.boost > 0) return 'boosted';
+    return 'player';
+  }
+
+  SY.nvSprites = { draw, drawFit, drawPlayer, setPaint, getPaint, pickHullFrame, atlas: A, isReady: () => ready, image: sheet };
 })();
