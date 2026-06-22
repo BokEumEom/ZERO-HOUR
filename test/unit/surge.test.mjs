@@ -4,10 +4,10 @@ import assert from 'node:assert/strict';
 import { loadModules, runToGameOver } from './helpers.mjs';
 
 function freshGame(nowIso = '2026-03-01T00:30:00Z') {
-  return loadModules(['js/store.js', 'js/games/zerohour/game.js'], { nowIso });
+  return loadModules(['js/store.js', 'js/games/neonvortex/game.js'], { nowIso });
 }
 function toPlaying(sb, mode = 'free') {
-  const G = sb.SY.game;
+  const G = sb.SY.nvGame;
   G.start(mode);
   for (let i = 0; i < 30 && G.phase === 'ready'; i++) G.update(0.1);
   assert.equal(G.phase, 'playing');
@@ -122,7 +122,7 @@ test('spawnFormation (via a forced surge) adds `size` scripted-entry mines, dete
 
 test('a full free run passes through at least one surge and back to calm', () => {
   const sb = freshGame();
-  const G = sb.SY.game;
+  const G = sb.SY.nvGame;
   let sawSurge = false, sawCalmAfter = false;
   G.events.onGameOver = () => {};
   G.start('free');

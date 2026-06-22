@@ -89,7 +89,7 @@ export const flushMicrotasks = () => new Promise((r) => setTimeout(r, 0));
 
 // Drive the sim: returns the game-over result (or null if maxFrames hit).
 export function runToGameOver(sb, mode, { dt = 1 / 60, maxFrames = 60 * 200, onFrame } = {}) {
-  const G = sb.SY.game;
+  const G = sb.SY.nvGame;
   let result = null;
   G.events.onGameOver = (res) => { result = res; };
   G.start(mode);

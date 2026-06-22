@@ -1,4 +1,4 @@
-// Scoreyard — UI glue: loop, HUD, screens, records, share, touch
+// Neon Vortex — UI glue: loop, HUD, screens, records, share, touch
 (function () {
   const SY = (window.SY = window.SY || {});
   const G = SY.nvGame;
@@ -177,7 +177,7 @@
   // streak + medal persistence + result badges (async; doesn't block the screen)
   async function applyMedals(res, isNewBest) {
     const streak = await gameStore.computeStreak();
-    const earned = SY.zh.medals.evalRun(res, { streak });
+    const earned = SY.nvMedals.evalRun(res, { streak });
     const newly = await gameStore.addMedals(earned);
     renderEarnedMedals(earned, newly);
     if (newly.length && !isNewBest) SY.audio.powerup(); // new-medal jingle (newBest has its own)
@@ -189,7 +189,7 @@
     el.style.display = 'flex';
     const isNew = new Set(newly);
     el.innerHTML = earned.map((id) => {
-      const m = SY.zh.medals.MEDALS.find((x) => x.id === id);
+      const m = SY.nvMedals.MEDALS.find((x) => x.id === id);
       return m ? '<span class="medal earned' + (isNew.has(id) ? ' is-new' : '') + '">' +
         '<span class="medal-glyph">' + m.glyph + '</span>' +
         '<span class="medal-name">' + m.name + (isNew.has(id) ? ' • NEW' : '') + '</span></span>' : '';
@@ -348,7 +348,7 @@
       html += '<div class="rec-streak">🔥 STREAK ' + streak + (streak === 1 ? ' DAY' : ' DAYS') + '</div>';
     }
     html += '<div><div class="rec-section-title">ACHIEVEMENTS</div><div class="medal-grid">' +
-      SY.zh.medals.MEDALS.map((m) =>
+      SY.nvMedals.MEDALS.map((m) =>
         '<span class="medal ' + (ownedSet.has(m.id) ? 'earned' : 'locked') + '" title="' + m.desc + '">' +
         '<span class="medal-glyph">' + m.glyph + '</span>' +
         '<span class="medal-name">' + m.name + '</span></span>').join('') + '</div></div>';
@@ -1076,7 +1076,7 @@
 
     // rank is synchronous (deterministic); medals persist asynchronously so the
     // IndexedDB round-trip never delays the result screen / countdown
-    const r = SY.zh.medals.rank(res.score);
+    const r = SY.nvMedals.rank(res.score);
     $('over-rank').textContent = 'RANK \u00b7 ' + r.name;
     $('over-rank').className = 'rank-' + r.id;
     $('over-medals').style.display = 'none';
@@ -1426,8 +1426,7 @@
   setHapticBtn.addEventListener('click', toggleHaptic);
   updateHapticBtn();
 
-  // ---------- register with the arcade shell ----------
-  $('btn-arcade').addEventListener('click', () => SY.shell.exitToHub());
+  // ---------- register with the runtime shell ----------
   SY.registerGame({
     id: 'neonvortex',
     title: 'NEON VORTEX',

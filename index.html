@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Zero Hour — Retro Arcade</title>
+<title>Neon Vortex Arcade Pilot</title>
 <meta name="theme-color" content="#04090f">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -15,10 +15,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
 <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;500;600;700&amp;family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400&amp;family=Sora:wght@400;700;800&amp;family=Hanken+Grotesk:wght@400;600&amp;family=Space+Mono:wght@400;700&amp;family=IBM+Plex+Mono:wght@400;500;600;700&amp;family=Press+Start+2P&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/tokens.css">
-<link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/neonvortex.css">
 <link rel="preload" as="image" href="assets/illustrations/ship_assets.png">
-<link rel="preload" as="image" href="assets/illustrations/zero-hour-keyart.png">
 </head>
 <body>
   <template id="__bundler_thumbnail" data-bg-color="#04090f">
@@ -39,144 +37,9 @@
       <div id="crt"></div>
     </div>
 
-    <div id="hud" role="group" aria-label="Heads-up display">
-        <div class="hud-block">
-          <span class="hud-label">TIME</span>
-          <span id="hud-time">60</span>
-        </div>
-        <div class="hud-block">
-          <span class="hud-label">SCORE</span>
-          <span id="hud-score">0</span>
-        </div>
-        <div class="hud-block">
-          <span class="hud-label">COMBO</span>
-          <span id="hud-combo"></span>
-          <span id="hud-heat"></span>
-        </div>
-        <div class="hud-block">
-          <span class="hud-label">HULL</span>
-          <span id="hud-hearts">◆ ◆ ◆</span>
-        </div>
-        <span id="hud-pace" style="display: none;"></span>
-        <div id="hud-fx"></div>
-        <span id="hud-mode"></span>
-      </div>
-
-      <div id="boss-hp">
-        <span id="boss-hp-label">CORE WARDEN</span>
-        <div id="boss-hp-track"><div id="boss-hp-fill"></div></div>
-      </div>
-      <div id="danger-vignette"></div>
-      <div id="hit-flash"></div>
-
       <!-- screen-reader announcements (game-over result, etc.); not the 60fps HUD -->
       <div id="a11y-live" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
-
-      <div id="screen-arcade" class="screen" data-screen-label="Arcade" role="region" aria-label="Scoreyard — game library">
-        <div class="panel">
-          <span class="kicker">PICK A MACHINE</span>
-          <h1 class="arcade-wordmark">SCORE<br>YARD</h1>
-          <img class="lobby-mascot lobby-mascot-main" src="assets/mascots/main-platform-hub.svg" alt="" aria-hidden="true">
-          <div id="arcade-grid"></div>
-          <p id="arcade-foot" class="arcade-foot"></p>
-        </div>
-      </div>
-
-      <div id="screen-menu" class="screen" data-screen-label="Main Menu">
-        <button id="btn-arcade" class="back-btn" type="button">← ARCADE</button>
-        <div class="panel">
-          <span class="kicker">RETRO DRONE ARCADE</span>
-          <h1 class="game-title">ZERO HOUR</h1>
-          <img class="lobby-mascot lobby-mascot-zero" src="assets/mascots/zero-hour-drone.svg" alt="" aria-hidden="true">
-          <div class="mode-row">
-            <button id="btn-daily" class="mode-card" type="button">
-              <span class="mode-name">DAILY</span>
-              <span id="menu-date" class="mode-sub">—</span>
-              <span id="menu-daily-best" class="mode-meta">—</span>
-              <span id="menu-streak" class="mode-meta"></span>
-            </button>
-            <button id="btn-free" class="mode-card" type="button">
-              <span class="mode-name">FREE PLAY</span>
-              <span class="mode-sub">무작위 아레나</span>
-            </button>
-          </div>
-          <p id="menu-all-best" class="best-line">ALL-TIME BEST —</p>
-          <p id="menu-week" class="best-line"></p>
-          <button id="btn-records" class="arcade-btn" type="button">RECORDS</button>
-        </div>
-      </div>
-
-      <div id="screen-over" class="screen" data-screen-label="Game Over" role="dialog" aria-modal="true" aria-label="Game over — result">
-        <div class="panel">
-          <span id="over-mode" class="kicker">DAILY</span>
-          <span id="over-reason">TIME UP</span>
-          <div>
-            <p class="hud-label" style="font-size: 10px; margin-bottom: 8px;">FINAL SCORE</p>
-            <p id="over-score">0</p>
-          </div>
-          <div id="over-rank"></div>
-          <span id="over-best-banner"><span id="over-best-label">NEW BEST!</span> ★</span>
-          <div id="over-medals"></div>
-          <div id="over-stats"></div>
-          <canvas id="over-spark" width="320" height="60"></canvas>
-          <div class="btn-row">
-            <button id="btn-retry" class="arcade-btn primary" type="button">RETRY</button>
-            <button id="btn-share" class="arcade-btn" type="button">COPY RESULT</button>
-            <button id="btn-menu" class="arcade-btn" type="button">MENU</button>
-          </div>
-          <p id="over-countdown" class="kr-sub"></p>
-          <p class="kr-sub">결과 복사에는 개인정보가 포함되지 않습니다 · R — RETRY · M — MENU</p>
-        </div>
-      </div>
-
-      <div id="screen-pause" class="screen" data-screen-label="Paused" role="dialog" aria-modal="true" aria-label="Paused">
-        <div class="panel">
-          <span class="kicker">ZERO HOUR</span>
-          <span class="pause-title">PAUSED</span>
-          <div class="btn-row">
-            <button id="btn-resume" class="arcade-btn primary" type="button">RESUME</button>
-            <button id="btn-pause-restart" class="arcade-btn" type="button">RESTART</button>
-            <button id="btn-pause-quit" class="arcade-btn" type="button">QUIT TO MENU</button>
-          </div>
-          <div class="settings-row">
-            <button id="btn-pause-mute" class="arcade-btn settings-btn" type="button">SOUND: ON</button>
-            <button id="btn-haptic" class="arcade-btn settings-btn haptic-toggle" type="button">VIBRATION: ON</button>
-            <button id="btn-pause-fs" class="arcade-btn settings-btn" type="button">FULLSCREEN</button>
-          </div>
-          <p class="controls-hint">ESC / P — RESUME · 나가면 이번 런은 기록되지 않습니다</p>
-        </div>
-      </div>
-
-      <div id="screen-howto" class="screen" data-screen-label="How To Play" role="dialog" aria-modal="true" aria-label="How to play">
-        <div class="panel">
-        <span class="kicker">ZERO HOUR</span>
-        <span class="pause-title">HOW TO PLAY</span>
-        <div class="howto-list">
-          <div class="howto-row"><span class="howto-k">MOVE</span><span class="howto-v">WASD / ARROW KEYS · 모바일: 화면 드래그</span></div>
-          <div class="howto-row"><span class="howto-k">FIRE</span><span class="howto-v">Automatic — nearest enemy · 발사는 자동입니다</span></div>
-          <div class="howto-row"><span class="howto-k">GOAL</span><span class="howto-v">60 seconds — collect crystals, chain combos · 크리스털 콤보로 점수를 쌓으세요</span></div>
-          <div class="howto-row"><span class="howto-k">HULL ◆◆◆</span><span class="howto-v">Mines &amp; boss fire cost 1 — at 0 it's over · 피격 3번이면 게임 오버</span></div>
-          <div class="howto-row"><span class="howto-k">CORE WARDEN</span><span class="howto-v">Boss arrives at 20s left — destroy for +1,500 · 마지막 20초, 보스 격파 대량 보너스</span></div>
-          <div class="howto-row"><span class="howto-k">PAUSE</span><span class="howto-v">ESC / P · 모바일: 우측 상단 II 버튼</span></div>
-        </div>
-        <div class="btn-row">
-          <button id="btn-howto-start" class="arcade-btn primary" type="button">START</button>
-        </div>
-        </div>
-      </div>
-
-      <div id="screen-records" class="screen" data-screen-label="Records" role="dialog" aria-modal="true" aria-label="Records">
-        <div class="panel">
-          <span class="kicker">ZERO HOUR</span>
-          <span class="pause-title">RECORDS</span>
-          <div id="records-body"></div>
-          <div class="btn-row">
-            <button id="btn-records-back" class="arcade-btn primary" type="button">BACK</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== SHIP game DOM — mirrors Zero Hour, ids prefixed `neonvortex-` ===== -->
+      <!-- ===== NEON VORTEX game DOM — ids prefixed `neonvortex-` ===== -->
       <div id="neonvortex-hud" role="group" aria-label="Heads-up display">
         <div class="hud-block"><span class="hud-label">TIME</span><span id="neonvortex-hud-time">60</span></div>
         <div class="hud-block"><span class="hud-label">SCORE</span><span id="neonvortex-hud-score">0</span></div>
@@ -194,7 +57,6 @@
       <div id="neonvortex-hit-flash"></div>
 
       <div id="neonvortex-screen-menu" class="screen" data-screen-label="NEON VORTEX — Main Menu">
-        <button id="neonvortex-btn-arcade" class="back-btn" type="button">← ARCADE</button>
         <div class="panel">
           <div class="nv-menu-top">
             <span class="kicker">ARCADE_PILOT_OS</span>
@@ -515,21 +377,7 @@
       </div>
   </div>
 
-  <button id="btn-mute" type="button" aria-label="Mute">
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path class="spk" d="M4 9 H8 L13 5 V19 L8 15 H4 Z"></path>
-      <g class="waves"><path d="M16 8.5 Q18.5 12 16 15.5"></path><path d="M18.5 6 Q22.5 12 18.5 18"></path></g>
-      <line class="slash" x1="16" y1="8" x2="22" y2="16"></line>
-    </svg>
-  </button>
-  <button id="btn-pause" type="button" aria-label="Pause">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="5" width="3.6" height="14"></rect><rect x="13.4" y="5" width="3.6" height="14"></rect></svg>
-  </button>
-  <button id="btn-fullscreen" type="button" aria-label="Fullscreen">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9 V4 H9 M15 4 H20 V9 M20 15 V20 H15 M9 20 H4 V15"></path></svg>
-  </button>
-
-  <!-- SHIP HUD buttons (mirror of the Zero Hour set; ids prefixed neonvortex-) -->
+  <!-- NEON VORTEX HUD buttons (ids prefixed neonvortex-) -->
   <button id="neonvortex-btn-mute" type="button" aria-label="Mute">
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path class="spk" d="M4 9 H8 L13 5 V19 L8 15 H4 Z"></path>
@@ -548,26 +396,15 @@
     <div id="joystick-knob"></div>
   </div>
 
-  <div id="tweaks-root"></div>
 
   <script src="js/store.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/shell.js"></script>
-  <script src="js/games/zerohour/game.js"></script>
-  <script src="js/games/zerohour/render.js"></script>
-  <script src="js/games/zerohour/medals.js"></script>
-  <script src="js/games/zerohour/main.js"></script>
   <script src="js/games/neonvortex/sprites.js"></script>
   <script src="js/games/neonvortex/meta.js"></script>
+  <script src="js/games/neonvortex/medals.js"></script>
   <script src="js/games/neonvortex/game.js"></script>
   <script src="js/games/neonvortex/render.js"></script>
   <script src="js/games/neonvortex/main.js"></script>
-  <script src="js/games/shepards-dog/register.js"></script>
-
-  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
-  <script type="text/babel" src="js/games/zerohour/tweaks-panel.jsx"></script>
-  <script type="text/babel" src="js/games/zerohour/tweaks.jsx"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-// Ship — sprite atlas for the ship_assets.png sheet
+// Neon Vortex — sprite atlas for the ship_assets.png sheet
 // (assets/illustrations/ship_assets.png — a labeled, sectioned sprite kit).
 // Rects were extracted by a connected-component sweep of the sheet's black
 // background, then hand-verified against per-sprite crops. Drawing uses the

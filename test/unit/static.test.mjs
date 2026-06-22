@@ -9,9 +9,9 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const read = (f) => readFileSync(path.join(root, f), 'utf8');
 
-const ZH = 'js/games/zerohour';
-const CORE = ['js/store.js', 'js/audio.js', 'js/shell.js', `${ZH}/game.js`, `${ZH}/render.js`, `${ZH}/medals.js`, `${ZH}/main.js`,
-  'js/games/shepards-dog/register.js'];
+const NV = 'js/games/neonvortex';
+const CORE = ['js/store.js', 'js/audio.js', 'js/shell.js',
+  `${NV}/sprites.js`, `${NV}/meta.js`, `${NV}/medals.js`, `${NV}/game.js`, `${NV}/render.js`, `${NV}/main.js`];
 
 test('game core stays React-free', () => {
   for (const f of CORE) {
@@ -28,7 +28,7 @@ test('all core modules attach to window.SY via IIFE pattern', () => {
 });
 
 test('gameplay randomness in game.js uses s.rng; Math.random stays at the cosmetic baseline', () => {
-  const src = read(`${ZH}/game.js`);
+  const src = read(`${NV}/game.js`);
   // Baseline: 14 pre-existing calls, all cosmetic (burst particles, boss-death
   // visuals/scatter, thrust exhaust) plus the free-play seed string. Any NEW
   // Math.random forces this test (and a fairness review) to be updated.
@@ -40,42 +40,43 @@ test('gameplay randomness in game.js uses s.rng; Math.random stays at the cosmet
   assert.match(src, /'free-' \+ Math\.random\(\)/, 'only free-play seed may use Math.random for seeding');
 });
 
-test('index.html keeps no inline <style> block (styles live in css/style.css)', () => {
+test('index.html keeps no inline <style> block (styles live in external sheets)', () => {
   const html = read('index.html');
   assert.ok(!/<style[\s>]/.test(html), 'no inline style block');
-  assert.match(html, /<link rel="stylesheet" href="css\/style\.css">/);
+  assert.match(html, /<link rel="stylesheet" href="css\/tokens\.css">/);
+  assert.match(html, /<link rel="stylesheet" href="css\/neonvortex\.css">/);
 });
 
 test('inline style= attributes do not grow (pre-existing baseline: 6)', () => {
   const count = (read('index.html').match(/ style="/g) || []).length;
-  assert.ok(count <= 6, `inline style attribute count grew to ${count} — move new styles to css/style.css`);
+  assert.ok(count <= 6, `inline style attribute count grew to ${count} — move new styles to css/neonvortex.css`);
 });
 
 test('sparkline stays out of render.js (render.js is game-canvas only)', () => {
-  assert.ok(!read(`${ZH}/render.js`).includes('over-spark'));
-  assert.ok(read(`${ZH}/main.js`).includes('over-spark'));
+  assert.ok(!read(`${NV}/render.js`).includes('over-spark'));
+  assert.ok(read(`${NV}/main.js`).includes('over-spark'));
 });
 
 test('innerHTML sinks in main.js only receive fmt()/fixed-format values', () => {
-  const src = read(`${ZH}/main.js`);
+  const src = read(`${NV}/main.js`);
   const sinkLines = src.split('\n').filter((l) => l.includes('.innerHTML'));
-  // known sinks: fx badges, over-stats, over-medals (reset + set), menu-week,
-  // records-body — all fed constants/fmt(); adding a new one forces a review here
+  // known sinks: fx badges, over-medals (reset + set), records-body, menu-week,
+  // over-stats — all fed constants/fmt(); adding a new one forces a review here
   assert.equal(sinkLines.length, 6, `innerHTML sinks changed: ${JSON.stringify(sinkLines)}`);
   // the day-cell title only embeds d.date (toISOString slice) and a coerced number
   assert.match(src, /title="' \+ d\.date \+ \(d\.rec \? ' · ' \+ fmt\(Number\(d\.rec\.score\) \|\| 0\) : ''\)/);
 });
 
-test('script load order in index.html is store -> audio -> game -> render -> main', () => {
+test('script load order in index.html is store -> audio -> shell -> game modules', () => {
   const html = read('index.html');
-  // match basenames regardless of folder (per-game modules live under js/games/<id>/)
+  // match basenames regardless of folder (the game's modules live under js/games/neonvortex/)
   const order = [...html.matchAll(/<script src="js[^"]*\/([a-z-]+)\.js">/g)].map((m) => m[1]);
-  // shell core, then each in-shell game as game -> render -> main (ship also loads its sprite atlas first), then the linked register
-  assert.deepEqual(order, ['store', 'audio', 'shell', 'game', 'render', 'medals', 'main', 'sprites', 'meta', 'game', 'render', 'main', 'register']);
+  // shell core, then the single game: sprites (atlas) -> meta -> medals -> game -> render -> main
+  assert.deepEqual(order, ['store', 'audio', 'shell', 'sprites', 'meta', 'medals', 'game', 'render', 'main']);
 });
 
 test('render.js reacts to surge state (telegraph + tint)', () => {
-  const src = read(`${ZH}/render.js`);
+  const src = read(`${NV}/render.js`);
   assert.ok(src.includes('surgeWarnT'), 'render draws the surge telegraph');
   assert.ok(src.includes('inSurge'), 'render tints during a surge');
 });
@@ -98,17 +99,20 @@ test('no stale "ship" identifiers remain in the renamed game', () => {
   assert.ok(!/["'(]ship-/.test(html), 'no ship- DOM id prefix');
 });
 
-test('neonvortex menu is reskinned to NEON VORTEX (no stale SHIP label)', () => {
+test('the single game boots straight into NEON VORTEX (no game-select hub)', () => {
   const html = read('index.html');
+  assert.ok(!html.includes('id="screen-arcade"'), 'hub screen removed');
   assert.match(html, /class="game-title nv-logo"/, 'NEON VORTEX logo present');
   assert.ok(!/<span class="kicker">SHIP<\/span>/.test(html), 'no stale SHIP kicker');
   const css = read('css/neonvortex.css');
   assert.ok(!css.includes('#ship-'), 'no ship-scoped CSS selectors remain');
   assert.ok(css.includes('#neonvortex-screen-menu'), 'neonvortex menu scope present');
+  const shell = read('js/shell.js');
+  assert.match(shell, /SY\.shell\.enterGame\(\)/, 'shell boots directly into the registered game');
 });
 
 test('neonvortex meta stays cosmetic (lifetime/crystalsCollected never drive the sim)', () => {
-  const game = read('js/games/neonvortex/game.js');
+  const game = read(`${NV}/game.js`);
   // crystalsCollected exists but is output-only: it must not appear in spawn counts,
   // drop probabilities, score math, or rng expressions.
   assert.ok(/crystalsCollected/.test(game), 'crystalsCollected counter present');
@@ -116,6 +120,6 @@ test('neonvortex meta stays cosmetic (lifetime/crystalsCollected never drive the
   assert.ok(!/(rng\(\)[^\n;]*crystalsCollected)|(crystalsCollected[^\n;]*rng\(\))/.test(game), 'crystalsCollected not tied to rng');
   // game.js must NOT read the persisted lifetime at all (that lives only in main.js display)
   assert.ok(!/lifetime/i.test(game), 'game.js never references lifetime');
-  const main = read('js/games/neonvortex/main.js');
+  const main = read(`${NV}/main.js`);
   assert.ok(/nvMeta\.accumulateLifetime/.test(main), 'lifetime accumulation happens in main.js');
 });

@@ -1,4 +1,4 @@
-# Verifier Rubric — Scoreyard 상시 평가 기준
+# Verifier Rubric — Neon Vortex Arcade Pilot 상시 평가 기준
 
 이 프로젝트의 **모든 코드 변경**에 적용하는 Verifier Sub-Agent용 상시 루브릭.
 특정 작업용 스냅샷은 [docs/rubrics/](docs/rubrics/)에 날짜를 붙여 보관한다
@@ -34,7 +34,7 @@ git diff <base>..HEAD -- js/ index.html css/                            # 핫패
 | 8 | **코어 패턴 준수** — `node --check` 통과, IIFE + `window.SY`, 코어 5모듈 React-free, 게임플레이 난수는 `s.rng()`만([ADR-0002](docs/adr/0002-seeded-rng-daily-fairness.md)) | `test/unit/static.test.mjs` tripwire (Math.random ≤14 등 베이스라인 핀) | High=2 |
 | 9 | **innerHTML 주입 안전성** — 싱크 개수 핀(현재 3) 유지, 삽입 값은 숫자·고정 enum·`fmt()` 산출물만, 저장 데이터는 타입 강제 | `static.test.mjs` 싱크 핀 + 삽입 변수 출처 정적 추적 | High=2 |
 | 10 | **E2E 재현성** — 전 시나리오(howto/quit/pause/over/rollover + 신규 기능 시나리오) 무인 통과, **자명 통과 금지**(assert는 비자명 입력 위에서, 리포트에 실측값 포함) | `test\e2e\run.ps1` exit 0 + 리포트 디테일 검토 | Critical=3 |
-| 11 | **관심사 분리** — render.js는 게임 캔버스 전용, UI는 main.js, 스타일은 css/style.css 단일 출처(인라인 style ≤6), CSS 기본 `display:none` 요소는 JS에서 표시 값 명시 | `static.test.mjs` 분리·예산 가드 | Medium=1 |
+| 11 | **관심사 분리** — render.js는 게임 캔버스 전용, UI는 main.js, 스타일은 css/neonvortex.css 단일 출처(인라인 style ≤6), CSS 기본 `display:none` 요소는 JS에서 표시 값 명시 | `static.test.mjs` 분리·예산 가드 | Medium=1 |
 | 12 | **빌드 산출물 동기화** — `standalone.html`은 fresh build와 해시 일치([ADR-0001](docs/adr/0001-dual-html-generated-standalone.md)), 직접 수정 금지 | `run-all.ps1` 해시 비교 PASS | High=2 |
 
 **배점**: Critical 4개(12) + High 7개(14) + Medium 1개(1) = 27점 만점.

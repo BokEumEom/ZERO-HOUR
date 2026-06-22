@@ -10,17 +10,17 @@ The **shell is uniform; games may have their own art direction.** Scoreyard is a
 arcade cabinet — every machine shares the same room (hub, chrome, transitions,
 records contract, a11y floor) but each game can look like itself.
 
-- **Zero Hour** — neon CRT (the platform default tokens, `css/tokens.css`).
-- **Shepherd's Dog** — warm pastoral paper/cream/gold, Fraunces + Cabin
-  (`js/games/shepards-dog/style.css`). Intentionally *not* the CRT theme. Keep it.
+- **Neon Vortex** — neon CRT / Neon Syndicate art direction (`css/neonvortex.css`),
+  built on the platform tokens (`css/tokens.css`).
 
-A new game inherits the platform tokens by default, and overrides `:root` only when
-it has a deliberate, considered identity of its own. "Different for the sake of
-different" is not that — a distinct look must be as finished as the pastoral one.
+> Historical note: this doc was written for a multi-game arcade platform (a hub +
+> Zero Hour + Shepherd's Dog). The project is now the single game **Neon Vortex
+> Arcade Pilot**; the hub and the other games were removed. The token/component
+> contract below still governs the game's UI.
 
 ## Platform tokens — `css/tokens.css`
 
-Single source of truth for the shell + neon games. Loaded before `css/style.css`.
+Single source of truth for the shell + game UI. Loaded before `css/neonvortex.css`.
 
 | Token | Value | Use |
 |---|---|---|
@@ -74,7 +74,7 @@ all Zero Hour screens, in the dark/neon tone. The in-arena HUD keeps pixel/mono.
 ## Accessibility floor (non-negotiable)
 
 - **Reduced motion:** honor `prefers-reduced-motion` — no looping blink/pulse/glow,
-  hit-flash becomes a static tint (WCAG 2.3.1, photosensitivity). See `style.css`.
+  hit-flash becomes a static tint (WCAG 2.3.1, photosensitivity). See `css/neonvortex.css`.
 - **Contrast:** body/UI text ≥ 4.5:1. Don't drop muted text below ~0.6 alpha on `--bg`.
 - **Touch targets:** ≥ 44px (corner buttons relax to 38px only on ≤600px).
 - **Focus:** every interactive element has a visible `:focus-visible` state.

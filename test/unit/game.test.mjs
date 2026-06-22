@@ -6,11 +6,11 @@ import { loadModules, runToGameOver } from './helpers.mjs';
 
 function freshGame() {
   // store.js provides SY.makeRng / SY.todayUTC that game.js needs
-  return loadModules(['js/store.js', 'js/games/zerohour/game.js'], { nowIso: '2026-03-01T00:30:00Z' });
+  return loadModules(['js/store.js', 'js/games/neonvortex/game.js'], { nowIso: '2026-03-01T00:30:00Z' });
 }
 
 function toPlaying(sb, mode = 'free') {
-  const G = sb.SY.game;
+  const G = sb.SY.nvGame;
   G.start(mode);
   for (let i = 0; i < 30 && G.phase === 'ready'; i++) G.update(0.1);
   assert.equal(G.phase, 'playing');
@@ -21,7 +21,7 @@ function toPlaying(sb, mode = 'free') {
 
 test('pause is a no-op outside playing/ready', () => {
   const sb = freshGame();
-  const G = sb.SY.game;
+  const G = sb.SY.nvGame;
   assert.equal(G.phase, 'menu');
   G.pause();
   assert.equal(G.phase, 'menu');
@@ -51,7 +51,7 @@ test('pause during playing freezes sim time, score, timer and cosmetics', () => 
 
 test('resume restores the exact phase it was paused from (playing and ready)', () => {
   const sb = freshGame();
-  const G = sb.SY.game;
+  const G = sb.SY.nvGame;
   G.start('free');
   assert.equal(G.phase, 'ready');
   G.pause();
@@ -66,7 +66,7 @@ test('resume restores the exact phase it was paused from (playing and ready)', (
 
 test('readyT continues (not resets) across pause', () => {
   const sb = freshGame();
-  const G = sb.SY.game;
+  const G = sb.SY.nvGame;
   G.start('free');
   G.update(0.5); // readyT 1.4 -> 0.9
   const before = G.state.readyT;
@@ -114,7 +114,7 @@ test('keys pressed while paused are discarded on resume', () => {
 
 test('a key stuck since the menu does not steer a new run (G.start resets keys)', () => {
   const sb = freshGame();
-  const G = sb.SY.game;
+  const G = sb.SY.nvGame;
   // key pressed on the menu, keyup lost to a window blur
   sb.dispatch('keydown', { code: 'KeyW', preventDefault() {} });
   toPlaying(sb);

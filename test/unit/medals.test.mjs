@@ -1,9 +1,9 @@
-// Zero Hour medals & tiers — pure logic (no DOM/IDB).
+// Neon Vortex medals & tiers — pure logic (no DOM/IDB).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadModules } from './helpers.mjs';
 
-const M = () => loadModules(['js/games/zerohour/medals.js']).SY.zh.medals;
+const M = () => loadModules(['js/games/neonvortex/medals.js']).SY.nvMedals;
 const run = (o) => Object.assign({ score: 0, maxCombo: 0, bossDown: false, noHit: false }, o);
 
 test('rank() maps score to the right tier at each threshold boundary', () => {

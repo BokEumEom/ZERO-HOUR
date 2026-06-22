@@ -1,5 +1,5 @@
-// Zero Hour — score tiers (ranks) + medals. Pure logic, no DOM, so it is
-// unit-testable in isolation. Attaches to SY.zh.medals.
+// Neon Vortex — score tiers (ranks) + medals. Pure logic, no DOM, so it is
+// unit-testable in isolation. Attaches to SY.nvMedals.
 (function () {
   const SY = (window.SY = window.SY || {});
 
@@ -39,6 +39,5 @@
     return ids;
   }
 
-  SY.zh = SY.zh || {};
-  SY.zh.medals = { TIERS, MEDALS, rank, evalRun };
+  SY.nvMedals = { TIERS, MEDALS, rank, evalRun };
 })();

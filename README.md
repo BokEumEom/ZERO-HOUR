@@ -1,9 +1,8 @@
-# ZERO HOUR — Retro Arcade Shooter
+# NEON VORTEX — Arcade Pilot
 
-60초 안에 크리스털을 모으고, 콤보를 쌓고, 보스 **Core Warden**을 격파하는 레트로 드론 아케이드 슈터입니다.
+60초 안에 크리스털을 모으고, 콤보를 쌓고, 보스 **Core Warden**을 격파하는 네온 드론 아케이드 슈터입니다.
 순수 HTML/CSS/JavaScript + Canvas 2D로 만들어져 빌드 도구 없이 브라우저에서 바로 실행됩니다.
-
-> 내부 코드명: **Scoreyard**
+실행하면 곧바로 게임으로 진입합니다(별도 게임 선택 허브 없음).
 
 ## 실행 방법
 
@@ -76,21 +75,22 @@ Retro Arcade Shooter/
 ├── index.html                # 메인 진입점 (HTML/화면 마크업)
 ├── standalone.html           # 단일 파일 번들 버전 (생성 산출물 — 직접 수정 금지)
 ├── css/
-│   ├── tokens.css            # 플랫폼 디자인 토큰 (팔레트·폰트·safe-area) — 단일 출처
-│   └── style.css             # 전체 UI 스타일 (tokens.css의 변수 사용)
+│   ├── tokens.css            # 디자인 토큰 (팔레트·폰트·safe-area) — 단일 출처
+│   └── neonvortex.css        # 전체 UI 스타일 + 게임 아트 디렉션 (tokens.css의 변수 사용)
 └── js/
     ├── store.js              # IndexedDB(게임별 네임스페이스) + 시드 RNG (xmur3 → mulberry32)
     ├── audio.js              # 사운드 효과 (Web Audio) + 햅틱
-    ├── shell.js              # 아케이드 셸 — 게임 레지스트리·루프·레이아웃·게임 선택 허브
+    ├── shell.js              # 런타임 셸 — 레지스트리·루프·레이아웃. 부팅 시 게임으로 직행
     └── games/
-        └── zerohour/         # Zero Hour 게임 모듈 (SY.registerGame로 등록)
+        └── neonvortex/       # Neon Vortex 게임 모듈 (SY.registerGame로 등록)
             ├── game.js       # 게임 엔진 — 상태, 시뮬레이션, 스폰, 충돌, 보스 AI
             ├── render.js     # Canvas 2D 렌더링
-            ├── main.js       # 등록(enter/exit/frame) + HUD·화면·기록·입력
-            ├── tweaks-panel.jsx
-            └── tweaks.jsx    # 개발용 밸런스 조정 패널
+            ├── sprites.js    # 기체 스프라이트 아틀라스 + 도색
+            ├── medals.js     # 점수 티어 + 라이프타임 메달 (순수 로직)
+            ├── meta.js / .mjs # 코스메틱 라이프타임·랭크 (표시 전용, ESM 미러)
+            └── main.js       # 등록(enter/exit/frame) + HUD·화면·기록·입력
 ```
-새 게임은 `js/games/<id>/` 모듈을 추가하고 `SY.registerGame(...)`로 등록하면 허브에 카드로 나타납니다.
+게임 모듈(`js/games/neonvortex/`)이 `SY.registerGame(...)`로 셸에 등록하면, 셸이 부팅 시 그 게임으로 직행합니다.
 
 ## 기술 노트
 
@@ -103,5 +103,5 @@ Retro Arcade Shooter/
 - **메달 & 랭크**: 런마다 최종 점수로 RANK(RECRUIT→PILOT→ACE→LEGEND)를 매기고, 메달 6종(보스 격파·노히트·플로리스·콤보 ×25·LEGEND·7일 연속)을 판정합니다. 처음 딴 메달은 결과 화면에서 강조되며, 평생 누적 업적은 RECORDS의 ACHIEVEMENTS에서 볼 수 있습니다.
 - **테스트**: `node --test "test/unit/*.test.mjs"` (엔진·스토어·정적 검사, 의존성 없음) · `test\run-all.ps1` (단위 + 헤드리스 Edge E2E + 번들 동기화 검사 일괄 실행).
 - **결과 공유**: 게임 오버 화면의 `COPY RESULT`로 결과 텍스트를 클립보드에 복사할 수 있으며, 개인정보는 포함되지 않습니다.
-- **트윅 패널**: React 18 + Babel Standalone(CDN)으로 구동되는 개발용 패널로, 게임 시간(60~120초), 적 스폰 속도, 파티클 강도, 화면 흔들림을 실시간 조정할 수 있습니다. 게임 본체는 React에 의존하지 않습니다.
+- **의존성 없음**: 게임 본체는 외부 프레임워크/CDN 없이 순수 바닐라 JS로 동작합니다(React 불필요). 튜닝 상수는 `js/games/neonvortex/game.js`의 `SY.tweaks` 기본값으로 관리합니다.
 - **연출**: CRT 스캔라인 + 비네트 오버레이, 히트스톱(freeze), 화면 흔들림, 파티클 버스트로 레트로 아케이드 타격감을 구현했습니다.

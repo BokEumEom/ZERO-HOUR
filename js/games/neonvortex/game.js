@@ -1,4 +1,4 @@
-// Scoreyard — core game engine (state + simulation). Rendering lives in render.js.
+// Neon Vortex — core game engine (state + simulation). Rendering lives in render.js.
 (function () {
   const SY = (window.SY = window.SY || {});
 

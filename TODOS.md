@@ -19,11 +19,7 @@ Design debt deferred from `/plan-design-review` 2026-06-16 (hub + per-game UI/UX
   swapping an emoji. Visually verified at phone viewport (sound-on, muted, and
   fullscreen icons render consistently); E2E 45/45 unaffected.
 
-## P3 — Shepherd's Dog full in-shell integration
-- **What:** Convert Shepherd's Dog from a linked page (`href`) into a real
-  `SY.registerGame({enter,exit,frame})` module like Zero Hour.
-- **Why:** A separate page is still a page; full in-shell makes it truly one platform.
-- **Pros:** Eliminates the page jump entirely; single canvas/loop/persistence path.
-- **Cons:** Largest refactor here — own loop/canvas/input must fold into the shell.
-- **Context:** This round only added shared tokens + chrome + a launch fade (Decision 1).
-- **Depends on:** T5 (shared tokens) landing first.
+## ~~P3 — Shepherd's Dog full in-shell integration~~ (DROPPED 2026-06-22)
+- Obsolete: the project is now a single game (**Neon Vortex Arcade Pilot**); the
+  game-select hub and the other games (Zero Hour, Shepherd's Dog) were removed.
+  Shepherd's Dog is being spun out into its own separate project.

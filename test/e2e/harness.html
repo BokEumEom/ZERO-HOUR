@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<!-- E2E harness: runs 4 scenarios sequentially against the real page in an
+<!-- E2E harness: runs scenarios sequentially against the real page in an
      iframe, then POSTs results to /report. rAF is starved under headless
-     virtual time, so the sim is stepped via G.update() where needed. -->
+     virtual time, so the sim is stepped via G.update() where needed.
+     Single-game build: the page boots straight into NEON VORTEX (no hub). -->
 <html><body style="margin:0;background:#000">
 <iframe id="f" style="width:1100px;height:760px;border:0"></iframe>
 <pre id="log" style="color:#0f0;font:12px monospace"></pre>
@@ -17,16 +18,15 @@
   function freshPage() {
     return new Promise((resolve) => {
       f.addEventListener('load', async () => {
-        // Wait until the shell has actually booted the hub, not a fixed delay:
-        // cold filesystem reads (e.g. /mnt/c under WSL) can push boot past any
-        // blind timeout. Cap generously so a genuine boot failure still reports.
+        // Wait until the shell has actually booted into the NEON VORTEX menu,
+        // not a fixed delay: cold filesystem reads (e.g. /mnt/c under WSL) can
+        // push boot past any blind timeout. Cap generously so a genuine boot
+        // failure still reports.
         for (let t = 0; t < 5000; t += 50) {
           const w = f.contentWindow, d = f.contentDocument;
-          const hub = d && d.getElementById('screen-arcade');
-          // wait until the hub is visible AND its game cards have rendered, so a
-          // slow registration/boot can't leave a scenario querying an empty hub
-          if (w && w.SY && w.SY.shell && hub && hub.classList.contains('visible') &&
-              d.querySelector('.game-card')) break;
+          const menu = d && d.getElementById('neonvortex-screen-menu');
+          if (w && w.SY && w.SY.shell && w.SY.nvGame &&
+              menu && menu.classList.contains('visible')) break;
           await sleep(50);
         }
         resolve({ w: f.contentWindow, d: f.contentDocument });
@@ -35,67 +35,43 @@
     });
   }
   const visible = (d, id) => d.getElementById(id).classList.contains('visible');
-  // arcade shell boots into the hub; enter Zero Hour by clicking its card
-  async function enterZH(w, d) {
-    d.querySelector('.game-card[data-id="zerohour"]').click();
-    for (let t = 0; t < 3000 && !visible(d, 'screen-menu'); t += 60) await sleep(60);
-  }
   async function freshGame() {
-    const { w, d } = await freshPage();
-    await enterZH(w, d);
-    return { w, d };
+    return await freshPage();
   }
   const key = (w, code) => w.dispatchEvent(new w.KeyboardEvent('keydown', { code }));
   function stepTo(w, phase, mut) {
     // manually advance the sim (rAF-independent)
-    for (let i = 0; i < 200 && w.SY.game.phase !== phase; i++) {
-      if (mut) mut(w.SY.game);
-      w.SY.game.update(0.05);
+    for (let i = 0; i < 200 && w.SY.nvGame.phase !== phase; i++) {
+      if (mut) mut(w.SY.nvGame);
+      w.SY.nvGame.update(0.05);
     }
-    return w.SY.game.phase === phase;
+    return w.SY.nvGame.phase === phase;
   }
 
   async function run() {
-    // ---------- scenario 0: arcade hub ----------
+    // ---------- scenario 0: single-game boot + settings ----------
     let { w, d } = await freshPage();
-    check('hub', 'boots into the arcade hub', visible(d, 'screen-arcade'));
-    const card = d.querySelector('.game-card[data-id="zerohour"]');
-    check('hub', 'Zero Hour card is listed', !!card && /ZERO HOUR/.test(card.textContent));
-    const shep = d.querySelector('.game-card[data-id="shepherd"]'); // linked game (don't click — it navigates away)
-    check('hub', "Shepherd's Dog card is listed (linked)", !!shep && /SHEPHERD/.test(shep.textContent));
-    const shipc = d.querySelector('.game-card[data-id="neonvortex"]');
-    check('hub', 'NEON VORTEX card is listed', !!shipc && /NEON VORTEX/.test(shipc.textContent));
-    shipc.click();
-    await sleep(150);
-    check('hub', 'tapping the card enters NEON VORTEX (menu)', visible(d, 'neonvortex-screen-menu') && !visible(d, 'screen-arcade'));
+    check('boot', 'boots straight into the NEON VORTEX menu (no hub)',
+      visible(d, 'neonvortex-screen-menu') && !d.getElementById('screen-arcade'));
     d.getElementById('neonvortex-btn-settings').click();
     await sleep(150);
     check('nv-settings', 'gear opens the NEON VORTEX settings screen', visible(d, 'neonvortex-screen-settings') && !visible(d, 'neonvortex-screen-menu'));
     d.getElementById('neonvortex-btn-settings-back').click();
     await sleep(150);
     check('nv-settings', 'BACK returns to the NEON VORTEX menu', visible(d, 'neonvortex-screen-menu') && !visible(d, 'neonvortex-screen-settings'));
-    d.getElementById('neonvortex-btn-arcade').click();
-    await sleep(150);
-    check('hub', 'ARCADE button returns from NEON VORTEX', visible(d, 'screen-arcade') && !visible(d, 'neonvortex-screen-menu'));
-    await enterZH(w, d);
-    check('hub', 'tapping the card enters Zero Hour (menu)', visible(d, 'screen-menu') && !visible(d, 'screen-arcade'));
-    d.getElementById('btn-arcade').click();
-    await sleep(150);
-    check('hub', 'ARCADE button returns to the hub', visible(d, 'screen-arcade') && !visible(d, 'screen-menu'));
 
     // ---------- scenario 1: first-visit how-to gate ----------
     ({ w, d } = await freshGame());
-    d.getElementById('btn-daily').click();
+    d.getElementById('neonvortex-btn-start').click();
     await sleep(100);
-    check('howto', 'first start opens HOW TO PLAY instead of the game', visible(d, 'screen-howto') && w.SY.game.phase === 'menu');
-    d.getElementById('btn-howto-start').click();
+    check('howto', 'first start opens HOW TO PLAY instead of the game', visible(d, 'neonvortex-screen-howto') && w.SY.nvGame.phase === 'menu');
+    d.getElementById('neonvortex-btn-howto-start').click();
     await sleep(100);
-    check('howto', 'START begins the chosen mode and hides the overlay', !visible(d, 'screen-howto') && w.SY.game.phase === 'ready' && w.SY.game.mode === 'daily');
+    check('howto', 'START begins the chosen mode and hides the overlay', !visible(d, 'neonvortex-screen-howto') && w.SY.nvGame.phase === 'ready' && w.SY.nvGame.mode === 'daily');
     // The product persists seenHowto fire-and-forget; scenario 2 reloads the page
     // and depends on that write being durable. Poll a FRESH read until it lands
     // (reads resolve under headless virtual-time; awaiting the write directly
-    // would stall). This is the deterministic gate, independent of incidental
-    // IndexedDB contention from the hub's card-scent reads.
+    // would stall).
     for (let t = 0; t < 3000; t += 50) {
       const s = await w.SY.store.loadSettings();
       if (s && s.seenHowto) break;
@@ -104,91 +80,91 @@
 
     // ---------- scenario 2: pause + quit discards the run ----------
     ({ w, d } = await freshGame());
-    d.getElementById('btn-free').click(); // seenHowto persisted -> G.start sets phase synchronously
-    check('quit', 'second visit skips the how-to gate', w.SY.game.phase === 'ready');
-    // (the pause button's visibility is loop-driven/cosmetic — verified live in Playwright;
-    //  the functional pause flow below is the deterministic guard)
+    d.getElementById('neonvortex-btn-free').click(); // seenHowto persisted -> G.start sets phase synchronously
+    check('quit', 'second visit skips the how-to gate', w.SY.nvGame.phase === 'ready');
     stepTo(w, 'playing', (g) => { if (g.state) g.state.readyT = 0.01; });
-    w.SY.game.state.score = 777; // pretend we earned something
+    w.SY.nvGame.state.score = 777; // pretend we earned something
     let overFired = 0;
-    const prevHandler = w.SY.game.events.onGameOver;
-    w.SY.game.events.onGameOver = (res) => { overFired++; if (prevHandler) prevHandler(res); };
+    const prevHandler = w.SY.nvGame.events.onGameOver;
+    w.SY.nvGame.events.onGameOver = (res) => { overFired++; if (prevHandler) prevHandler(res); };
     key(w, 'Escape');
     await sleep(100);
-    check('quit', 'ESC pauses and shows the overlay', w.SY.game.phase === 'paused' && visible(d, 'screen-pause'));
-    const tBefore = w.SY.game.state.t;
-    for (let i = 0; i < 20; i++) w.SY.game.update(0.05);
-    check('quit', 'sim is frozen while paused', w.SY.game.state.t === tBefore);
-    d.getElementById('btn-pause-quit').click();
+    check('quit', 'ESC pauses and shows the overlay', w.SY.nvGame.phase === 'paused' && visible(d, 'neonvortex-screen-pause'));
+    const tBefore = w.SY.nvGame.state.t;
+    for (let i = 0; i < 20; i++) w.SY.nvGame.update(0.05);
+    check('quit', 'sim is frozen while paused', w.SY.nvGame.state.t === tBefore);
+    d.getElementById('neonvortex-btn-pause-quit').click();
     await sleep(150);
-    check('quit', 'QUIT returns to menu', visible(d, 'screen-menu') && w.SY.game.phase === 'menu');
+    check('quit', 'QUIT returns to menu', visible(d, 'neonvortex-screen-menu') && w.SY.nvGame.phase === 'menu');
     check('quit', 'no game-over event fired for a discarded run', overFired === 0);
-    const recs = await w.SY.store.forGame("zerohour").loadAll();
+    const recs = await w.SY.store.forGame("neonvortex").loadAll();
     check('quit', 'no records were written (best stays null)', recs.bestAll === null && recs.dailyBest === null);
 
     // ---------- scenario 3: pause via button, resume via key ----------
     ({ w, d } = await freshGame());
-    d.getElementById('btn-free').click();
+    d.getElementById('neonvortex-btn-free').click();
     await sleep(100);
     stepTo(w, 'playing', (g) => { if (g.state) g.state.readyT = 0.01; });
     w.SY.input.ax = 1;
-    d.getElementById('btn-pause').click();
+    d.getElementById('neonvortex-btn-pause').click();
     await sleep(100);
-    check('pause', 'mobile pause button pauses', w.SY.game.phase === 'paused' && visible(d, 'screen-pause'));
+    check('pause', 'mobile pause button pauses', w.SY.nvGame.phase === 'paused' && visible(d, 'neonvortex-screen-pause'));
     check('pause', 'joystick axis zeroed on pause', w.SY.input.ax === 0 && w.SY.input.ay === 0);
     key(w, 'KeyP');
     await sleep(100);
-    check('pause', 'P resumes back to playing', w.SY.game.phase === 'playing' && !visible(d, 'screen-pause'));
+    check('pause', 'P resumes back to playing', w.SY.nvGame.phase === 'playing' && !visible(d, 'neonvortex-screen-pause'));
 
     // ---------- scenario 4: game over screen (breakdown/sparkline/countdown) ----------
     ({ w, d } = await freshGame());
     let overRes = null;
-    const orig = w.SY.game.events.onGameOver;
-    w.SY.game.events.onGameOver = (res) => { overRes = res; if (orig) orig(res); };
-    d.getElementById('btn-daily').click();
+    const orig = w.SY.nvGame.events.onGameOver;
+    w.SY.nvGame.events.onGameOver = (res) => { overRes = res; if (orig) orig(res); };
+    d.getElementById('neonvortex-btn-start').click();
     await sleep(100);
-    stepTo(w, 'playing', (g) => { if (g.state) g.state.readyT = 0.01; });
-    // play ~8 sim-seconds, force-feeding crystals so the run has a real score
+    check('over', 'daily run started (playing)', stepTo(w, 'playing', (g) => { if (g.state) g.state.readyT = 0.01; }),
+      'phase=' + w.SY.nvGame.phase);
+    // force-feed crystals so the run has a real score, then end it on the clock
     {
-      const g = w.SY.game;
-      g.state.timeLeft = 8;
-      for (let i = 0; i < 220 && g.phase === 'playing'; i++) {
-        if (i % 15 === 0) {
+      const g = w.SY.nvGame;
+      for (let i = 0; i < 80 && g.phase === 'playing'; i++) {
+        if (i % 8 === 0 && g.state) {
           g.state.crystals.push({ x: g.state.player.x, y: g.state.player.y, vx: 0, vy: 0, r: 7, phase: 0 });
         }
         g.update(0.05);
       }
     }
+    stepTo(w, 'over', (g) => { if (g.state) g.state.timeLeft = 0.04; });
     await sleep(900); // over screen appears after 650ms
-    check('over', 'game over screen is shown', visible(d, 'screen-over') && !!overRes);
+    check('over', 'game over screen is shown', visible(d, 'neonvortex-screen-over') && !!overRes,
+      'phase=' + w.SY.nvGame.phase + ' overRes=' + !!overRes);
     check('over', 'run scored non-trivially', overRes.score > 0, 'score=' + overRes.score);
-    check('over', 'rank badge is shown', /RANK · (RECRUIT|PILOT|ACE|LEGEND)/.test(d.getElementById('over-rank').textContent),
-      d.getElementById('over-rank').textContent);
+    check('over', 'rank badge is shown', /RANK · (RECRUIT|PILOT|ACE|LEGEND)/.test(d.getElementById('neonvortex-over-rank').textContent),
+      d.getElementById('neonvortex-over-rank').textContent);
     const bd = overRes.breakdown;
     check('over', 'breakdown buckets sum to final score (non-trivial)',
-      bd.crystals + bd.combo + bd.destruction + bd.boss === overRes.score,
+      bd.crystals + bd.combo + bd.destruction + bd.boss + (bd.heat || 0) === overRes.score,
       JSON.stringify(bd) + ' vs ' + overRes.score);
     check('over', 'pace series has a real curve for the sparkline', overRes.pace.length >= 3 && overRes.pace[overRes.pace.length - 1] > 0);
-    const statsText = d.getElementById('over-stats').textContent;
+    const statsText = d.getElementById('neonvortex-over-stats').textContent;
     check('over', 'breakdown rows rendered', /CRYSTAL PTS/.test(statsText) && /COMBO BONUS/.test(statsText) && /DESTRUCTION/.test(statsText) && /BOSS PTS/.test(statsText));
-    const cd = d.getElementById('over-countdown');
+    const cd = d.getElementById('neonvortex-over-countdown');
     check('over', 'daily countdown visible with HH:MM:SS', cd.style.display !== 'none' && /NEXT DAILY IN \d{2}:\d{2}:\d{2}/.test(cd.textContent), cd.textContent);
-    const spark = d.getElementById('over-spark');
+    const spark = d.getElementById('neonvortex-over-spark');
     const px = spark.getContext('2d').getImageData(0, 0, spark.width, spark.height).data;
     check('over', 'sparkline canvas is not blank', px.some((v) => v !== 0));
     check('over', 'focus moves to RETRY when game-over opens (a11y)',
-      d.activeElement === d.getElementById('btn-retry'),
+      d.activeElement === d.getElementById('neonvortex-btn-retry'),
       'activeElement=' + (d.activeElement && d.activeElement.id));
     check('over', 'game-over result announced via aria-live (a11y)',
       /\d/.test(d.getElementById('a11y-live').textContent),
       JSON.stringify(d.getElementById('a11y-live').textContent));
     check('over', 'game-over screen is a labelled dialog (a11y)',
-      d.getElementById('screen-over').getAttribute('role') === 'dialog' &&
-      !!d.getElementById('screen-over').getAttribute('aria-label'));
-    check('over', 'daily record was saved this time', !!(await w.SY.store.forGame("zerohour").loadAll()).dailyBest);
-    d.getElementById('btn-retry').click();
+      d.getElementById('neonvortex-screen-over').getAttribute('role') === 'dialog' &&
+      !!d.getElementById('neonvortex-screen-over').getAttribute('aria-label'));
+    check('over', 'daily record was saved this time', !!(await w.SY.store.forGame("neonvortex").loadAll()).dailyBest);
+    d.getElementById('neonvortex-btn-retry').click();
     await sleep(150);
-    check('over', 'RETRY hides countdown (interval cleaned up)', cd.style.display === 'none' && !visible(d, 'screen-over'));
+    check('over', 'RETRY hides countdown (interval cleaned up)', cd.style.display === 'none' && !visible(d, 'neonvortex-screen-over'));
 
     // R / M shortcuts: back to over screen first (retry already restarted the run)
     stepTo(w, 'playing', (g) => { if (g.state) g.state.readyT = 0.01; });
@@ -196,7 +172,7 @@
     await sleep(900);
     key(w, 'KeyM');
     await sleep(100);
-    check('over', 'M shortcut returns to menu from the over screen', visible(d, 'screen-menu'));
+    check('over', 'M shortcut returns to menu from the over screen', visible(d, 'neonvortex-screen-menu'));
 
     // ---------- scenario 5: UTC midnight rollover ----------
     // pretend the page sat on the menu past midnight: the next daily run must
@@ -204,19 +180,19 @@
     const realToday = w.SY.todayUTC();
     w.SY.todayUTC = () => '2099-01-01';
     let rollRes = null;
-    w.SY.game.events.onGameOver = (res) => { rollRes = res; if (orig) orig(res); };
-    d.getElementById('btn-daily').click();
+    w.SY.nvGame.events.onGameOver = (res) => { rollRes = res; if (orig) orig(res); };
+    d.getElementById('neonvortex-btn-start').click();
     await sleep(100);
-    check('rollover', 'new run seeds with the new UTC date', w.SY.game.state.seedStr === 'daily-2099-01-01');
+    check('rollover', 'new run seeds with the new UTC date', w.SY.nvGame.state.seedStr === 'daily-2099-01-01');
     stepTo(w, 'playing', (g) => { if (g.state) g.state.readyT = 0.01; });
     stepTo(w, 'over', (g) => { if (g.state) g.state.timeLeft = 0.04; });
     await sleep(900);
     check('rollover', 'result carries the seed date', rollRes && rollRes.seedStr === 'daily-2099-01-01');
-    const rolled = await w.SY.store.forGame("zerohour").loadAll(); // loadAll reads daily_<todayUTC()>
+    const rolled = await w.SY.store.forGame("neonvortex").loadAll(); // loadAll reads daily_<todayUTC()>
     check('rollover', 'record saved under the NEW day key, streak intact',
       rolled.dailyBest && rolled.dailyBest.score === rollRes.score,
       JSON.stringify(rolled.dailyBest));
-    check('rollover', 'over screen labels the new day', d.getElementById('over-mode').textContent.includes('2099-01-01'));
+    check('rollover', 'over screen labels the new day', d.getElementById('neonvortex-over-mode').textContent.includes('2099-01-01'));
     w.SY.todayUTC = () => realToday;
 
     // ---------- scenario 6: portrait rotate-to-fill (ADR-0006) ----------
@@ -235,52 +211,52 @@
       'arena.w=' + Math.round(ar.width) + ' vw=' + w.innerWidth);
     check('layout', 'rotated arena is much taller than width-fit (>2x)', Math.round(ar.height) > 500,
       'arena.h=' + Math.round(ar.height));
-    const dailyR = d.getElementById('btn-daily').getBoundingClientRect();
-    const freeR = d.getElementById('btn-free').getBoundingClientRect();
+    const dailyR = d.getElementById('neonvortex-btn-daily').getBoundingClientRect();
+    const freeR = d.getElementById('neonvortex-btn-free').getBoundingClientRect();
     check('layout', 'menu mode cards stack vertically on narrow screens', freeR.top >= dailyR.bottom - 1,
       'daily.bottom=' + Math.round(dailyR.bottom) + ' free.top=' + Math.round(freeR.top));
     // drag input is remapped for the 90° rotation: screen drag-down moves the drone down on screen
-    d.getElementById('btn-free').click();
+    d.getElementById('neonvortex-btn-free').click();
     await sleep(120);
     stepTo(w, 'playing', (g) => { if (g.state) g.state.readyT = 0.01; });
     // arena is rotated 90° CW, so on-screen "down" is arena +x → player.x should grow.
     // pointerdown listens on #viewport; pointermove on window (both need bubbles:true)
     const vp = d.getElementById('viewport');
-    const px0 = w.SY.game.state.player.x;
+    const px0 = w.SY.nvGame.state.player.x;
     const pe = (type, x, y) => new w.PointerEvent(type, { pointerId: 1, clientX: x, clientY: y, pointerType: 'touch', bubbles: true });
     vp.dispatchEvent(pe('pointerdown', 195, 500));
     w.dispatchEvent(pe('pointermove', 195, 600)); // drag DOWN 100px
-    for (let i = 0; i < 25; i++) w.SY.game.update(0.05);
+    for (let i = 0; i < 25; i++) w.SY.nvGame.update(0.05);
     w.dispatchEvent(pe('pointerup', 195, 600));
     check('layout', 'drag-down moves drone down on screen (rotation-aware remap)',
-      w.SY.game.state.player.x > px0 + 10, 'px0=' + Math.round(px0) + ' px1=' + Math.round(w.SY.game.state.player.x));
+      w.SY.nvGame.state.player.x > px0 + 10, 'px0=' + Math.round(px0) + ' px1=' + Math.round(w.SY.nvGame.state.player.x));
     // second axis: on-screen "right" is arena -y → player.y should shrink (touch feel locked)
-    const py0 = w.SY.game.state.player.y;
+    const py0 = w.SY.nvGame.state.player.y;
     vp.dispatchEvent(pe('pointerdown', 200, 400));
     w.dispatchEvent(pe('pointermove', 300, 400)); // drag RIGHT 100px
-    for (let i = 0; i < 25; i++) w.SY.game.update(0.05);
+    for (let i = 0; i < 25; i++) w.SY.nvGame.update(0.05);
     w.dispatchEvent(pe('pointerup', 300, 400));
     check('layout', 'drag-right moves drone right on screen (touch feel preserved)',
-      w.SY.game.state.player.y < py0 - 10, 'py0=' + Math.round(py0) + ' py1=' + Math.round(w.SY.game.state.player.y));
+      w.SY.nvGame.state.player.y < py0 - 10, 'py0=' + Math.round(py0) + ' py1=' + Math.round(w.SY.nvGame.state.player.y));
     check('layout', 'SY.layout.rot is set for portrait', Math.abs(w.SY.layout.rot - Math.PI / 2) < 0.01,
       'rot=' + w.SY.layout.rot.toFixed(3));
 
-    // ---------- scenario 7: RECORDS screen ----------
+    // ---------- scenario 7: RANKING screen ----------
     key(w, 'Escape'); // pause the run left over from scenario 6
     await sleep(150);
-    d.getElementById('btn-pause-quit').click();
+    d.getElementById('neonvortex-btn-pause-quit').click();
     await sleep(150);
-    check('records', 'menu reached after quit', visible(d, 'screen-menu'));
-    d.getElementById('btn-records').click();
+    check('records', 'menu reached after quit', visible(d, 'neonvortex-screen-menu'));
+    d.getElementById('neonvortex-btn-records').click();
     await sleep(150);
-    check('records', 'RECORDS screen opens', visible(d, 'screen-records'));
-    // NOTE: records *content* (14 rows, ALL-TIME BEST) is built from IndexedDB,
+    check('records', 'RANKING screen opens', visible(d, 'neonvortex-screen-records'));
+    // NOTE: records *content* (rows, ALL-TIME BEST) is built from IndexedDB,
     // which doesn't resolve reliably under headless virtual-time. Content is
     // covered by store.test.mjs (loadRecentDailies/computeStreak) + Playwright
     // live checks; here we only assert deterministic navigation.
     key(w, 'Escape'); // Esc closes records
     await sleep(150);
-    check('records', 'Esc returns to menu', visible(d, 'screen-menu'));
+    check('records', 'Esc returns to menu', visible(d, 'neonvortex-screen-menu'));
 
     await fetch('/report', { method: 'POST', body: JSON.stringify({ results }) });
     logEl.textContent += 'REPORT SENT';

@@ -10,7 +10,7 @@ const NOW = '2026-03-01T00:30:00Z'; // month boundary on purpose
 function freshStore(nowIso = NOW) {
   return loadModules(['js/store.js'], { nowIso, idb: fakeIndexedDB() });
 }
-const gs = (sb) => sb.SY.store.forGame('zerohour'); // namespaced record store
+const gs = (sb) => sb.SY.store.forGame('neonvortex'); // namespaced record store
 
 test('makeRng is deterministic per seed and differs across seeds', () => {
   const sb = freshStore();
@@ -83,11 +83,11 @@ test('loadRecentDailies marks exactly the recorded dates', async () => {
 
 test('record stores are isolated per game id', async () => {
   const sb = freshStore();
-  await sb.SY.store.forGame('zerohour').saveDaily('2026-03-01', { score: 100 });
-  await sb.SY.store.forGame('shepherd').saveDaily('2026-03-01', { score: 7 });
+  await sb.SY.store.forGame('neonvortex').saveDaily('2026-03-01', { score: 100 });
+  await sb.SY.store.forGame('other').saveDaily('2026-03-01', { score: 7 });
   await flushMicrotasks();
-  assert.equal((await sb.SY.store.forGame('zerohour').loadAll()).dailyBest.score, 100);
-  assert.equal((await sb.SY.store.forGame('shepherd').loadAll()).dailyBest.score, 7);
+  assert.equal((await sb.SY.store.forGame('neonvortex').loadAll()).dailyBest.score, 100);
+  assert.equal((await sb.SY.store.forGame('other').loadAll()).dailyBest.score, 7);
 });
 
 test('shared settings round-trip preserves unknown keys (seenHowto)', async () => {
@@ -106,7 +106,7 @@ test('migrate copies legacy (pre-namespace) keys into the game namespace, idempo
     ['best_all', { score: 500, combo: 9, date: '2026-02-20', mode: 'daily' }],
     ['daily_2026-03-01', { score: 120, combo: 5, pace: [0, 1], bossDown: true }],
   ]));
-  await sb.SY.store.migrate('zerohour');
+  await sb.SY.store.migrate('neonvortex');
   await flushMicrotasks();
   const all = await gs(sb).loadAll();
   assert.equal(all.bestAll.score, 500, 'legacy best_all migrated');
@@ -114,14 +114,14 @@ test('migrate copies legacy (pre-namespace) keys into the game namespace, idempo
   // idempotent: a later migrate must not clobber newer namespaced data
   await gs(sb).saveBestAll({ score: 999, combo: 1, date: '2026-03-01', mode: 'free' });
   await flushMicrotasks();
-  await sb.SY.store.migrate('zerohour');
+  await sb.SY.store.migrate('neonvortex');
   await flushMicrotasks();
   assert.equal((await gs(sb).loadAll()).bestAll.score, 999, 'second migrate must not overwrite');
 });
 
 test('migrate is a no-op on a fresh install (no legacy keys)', async () => {
   const sb = freshStore();
-  await sb.SY.store.migrate('zerohour');
+  await sb.SY.store.migrate('neonvortex');
   await flushMicrotasks();
   assert.equal((await gs(sb).loadAll()).bestAll, null);
 });
@@ -140,7 +140,7 @@ test('addMedals merges, dedups, and reports only newly unlocked ids', async () =
 
 test('medals are isolated per game id', async () => {
   const sb = freshStore();
-  await sb.SY.store.forGame('zerohour').addMedals(['boss']);
+  await sb.SY.store.forGame('neonvortex').addMedals(['boss']);
   await flushMicrotasks();
-  assert.equal((await sb.SY.store.forGame('shepherd').loadMedals()).length, 0);
+  assert.equal((await sb.SY.store.forGame('other').loadMedals()).length, 0);
 });

@@ -1,4 +1,4 @@
-# AGENT.md — Scoreyard AI 에이전트 작업 지침서
+# AGENT.md — Neon Vortex Arcade Pilot · AI 에이전트 작업 지침서
 
 이 저장소에서 작업하는 모든 AI 에이전트(구현·테스트·검증·리팩터)의 운영 매뉴얼.
 프로젝트 개요는 [CLAUDE.md](CLAUDE.md), 함정 목록은 [LEARNINGS.md](LEARNINGS.md),
@@ -28,19 +28,21 @@
 | 파일 | 책임 | 주의 |
 |---|---|---|
 | `index.html` | 마크업·화면 DOM | 인라인 `<style>` 금지, 인라인 `style=` 예산 ≤6 |
-| `css/tokens.css` | 플랫폼 디자인 토큰 (팔레트·폰트·safe-area) | 단일 출처. `style.css`보다 먼저 로드. 게임별 정체성은 자체 `:root`로 오버라이드 가능 ([docs/design-system.md](docs/design-system.md)) |
-| `css/style.css` | 전체 UI 스타일 | 토큰은 `tokens.css`. 기본 `display:none` 요소는 JS에서 `'block'` 명시 토글 |
+| `css/tokens.css` | 디자인 토큰 (팔레트·폰트·safe-area) | 단일 출처. `neonvortex.css`보다 먼저 로드 ([docs/design-system.md](docs/design-system.md)) |
+| `css/neonvortex.css` | 전체 UI 스타일 (게임 아트 디렉션 포함) | 토큰은 `tokens.css`. 기본 `display:none` 요소는 JS에서 `'block'` 명시 토글 |
 | `js/store.js` | IndexedDB + 시드 RNG + 날짜 유틸 | 기록은 게임별 `SY.store.forGame(id)`; 공용 `settings`만 전역. UTC 경계는 `Date.UTC` |
 | `js/audio.js` | Web Audio SFX + 햅틱 | 게임 무관 공용 |
-| `js/shell.js` | 아케이드 셸: 레지스트리·rAF 루프·`fit`·허브·라우팅 | 게임 무관. 활성 게임의 `frame(dt,ctx)`만 호출 |
-| `js/games/zerohour/game.js` | 엔진: phase 상태머신·시뮬·충돌·보스 | 60fps 핫패스 — 프레임 루프 내 신규 할당 금지 |
-| `js/games/zerohour/render.js` | 게임 캔버스 렌더링 **전용** | UI 차트(스파크라인 등)는 main.js 소속 |
-| `js/games/zerohour/main.js` | Zero Hour 등록(`enter/exit/frame`)·HUD·화면·기록·입력 | 화면 전환은 `show()` 경유 |
-| `js/games/zerohour/tweaks*.jsx` | dev 밸런스 패널 (React) | 게임 코어가 의존하면 안 됨 |
+| `js/shell.js` | 런타임 셸: 레지스트리·rAF 루프·`fit`·부팅 진입 | 게임 무관. 부팅 시 단일 게임으로 직행(`SY.shell.enterGame()`), 활성 게임의 `frame(dt,ctx)`만 호출. 허브 없음 |
+| `js/games/neonvortex/game.js` | 엔진: phase 상태머신·시뮬·충돌·보스 (`SY.nvGame`) | 60fps 핫패스 — 프레임 루프 내 신규 할당 금지 |
+| `js/games/neonvortex/render.js` | 게임 캔버스 렌더링 **전용** | UI 차트(스파크라인 등)는 main.js 소속 |
+| `js/games/neonvortex/sprites.js` | 기체 스프라이트 아틀라스 + 도색 (`SY.nvSprites`) | 핫패스 — 도색은 코팅별 1회 프리캐시 |
+| `js/games/neonvortex/medals.js` | 점수 티어 + 라이프타임 메달 (`SY.nvMedals`, 순수 로직) | DOM/IDB 없음 — 단위 테스트 대상 |
+| `js/games/neonvortex/meta.js` / `.mjs` | 코스메틱 라이프타임·랭크 (`SY.nvMeta`, 표시 전용) | 시뮬에 절대 되먹임 금지. `.mjs`는 ESM 테스트 미러 |
+| `js/games/neonvortex/main.js` | 게임 등록(`enter/exit/frame`)·HUD·화면·기록·입력 | 화면 전환은 `show()` 경유 |
 
-새 게임 = `js/games/<id>/` 모듈이 `SY.registerGame({id,title,blurb,enter,exit,frame})` 호출 ([ADR-0008](docs/adr/0008-arcade-platform-shell.md)).
+게임 모듈(`js/games/neonvortex/`)이 `SY.registerGame({id,title,blurb,enter,exit,frame})`로 셸에 등록하면, 셸이 부팅 시 직행한다 ([ADR-0008](docs/adr/0008-arcade-platform-shell.md)).
 
-phase 상태머신(게임별): `menu | ready | playing | paused | over`. 셸: 허브 ↔ 게임.
+phase 상태머신: `menu | ready | playing | paused | over`. 셸은 부팅 시 게임으로 직행(허브 없음).
 모든 전이 지점(`pause`/`resume`/`start`)에서 입력 리셋 필수 ([ADR-0003](docs/adr/0003-pause-system-and-quit-semantics.md)).
 
 ## 표준 워크플로 (모든 비자명 변경)

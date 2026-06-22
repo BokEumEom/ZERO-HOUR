@@ -335,25 +335,6 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 }
 /* small pink tracked label that sits above a title (Shepherd's .kicker) */
 .kicker { font-family: var(--body); font-size: 11px; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase; color: var(--pink); }
-
-/* Shared lobby mascot art: the same dog/flock language as Shepherd's Dog,
-   with a Zero Hour signal variant for the drone lobby. Decorative only. */
-.lobby-mascot {
-  display: block;
-  width: min(360px, 84vw);
-  height: auto;
-  margin: -2px auto 2px;
-  filter: drop-shadow(0 4px 0 rgba(43,38,32,0.1));
-}
-.lobby-mascot-main {
-  width: min(390px, 86vw);
-}
-.lobby-mascot-zero {
-  width: min(360px, 84vw);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .lobby-mascot { animation: mascot-bob 3.4s ease-in-out infinite; }
-}
 @keyframes mascot-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
 
 /* Fraunces is a variable font — display headings need an explicit heavy weight
@@ -379,61 +360,6 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   box-shadow: 0 0 16px rgba(45,226,198,0.28);
 }
 .panel .game-card:active, .panel .mode-card:active { transform: translateY(0); box-shadow: none; }
-.mode-sub { font-size: 11px; letter-spacing: 0.04em; color: rgba(159,245,232,0.6); }
-
-/* ===== main (hub) + Zero Hour lobby: Shepherd's Dog WARM panel palette
-   (cream paper / ink / rust / gold), the panel floating over a visible, blurred
-   background. We take Dog's colours + tone, not its (unrevised, landscape)
-   layout. The in-game dialog screens keep the dark neon panel. ===== */
-#screen-arcade {
-  background: rgba(8, 11, 14, 0.42);                 /* translucent veil -> canvas/CRT shows behind */
-  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
-}
-#screen-arcade .panel {
-  width: min(520px, 92vw);
-  background-color: #f6efdf;                          /* Dog cream paper */
-  background-image: radial-gradient(rgba(43,38,32,0.06) 1px, transparent 1.5px);
-  background-size: 15px 15px;
-  border: 3px solid #2b2620;                          /* Dog ink */
-  border-radius: 22px;
-  box-shadow: 8px 8px 0 rgba(20,18,12,0.5);
-  color: #2b2620;
-}
-#screen-arcade .kicker { color: #c4552e; }            /* rust */
-#screen-arcade .arcade-wordmark { color: #2b2620; text-shadow: none; }
-#screen-arcade .arcade-foot { color: rgba(43,38,32,0.5); }
-/* game / mode cards become warm paper "cutout" items */
-#screen-arcade .panel .game-card {
-  background: #fffaf2;
-  border: 2px solid #2b2620;
-  box-shadow: 3px 3px 0 rgba(43,38,32,0.22);
-  color: #2b2620;
-}
-#screen-arcade .panel .game-card:hover, #screen-arcade .panel .game-card:focus-visible {
-  transform: translate(-1px, -2px);
-  box-shadow: 5px 6px 0 rgba(43,38,32,0.3);
-}
-#screen-arcade .panel .game-card:active {
-  transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(43,38,32,0.25);
-}
-#screen-arcade .game-card-title { color: #2b2620; text-shadow: none; }
-#screen-arcade .game-card-blurb { color: rgba(43,38,32,0.6); }
-#screen-arcade .meta-best { color: #2b2620; }
-#screen-arcade .meta-played { color: rgba(43,38,32,0.55); }
-#screen-arcade .meta-new { color: #c4552e; }
-/* buttons → Shepherd's ink button (cream text) — hub RELOAD */
-#screen-arcade .arcade-btn {
-  background: #2b2620; color: #f6efdf; border: 2px solid #2b2620;
-  box-shadow: 4px 4px 0 rgba(20,18,12,0.4);
-}
-#screen-arcade .arcade-btn:hover, #screen-arcade .arcade-btn:focus-visible {
-  background: #2b2620; transform: translate(-1px, -2px); box-shadow: 6px 7px 0 rgba(20,18,12,0.5);
-}
-#screen-arcade .arcade-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(20,18,12,0.4); }
-/* fail-safe empty state, recoloured for the cream panel */
-#screen-arcade .hub-empty-glyph { color: rgba(43,38,32,0.3); }
-#screen-arcade .hub-empty-title { color: #2b2620; }
-#screen-arcade .hub-empty-msg { color: rgba(43,38,32,0.6); }
 
 .game-title {
   font-family: var(--display);
@@ -442,98 +368,11 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   text-shadow: 0 0 24px rgba(45,226,198,0.8), 0 0 60px rgba(45,226,198,0.35);
   letter-spacing: 0.04em;
 }
-.game-sub { font-size: clamp(10px, 2.6vw, 13px); letter-spacing: 0.22em; color: rgba(159,245,232,0.6); }
 .kr-sub { font-size: clamp(10px, 2.8vw, 12px); color: rgba(234,246,255,0.6); letter-spacing: 0.02em; }
-
-.mode-row { display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(10px, 2vw, 18px); margin-top: 8px; }
-.mode-card {
-  width: min(280px, 88vw);
-  background: var(--panel);
-  border: 2px solid var(--teal);
-  border-radius: 16px;
-  box-shadow: 5px 5px 0 rgba(45,226,198,0.22); /* sticker offset */
-  padding: 20px 18px 16px 18px;
-  cursor: pointer;
-  display: flex; flex-direction: column; gap: 8px;
-  transition: transform 0.1s, box-shadow 0.1s;
-  font-family: var(--body);
-  color: var(--ink);
-  text-align: center;
-}
-.mode-card:hover, .mode-card:focus-visible {
-  transform: translate(-1px, -3px);
-  box-shadow: 7px 8px 0 rgba(45,226,198,0.42), inset 0 0 18px rgba(45,226,198,0.08);
-  outline: none;
-}
-.mode-card:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 rgba(45,226,198,0.32); }
-.mode-name { font-family: var(--display); font-size: clamp(12px, 3.2vw, 14px); color: var(--teal-soft); }
-.mode-desc { font-size: 12px; color: rgba(234,246,255,0.55); line-height: 1.5; }
-.mode-meta { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: var(--amber); }
 #neonvortex-menu-date { font-size: 11px; color: rgba(159,245,232,0.5); letter-spacing: 0.1em; }
 
 .best-line { font-size: 12px; letter-spacing: 0.1em; color: rgba(159,245,232,0.65); }
 .controls-hint { font-size: 11px; letter-spacing: 0.1em; color: rgba(234,246,255,0.62); }
-
-/* ---------- arcade hub (game select) ---------- */
-#arcade-grid { display: flex; flex-direction: column; gap: clamp(12px, 3vw, 18px); width: min(360px, 92vw); }
-.game-card {
-  display: flex; flex-direction: column; gap: 8px;
-  padding: clamp(18px, 5vw, 24px) 20px;
-  background: var(--panel);
-  border: 2px solid var(--c, var(--teal));
-  border-radius: 16px;
-  color: var(--ink);
-  font-family: var(--body);
-  text-align: left;
-  cursor: pointer;
-  /* hard-offset shadow in the game's own accent (color-mix degrades to none on
-     very old engines — acceptable) */
-  box-shadow: 5px 5px 0 color-mix(in srgb, var(--c, var(--teal)) 38%, transparent);
-  transition: transform 0.1s, box-shadow 0.1s;
-}
-.game-card:hover, .game-card:focus-visible {
-  transform: translate(-1px, -3px);
-  box-shadow: 7px 8px 0 color-mix(in srgb, var(--c, var(--teal)) 55%, transparent), inset 0 0 18px rgba(45,226,198,0.08);
-  outline: none;
-}
-.game-card:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 color-mix(in srgb, var(--c, var(--teal)) 45%, transparent); }
-.game-card-title { font-family: var(--display); font-size: clamp(15px, 4.5vw, 20px); color: var(--c, var(--teal-soft)); text-shadow: 0 0 14px var(--c, var(--teal)); }
-.game-card-blurb { font-size: clamp(10px, 2.8vw, 12px); color: rgba(234,246,255,0.62); letter-spacing: 0.04em; line-height: 1.5; }
-/* card scent: personal best + play status (data lives in SY.store, shown read-only) */
-.game-card-meta { font-size: 11px; letter-spacing: 0.06em; color: rgba(159,245,232,0.6); margin-top: 2px; }
-.meta-best { color: var(--ink); font-weight: 600; }
-.meta-played { color: rgba(159,245,232,0.7); }
-.meta-new { color: var(--amber); font-weight: 700; letter-spacing: 0.08em; }
-
-/* hub identity header — the platform front door (was a bare card list) */
-#arcade-head { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.arcade-wordmark {
-  font-family: var(--display);
-  font-size: clamp(26px, 8vw, 40px);
-  line-height: 1.25;
-  color: var(--teal);
-  text-shadow: 0 0 24px rgba(45,226,198,0.8), 0 0 60px rgba(45,226,198,0.35);
-  letter-spacing: 0.02em;
-}
-.arcade-tagline { font-size: clamp(10px, 2.6vw, 12px); letter-spacing: 0.22em; color: rgba(159,245,232,0.7); }
-.arcade-foot { font-size: 10px; letter-spacing: 0.12em; color: rgba(234,246,255,0.5); }
-
-/* hub empty / fail-safe state (games failed to register or none) */
-.hub-empty { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; padding: 24px 12px; }
-.hub-empty-glyph { font-family: var(--display); font-size: clamp(28px, 9vw, 38px); color: rgba(45,226,198,0.4); }
-.hub-empty-title { font-family: var(--display); font-size: clamp(12px, 3.4vw, 14px); color: var(--teal-soft); }
-.hub-empty-msg { font-size: 12px; color: rgba(234,246,255,0.62); line-height: 1.6; max-width: 260px; }
-
-/* back-to-arcade affordance on a game's menu */
-.back-btn {
-  position: absolute;
-  top: calc(var(--safe-top) + 12px); left: calc(var(--safe-left) + 12px);
-  font-family: var(--body); font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
-  color: var(--teal-soft); background: rgba(8,20,32,0.85);
-  border: 1px solid rgba(45,226,198,0.4); padding: 8px 12px;
-  min-height: 36px; cursor: pointer; z-index: 5;
-}
-.back-btn:hover, .back-btn:focus-visible { border-color: var(--teal); outline: none; }
 
 /* ---------- game over (shared base; reskinned below for #neonvortex-screen-over) ---------- */
 .stat-row { display: flex; justify-content: space-between; font-size: 13px; border-bottom: 1px dashed rgba(45,226,198,0.18); padding-bottom: 5px; }
@@ -581,14 +420,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   text-align: left;
 }
 .rec-section-title { font-size: 10px; letter-spacing: 0.16em; color: rgba(159,245,232,0.5); margin-bottom: 4px; }
-.rec-best { font-family: var(--display); font-size: clamp(18px, 5vw, 24px); color: var(--teal-soft); text-shadow: 0 0 14px rgba(45,226,198,0.5); }
-.rec-best-meta { font-size: 12px; color: rgba(234,246,255,0.6); margin-top: 4px; letter-spacing: 0.06em; }
 .rec-streak { font-size: 13px; color: var(--teal); letter-spacing: 0.08em; }
-.rec-day { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 7px 2px; border-bottom: 1px dashed rgba(45,226,198,0.15); }
-.rec-day-date { color: rgba(159,245,232,0.7); letter-spacing: 0.06em; }
-.rec-day-score { color: var(--ink); font-weight: 600; }
-.rec-day.empty .rec-day-date { color: rgba(159,245,232,0.3); }
-.rec-day.empty .rec-day-score { color: rgba(234,246,255,0.25); }
 .rec-day .boss { color: var(--amber); margin-left: 6px; }
 
 /* ---------- rank + medals (rank colours reskinned in the over block below) ---------- */
