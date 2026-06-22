@@ -968,8 +968,7 @@
   }
   function reallyStart(mode) {
     SY.audio.unlock();
-    // touch devices: ride the start gesture into fullscreen (silently ignored if blocked)
-    if (window.matchMedia && matchMedia('(pointer: coarse)').matches) enterFullscreen();
+    // fullscreen is opt-in via the ⛶ button — we no longer force it on game start
     syncToday(); // don't pace-compare a new day's run against yesterday's best
     runBestPace = mode === 'daily' && recs.dailyBest ? recs.dailyBest.pace : null;
     G.start(mode);

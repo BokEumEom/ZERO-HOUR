@@ -211,10 +211,10 @@
       'arena.w=' + Math.round(ar.width) + ' vw=' + w.innerWidth);
     check('layout', 'rotated arena is much taller than width-fit (>2x)', Math.round(ar.height) > 500,
       'arena.h=' + Math.round(ar.height));
-    const dailyR = d.getElementById('neonvortex-btn-daily').getBoundingClientRect();
+    const startR = d.getElementById('neonvortex-btn-start').getBoundingClientRect();
     const freeR = d.getElementById('neonvortex-btn-free').getBoundingClientRect();
-    check('layout', 'menu mode cards stack vertically on narrow screens', freeR.top >= dailyR.bottom - 1,
-      'daily.bottom=' + Math.round(dailyR.bottom) + ' free.top=' + Math.round(freeR.top));
+    check('layout', 'play actions stack vertically on narrow screens', freeR.top >= startR.bottom - 1,
+      'start.bottom=' + Math.round(startR.bottom) + ' free.top=' + Math.round(freeR.top));
     // drag input is remapped for the 90° rotation: screen drag-down moves the drone down on screen
     d.getElementById('neonvortex-btn-free').click();
     await sleep(120);
