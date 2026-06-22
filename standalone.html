@@ -478,7 +478,6 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   max-height: 62vh; overflow-y: auto;
   text-align: left;
 }
-.rec-section-title { font-size: 10px; letter-spacing: 0.16em; color: rgba(159,245,232,0.5); margin-bottom: 4px; }
 .rec-streak { font-size: 13px; color: var(--teal); letter-spacing: 0.08em; }
 .rec-day .boss { color: var(--amber); margin-left: 6px; }
 
@@ -496,9 +495,6 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 .medal.earned { border-color: var(--teal); box-shadow: 0 0 10px rgba(45,226,198,0.25); }
 .medal.locked { border-color: rgba(159,245,232,0.18); color: rgba(159,245,232,0.3); }
 .medal.is-new { border-color: var(--amber); color: var(--amber); box-shadow: 0 0 14px rgba(255,195,77,0.6); animation: bestGlow 1s ease-in-out infinite alternate; }
-/* RECORDS achievements: equal-width 2-col grid so the badges align cleanly */
-.medal-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width: 100%; }
-.medal-grid .medal { justify-content: center; }
 
 /* ---------- pause / how-to ---------- */
 .pause-title {
@@ -1338,10 +1334,6 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 #neonvortex-screen-howto .howto-v,
 #neonvortex-screen-records .rec-best-meta {
   color: var(--nv-on-surface-variant);
-}
-#neonvortex-screen-records .rec-section-title {
-  font-family: var(--nv-font-mono);
-  color: color-mix(in srgb, var(--nv-on-surface-variant) 70%, transparent);
 }
 #neonvortex-screen-records .rec-streak { color: var(--nv-value); }
 
@@ -5786,12 +5778,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   }
 
   async function renderRecords() {
-    const [days, streak, owned] = await Promise.all([
+    const [days, streak] = await Promise.all([
       gameStore.loadRecentDailies(14),
       gameStore.computeStreak(),
-      gameStore.loadMedals(),
     ]);
-    const ownedSet = new Set(owned);
     const b = recs.bestAll;
 
     // Leaderboard rows from REAL local data only (no invented/fetched entries):
@@ -5837,11 +5827,6 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     if (streak > 0) {
       html += '<div class="rec-streak">🔥 STREAK ' + streak + (streak === 1 ? ' DAY' : ' DAYS') + '</div>';
     }
-    html += '<div><div class="rec-section-title">ACHIEVEMENTS</div><div class="medal-grid">' +
-      SY.nvMedals.MEDALS.map((m) =>
-        '<span class="medal ' + (ownedSet.has(m.id) ? 'earned' : 'locked') + '" title="' + m.desc + '">' +
-        '<span class="medal-glyph">' + m.glyph + '</span>' +
-        '<span class="medal-name">' + m.name + '</span></span>').join('') + '</div></div>';
     $('records-body').innerHTML = html;
   }
 

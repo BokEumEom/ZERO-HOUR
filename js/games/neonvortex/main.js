@@ -296,12 +296,10 @@
   }
 
   async function renderRecords() {
-    const [days, streak, owned] = await Promise.all([
+    const [days, streak] = await Promise.all([
       gameStore.loadRecentDailies(14),
       gameStore.computeStreak(),
-      gameStore.loadMedals(),
     ]);
-    const ownedSet = new Set(owned);
     const b = recs.bestAll;
 
     // Leaderboard rows from REAL local data only (no invented/fetched entries):
@@ -347,11 +345,6 @@
     if (streak > 0) {
       html += '<div class="rec-streak">🔥 STREAK ' + streak + (streak === 1 ? ' DAY' : ' DAYS') + '</div>';
     }
-    html += '<div><div class="rec-section-title">ACHIEVEMENTS</div><div class="medal-grid">' +
-      SY.nvMedals.MEDALS.map((m) =>
-        '<span class="medal ' + (ownedSet.has(m.id) ? 'earned' : 'locked') + '" title="' + m.desc + '">' +
-        '<span class="medal-glyph">' + m.glyph + '</span>' +
-        '<span class="medal-name">' + m.name + '</span></span>').join('') + '</div></div>';
     $('records-body').innerHTML = html;
   }
 
