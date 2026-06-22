@@ -139,14 +139,16 @@ shell.js  requestAnimationFrame(loop):
 
 | 파일 | 용도 | 코드 사용 |
 |---|---|---|
-| `sprite-atlas.png` | 게임 스프라이트 아틀라스 (13키 중 9키 렌더) | ✅ `sprites.js` + `index.html` preload |
+| `sprite-atlas.png` | 게임 스프라이트 아틀라스 (15키 중 12키 렌더) | ✅ `sprites.js` + `index.html` preload |
 | `sprite-reference.png` | 라벨 스프라이트 설계 참조 시트 | ✗ 디자인 참조 |
 | `sprite-elements.png` | 낱개 스프라이트 요소 렌더 | ✗ 디자인 참조 |
 | `ui-kit.png` | HUD/UI 목업 키트 | ✗ 디자인 참조 |
 | `keyart.png` | 키아트(히어로 배너) | ✗ 디자인 참조 |
 
-미사용 아틀라스 키 4개(`enemyMid`·`beam`·`burst`·`shieldDome`) — 보스 빔·폭발·실드는
-현재 벡터/파티클로 렌더. 참조 이미지 4개는 코드 미로드(설계 자료).
+함선 상태 프레임 `shielded`·`boosted`·`damaged`는 `render.drawPlayer`가 상태
+(실드/저체력/부스트)에 따라 선택해 사용(`SY.nvSprites.pickHullFrame`). 미사용 키
+3개(`enemyMid`·`beam`·`burst`) — 중형 적·보스 빔·정적 폭발은 대응 메커니즘 부재로
+벡터/파티클 유지. 참조 이미지 4개는 코드 미로드(설계 자료).
 
 ---
 
