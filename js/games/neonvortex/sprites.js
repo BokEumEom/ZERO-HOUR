@@ -81,6 +81,8 @@
     cx.globalCompositeOperation = 'destination-in';
     cx.drawImage(sheet, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
     cx.globalCompositeOperation = 'source-over';
+    // intentional mutation: playerCache is a build-once singleton cache; making
+    // it immutable would re-allocate the cache structure on the hot path.
     if (!byFrame) byFrame = playerCache[frameKey] = {};
     byFrame[id] = { canvas: c, builtReady: true };
     return c;
@@ -138,7 +140,7 @@
   // Draw the player sprite stretched to an explicit width/height (the hull is
   // taller than wide), centred at (x,y), pointing up; optional rotation.
   function drawFit(ctx, key, x, y, w, h, rot) {
-    if (!ready) return false;
+    if (!decoded()) return false;
     const r = A[key];
     if (!r) return false;
     // note: drawFit blits the raw atlas (no paint tint) — not for hull frames.

@@ -12,6 +12,7 @@ test('pickHullFrame maps player state to the right hull frame', () => {
   assert.equal(pick({ shield: false, hp: 3, boost: 1.5 }), 'boosted', 'boost flair');
   assert.equal(pick({ shield: false, hp: 1, boost: 0 }), 'damaged', 'last hull');
   assert.equal(pick({ shield: true, hp: 3, boost: 0 }), 'shielded', 'shield bubble');
+  assert.equal(pick({ shield: false, hp: 0, boost: 0 }), 'damaged', 'dead hull (hp 0) also shows damaged');
 });
 
 test('pickHullFrame priority: shield > damaged > boosted', () => {
