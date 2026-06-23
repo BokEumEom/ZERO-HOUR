@@ -9,6 +9,8 @@
   const SP = SY.nvSprites;
 
   const MONO = '"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace';
+  const POW_FONT = 'bold 13px ' + MONO;       // single-char power-up glyph
+  const POW_FONT_SMALL = 'bold 11px ' + MONO; // multi-char glyph (×2, +5) shrinks to fit
 
   // hull sprite target size (longest-edge px). 'shielded' is a hull+bubble
   // composite, so it needs extra room than the bare hull frames.
@@ -153,13 +155,12 @@
     // glyph overlay: always on the vector fallback (identifies the pickup); with
     // the badge sprite, only for the ambiguous types — the rest read from their icon.
     if (!drew || o.type === 'X2' || o.type === 'SLOW' || o.type === 'TIME') {
-      // multi-char glyphs (X2 = '×2', TIME = '+5') shrink to fit; single-char stays 13px
-      const smallGlyph = o.type === 'X2' || o.type === 'TIME';
       ctx.save();
       ctx.shadowColor = '#04090f';
       ctx.shadowBlur = 4;
       ctx.fillStyle = meta.color;
-      ctx.font = 'bold ' + (smallGlyph ? 11 : 13) + 'px ' + MONO;
+      // multi-char glyphs (X2 = '×2', TIME = '+5') shrink to fit; single-char stays 13px
+      ctx.font = (o.type === 'X2' || o.type === 'TIME') ? POW_FONT_SMALL : POW_FONT;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(meta.glyph, o.x, o.y + bob + 1);
