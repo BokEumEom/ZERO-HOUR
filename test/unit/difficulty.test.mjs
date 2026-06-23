@@ -80,3 +80,16 @@ test('turrets spawn on hard (capped) and never on easy', () => {
   assert.ok(maxSeen > 0, 'hard spawns turrets');
   assert.ok(maxSeen <= G.DIFF.hard.turretCap, 'never exceeds turretCap (3)');
 });
+
+test('a turret is destroyed in 5 hits and scores 60', () => {
+  const G = boot().SY.nvGame;
+  G.start('free', 'hard');
+  for (let i = 0; i < 200 && G.phase !== 'playing'; i++) G.update(1 / 60);
+  const s = G.state;
+  s.turrets = [{ x: 480, y: 300, r: 16, hp: 5, maxHp: 5, fireT: 99, flash: 0, phase: 0 }];
+  s.rocks = []; s.mines = []; s.boss = null; s.bullets = [];
+  s.score = 0; s.breakdown.destruction = 0;
+  for (let h = 0; h < 6; h++) { s.bullets.push({ x: 480, y: 300, vx: 0, vy: 0, life: 0.5 }); G.update(1 / 60); }
+  assert.equal(s.turrets.length, 0, 'destroyed after hits');
+  assert.ok(s.breakdown.destruction >= 60, 'awarded 60 into destruction bucket');
+});

@@ -496,6 +496,7 @@
       if (s.boss && s.boss.dying <= 0 && s.boss.y > 0) cand.push(s.boss);
       for (const m of s.mines) cand.push(m);
       for (const r of s.rocks) cand.push(r);
+      for (const t of s.turrets) cand.push(t);
       for (const c of cand) { const d = dist2(c, p); if (d < best) { best = d; target = c; } }
       if (target) {
         p.fireCd = 0.19;
@@ -581,6 +582,18 @@
       }
     }
 
+    // ---------- turrets (stationary aimed fire; telegraph handled in render) ----------
+    for (const t of s.turrets) {
+      t.phase += dt * 2;
+      if (t.flash > 0) t.flash -= dt;
+      t.fireT -= dt * slowMul;
+      if (t.fireT <= 0) {
+        const a = Math.atan2(p.y - t.y, p.x - t.x);
+        s.ebullets.push({ x: t.x, y: t.y, vx: Math.cos(a) * 210, vy: Math.sin(a) * 210, r: 5 });
+        t.fireT = s.diff.turretFire;
+      }
+    }
+
     // ---------- bullets vs things ----------
     for (let i = s.bullets.length - 1; i >= 0; i--) {
       const b = s.bullets[i];
@@ -626,6 +639,25 @@
               s.crystals.push({ x: r.x, y: r.y, vx: Math.cos(a) * 140, vy: Math.sin(a) * 140, r: 7, phase: s.rng() * 6 });
             }
             if (s.rng() < 0.45) spawnPow(s, r.x, r.y);
+          }
+          break;
+        }
+      }
+      if (!dead) for (let j = s.turrets.length - 1; j >= 0; j--) {
+        const t = s.turrets[j];
+        if (dist2(b, t) < (t.r + 4) * (t.r + 4)) {
+          t.hp -= 1; t.flash = 0.07; dead = true;
+          burst(s, b.x, b.y, '#ff9a5a', 4, 110, 2);
+          if (t.hp <= 0) {
+            s.turrets.splice(j, 1);
+            addScore(s, 60, t.x, t.y, undefined, 'destroy');
+            burst(s, t.x, t.y, '#ff9a5a', 16, 230, 3);
+            wave(s, t.x, t.y, 56, '#ff9a5a');
+            SY.audio.explode();
+            for (let kk = 0; kk < 3; kk++) {
+              const aa = s.rng() * Math.PI * 2;
+              s.crystals.push({ x: t.x, y: t.y, vx: Math.cos(aa) * 120, vy: Math.sin(aa) * 120, r: 7, phase: s.rng() * 6 });
+            }
           }
           break;
         }
