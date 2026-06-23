@@ -136,3 +136,10 @@ test('render.js drawPow uses power-up badge sprites with conditional glyph', () 
   assert.ok(/o\.type === 'X2' \|\| o\.type === 'SLOW' \|\| o\.type === 'TIME'/.test(src),
     'glyph kept only for the ambiguous power-up types');
 });
+
+test('main.js wires difficulty into start + per-difficulty best routing', () => {
+  const src = read(`${NV}/main.js`);
+  assert.ok(/G\.start\(mode, difficultyValue\(\)\)/.test(src), 'reallyStart passes selected difficulty');
+  assert.ok(src.includes('saveBestFor'), 'onGameOver routes to per-difficulty best');
+  assert.ok(src.includes('nvDifficulty'), 'difficulty persisted in settings');
+});

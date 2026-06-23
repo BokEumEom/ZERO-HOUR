@@ -6,7 +6,8 @@
   const $ = (id) => document.getElementById('neonvortex-' + id);
   // stage rotation (radians) so render.js can keep in-canvas overlay text upright
   SY.layout = SY.layout || { rot: 0 };
-  let recs = { settings: { muted: false }, bestAll: null, dailyBest: null, today: SY.todayUTC(),
+  let recs = { settings: { muted: false }, bestByDiff: { easy: null, normal: null, hard: null },
+    dailyBest: null, today: SY.todayUTC(),
     lifetime: { score: 0, crystals: 0, runs: 0 } }; // cosmetic meta (display-only)
   let lastResult = null;
   let runBestPace = null; // daily pace snapshot for live comparison
@@ -31,11 +32,12 @@
   }
   async function loadRecords() {
     await SY.store.migrate('neonvortex'); // one-time: legacy keys -> neonvortex:*
+    await SY.store.migrateBest('neonvortex'); // one-time: best_all -> bestByDiff.normal
     const gr = await gameStore.loadAll();
-    recs.bestAll = gr.bestAll;
     recs.dailyBest = gr.dailyBest;
     recs.today = gr.today;
     recs.lifetime = await gameStore.loadLifetime(); // cosmetic meta (display-only)
+    recs.bestByDiff = await gameStore.loadBests(NV_DIFFICULTIES);
     renderMenuStats();
     renderDailyHistory();
   }
@@ -300,7 +302,7 @@
       gameStore.loadRecentDailies(14),
       gameStore.computeStreak(),
     ]);
-    const b = recs.bestAll;
+    const b = (recs.bestByDiff && recs.bestByDiff.normal) || null;
 
     // Leaderboard rows from REAL local data only (no invented/fetched entries):
     // the all-time best plus each played day in the recent history, ranked by
@@ -353,9 +355,11 @@
     $('menu-daily-best').textContent = recs.dailyBest
       ? 'TODAY\u2019S BEST ' + fmt(recs.dailyBest.score)
       : 'NO RUN YET TODAY';
-    $('menu-all-best').textContent = recs.bestAll
-      ? 'ALL-TIME BEST ' + fmt(recs.bestAll.score) + ' \u00b7 \u00d7' + recs.bestAll.combo + ' \u00b7 ' + recs.bestAll.date
-      : 'ALL-TIME BEST \u2014';
+    const selDiff = difficultyValue();
+    const dBest = (recs.bestByDiff && recs.bestByDiff[selDiff]) || null;
+    $('menu-all-best').textContent = dBest
+      ? selDiff.toUpperCase() + ' BEST ' + fmt(dBest.score) + ' \u00b7 \u00d7' + dBest.combo + ' \u00b7 ' + dBest.date
+      : selDiff.toUpperCase() + ' BEST \u2014';
 
     // ---- Arcade Pilot meta (display-only; never read by the simulation) ----
     const lt = recs.lifetime || { score: 0, crystals: 0, runs: 0 };
@@ -390,7 +394,7 @@
   async function renderChallenge() {
     $('chal-seed').textContent = 'daily-' + recs.today + ' (UTC)';
     $('chal-daily-best').textContent = recs.dailyBest ? fmt(recs.dailyBest.score) : '아직 기록 없음';
-    $('chal-all-best').textContent = recs.bestAll ? fmt(recs.bestAll.score) : '—';
+    $('chal-all-best').textContent = (recs.bestByDiff && recs.bestByDiff.normal) ? fmt(recs.bestByDiff.normal.score) : '—';
 
     const streak = await gameStore.computeStreak();
     $('chal-streak').textContent = streak > 0 ? '🔥 ' + streak + '일 연속' : '0';
@@ -839,7 +843,7 @@
   }
 
   // PILOT TELEMETRY BLACKBOX — 파일럿 비행 기록 블랙박스 (DISPLAY-ONLY). Reads
-  // only persisted records: recs.lifetime ({score,crystals,runs}), recs.bestAll
+  // only persisted records: recs.lifetime ({score,crystals,runs}), recs.bestByDiff.normal
   // (record score), the owned medal set (for the perfect-flight count),
   // and the recent daily history (gameStore.loadRecentDailies). It writes no
   // record, touches no simulation/score/drop/seed state — and intentionally has
@@ -898,7 +902,7 @@
     strip.appendChild(chip('PERFECT FLIGHTS', '무결점 완벽 비행', perfectVal, 'green'));
     strip.appendChild(chip('CRYSTAL YIELD', '획득 차원 결정', fmt(lt.crystals || 0), 'cyan'));
     strip.appendChild(chip('RECORD SCORE', '역대 최고 점수',
-      recs.bestAll ? fmt(recs.bestAll.score) : '—', 'gold'));
+      (recs.bestByDiff && recs.bestByDiff.normal) ? fmt(recs.bestByDiff.normal.score) : '—', 'gold'));
     body.appendChild(strip);
 
     // ---- flight log list ----
@@ -964,7 +968,7 @@
     // fullscreen is opt-in via the ⛶ button — we no longer force it on game start
     syncToday(); // don't pace-compare a new day's run against yesterday's best
     runBestPace = mode === 'daily' && recs.dailyBest ? recs.dailyBest.pace : null;
-    G.start(mode); // Phase 1B: pass selected difficulty — G.start(mode, difficultyValue())
+    G.start(mode, difficultyValue()); // daily ignores it (engine forces Normal)
     show(null);
   }
 
@@ -1029,10 +1033,12 @@
       }
       syncToday(); // after filing: refresh the slate if midnight passed mid-run
     }
-    if (!recs.bestAll || res.score > recs.bestAll.score) {
+    const runDiff = res.difficulty || 'normal';
+    recs.bestByDiff = recs.bestByDiff || { easy: null, normal: null, hard: null };
+    if (!recs.bestByDiff[runDiff] || res.score > recs.bestByDiff[runDiff].score) {
       newAll = true;
-      recs.bestAll = { score: res.score, combo: res.maxCombo, date: recs.today, mode: res.mode };
-      gameStore.saveBestAll(recs.bestAll);
+      recs.bestByDiff[runDiff] = { score: res.score, combo: res.maxCombo, date: recs.today, mode: res.mode };
+      gameStore.saveBestFor(runDiff, recs.bestByDiff[runDiff]);
     }
     // cosmetic lifetime totals (display-only; wired to UI in a later task)
     recs.lifetime = SY.nvMeta.accumulateLifetime(recs.lifetime, { score: res.score, crystals: res.crystalsCollected || 0 });
@@ -1059,7 +1065,7 @@
       statRow(res.mode === 'daily' ? 'TODAY\u2019S BEST' : 'ALL-TIME BEST',
         res.mode === 'daily'
           ? (recs.dailyBest ? fmt(recs.dailyBest.score) : '\u2014') // null right after a midnight rollover
-          : fmt(recs.bestAll.score));
+          : fmt((recs.bestByDiff[res.difficulty || 'normal'] || { score: res.score }).score));
     drawSparkline(res.pace, res.mode === 'daily' ? runBestPace : null);
 
     $('btn-share').style.display = res.mode === 'daily' ? '' : 'none';
@@ -1206,6 +1212,20 @@
     return Math.max(0, Math.min(100, v));
   }
   function applyVolume(v0to100) { SY.audio.setVolume(v0to100 / 100); }
+
+  // ---------- difficulty (free-play only; daily is always Normal) ----------
+  const NV_DIFFICULTIES = ['easy', 'normal', 'hard'];
+  const difficultyValue = () => {
+    const d = recs.settings && recs.settings.nvDifficulty;
+    return NV_DIFFICULTIES.includes(d) ? d : 'normal';
+  };
+  function setDifficulty(id) {
+    const next = NV_DIFFICULTIES.includes(id) ? id : 'normal';
+    recs.settings.nvDifficulty = next;
+    SY.store.saveSettings(recs.settings);
+    renderMenuStats();           // headline best reflects the selected difficulty
+    if (typeof syncDifficultyChips === 'function') syncDifficultyChips(); // added in Task 4 (DOM)
+  }
 
   // ---------- hull coating (cosmetic ship paint) ----------
   // Persisted under recs.settings.nvPaint (neonvortex-scoped). Purely visual:
