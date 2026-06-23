@@ -91,6 +91,76 @@ test('player bullets destroy a foe and award destruction score', () => {
   assert.ok(s.breakdown.destruction >= 30, 'destruction score awarded');
 });
 
+test('hard spawns shield and laser; normal never does', () => {
+  const G = boot().SY.nvGame;
+  play(G, 'free', 'normal');
+  const nk = new Set();
+  for (let i = 0; i < 60 * 20; i++) { G.update(1 / 60); for (const f of G.state.foes) nk.add(f.kind); }
+  assert.ok(!nk.has('shield') && !nk.has('laser'), 'normal excludes hard-tier foes');
+
+  play(G, 'free', 'hard');
+  const hk = new Set();
+  for (let i = 0; i < 60 * 25; i++) { G.update(1 / 60); for (const f of G.state.foes) hk.add(f.kind); }
+  assert.ok(hk.has('shield'), 'hard spawns shield');
+  assert.ok(hk.has('laser'), 'hard spawns laser');
+});
+
+test('shield/laser caps honored on hard (each <=1)', () => {
+  const G = boot().SY.nvGame;
+  play(G, 'free', 'hard');
+  let maxS = 0, maxL = 0;
+  for (let i = 0; i < 60 * 25; i++) {
+    G.update(1 / 60);
+    maxS = Math.max(maxS, G.state.foes.filter((f) => f.kind === 'shield').length);
+    maxL = Math.max(maxL, G.state.foes.filter((f) => f.kind === 'laser').length);
+  }
+  assert.ok(maxS <= 1 && maxL <= 1, 'shield/laser cap 1');
+});
+
+test('shield blocks frontal bullets and takes flank/rear hits', () => {
+  const nvFoes = boot().SY.nvFoes;
+  const foe = { kind: 'shield', x: 480, y: 300, r: 20, hp: 4, maxHp: 4, flash: 0, phase: 0, driftA: 0, aimA: 0 }; // aimA=0 faces +x
+  const front = { x: 495, y: 300, vx: -100, vy: 0, life: 0.5 }; // bullet on the +x side (within arc)
+  const rear = { x: 465, y: 300, vx: 100, vy: 0, life: 0.5 };   // bullet on the -x side (rear)
+  assert.equal(nvFoes.bulletHit(foe, front), 'blocked', 'frontal bullet deflected');
+  assert.equal(nvFoes.bulletHit(foe, rear), 'hit', 'rear bullet lands');
+});
+
+test('shield aimA rotates toward the player', () => {
+  const G = boot().SY.nvGame;
+  play(G, 'free', 'hard');
+  const s = G.state;
+  s.foes = [{ kind: 'shield', x: 480, y: 300, r: 20, hp: 4, maxHp: 4, flash: 0, phase: 0, driftA: 0, aimA: Math.PI }];
+  s.player.x = 800; s.player.y = 300; // player to the +x; target aim ~0
+  for (let i = 0; i < 60; i++) G.update(1 / 60);
+  const f = s.foes[0];
+  if (f) assert.ok(Math.abs(Math.atan2(Math.sin(f.aimA), Math.cos(f.aimA))) < 1.0, 'aim turned toward player (+x)');
+});
+
+test('laser cycles warn -> fire -> cool and damages the player only while firing', () => {
+  const G = boot().SY.nvGame;
+  play(G, 'free', 'hard');
+  const s = G.state; s.shield = false; s.player.inv = 0;
+  const p = s.player;
+  s.foes = [{ kind: 'laser', x: 40, y: p.y, r: 16, hp: 9, maxHp: 9, flash: 0, phase: 0, state: 'warn', stateT: 1.0, life: 11, bx: p.x + 400, by: p.y }];
+  const seen = new Set();
+  for (let i = 0; i < 60 * 4 && s.foes.length; i++) { G.update(1 / 60); if (s.foes[0]) seen.add(s.foes[0].state); }
+  assert.ok(seen.has('fire'), 'entered fire'); assert.ok(seen.has('cool'), 'entered cool');
+  assert.equal(s.tookDamage, true, 'beam hit the player while firing');
+});
+
+test('destroying a shield awards 50 into destruction (rear hit)', () => {
+  const G = boot().SY.nvGame;
+  play(G, 'free', 'hard');
+  const s = G.state; s.rocks = []; s.mines = []; s.boss = null; s.turrets = []; s.bullets = [];
+  s.foes = [{ kind: 'shield', x: 480, y: 300, r: 20, hp: 1, maxHp: 4, flash: 0, phase: 0, driftA: 0, aimA: 0 }];
+  s.breakdown.destruction = 0;
+  s.bullets.push({ x: 465, y: 300, vx: 100, vy: 0, life: 0.5 }); // rear (-x) hit, within r+4
+  G.update(1 / 60);
+  assert.equal(s.foes.length, 0, 'shield destroyed by rear hit');
+  assert.ok(s.breakdown.destruction >= 50, 'shield worth 50');
+});
+
 test('auto-fire targets a nearby foe (a bullet is emitted toward it)', () => {
   const G = boot().SY.nvGame;
   play(G, 'free', 'normal');

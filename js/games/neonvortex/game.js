@@ -297,7 +297,14 @@
   // injected into SY.nvFoes so foes.js never imports game internals directly.
   // hurtPlayer/addScore/burst/wave/floatText are hoisted function declarations,
   // so referencing them in this literal before their definitions is safe.
-  const foeApi = { hurtPlayer, addScore, burst, wave, floatText };
+  // seeded crystal drop (daily fairness) — used by shield/laser foe deaths
+  function dropCrystals(s, x, y, n) {
+    for (let k = 0; k < n; k++) {
+      const a = s.rng() * Math.PI * 2;
+      s.crystals.push({ x, y, vx: Math.cos(a) * 120, vy: Math.sin(a) * 120, r: 7, phase: s.rng() * 6 });
+    }
+  }
+  const foeApi = { hurtPlayer, addScore, burst, wave, floatText, dropCrystals };
 
   // ---------- player damage ----------
   function hurtPlayer(s, x, y) {
