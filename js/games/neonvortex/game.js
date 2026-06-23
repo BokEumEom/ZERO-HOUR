@@ -375,6 +375,7 @@
     s.pace.push(s.score);
     const res = {
       mode: s.mode, score: s.score, maxCombo: s.maxCombo,
+      difficulty: s.difficulty,
       bossDown: s.bossDown, reason, pace: s.pace.slice(),
       collected: s.collected, duration: s.duration,
       crystalsCollected: s.crystalsCollected, // display-only (cosmetic meta)

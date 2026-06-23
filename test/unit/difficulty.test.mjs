@@ -50,3 +50,15 @@ test('boss hp/fire knobs are present on the active tier', () => {
   assert.equal(G.state.diff.bossHpMul, 0.75);
   assert.equal(G.state.diff.bossFireMul, 1.25);
 });
+
+test('game-over result carries the run difficulty', () => {
+  const G = boot().SY.nvGame;
+  let res = null;
+  G.events.onGameOver = (r) => { res = r; };
+  G.start('free', 'hard');
+  for (let i = 0; i < 200 && G.phase !== 'playing'; i++) G.update(1 / 60);
+  G.state.timeLeft = 0.0001; // force a time-out end
+  G.update(0.01);
+  assert.ok(res, 'game over fired');
+  assert.equal(res.difficulty, 'hard');
+});
