@@ -26,6 +26,14 @@
   const HEAT_X2_CAP = 4;      // ceiling on combined X2 × HEAT multiplier
   const HEAT_TIERS = [ { at: 26, mul: 2 }, { at: 14, mul: 1.5 }, { at: 6, mul: 1.25 } ];
 
+  // ---- difficulty tiers (fixed knobs; daily is always 'normal') ----
+  // turretCap/turretFire are inert until Phase 2 (turret enemy).
+  const DIFF = {
+    easy:   { turretCap: 0, turretFire: 2.6, spawnMul: 0.75, mineSpeedMul: 0.85, mineCap: 9,  bossHpMul: 0.75, bossFireMul: 1.25 },
+    normal: { turretCap: 2, turretFire: 2.6, spawnMul: 1.0,  mineSpeedMul: 1.0,  mineCap: 12, bossHpMul: 1.0,  bossFireMul: 1.0 },
+    hard:   { turretCap: 3, turretFire: 1.9, spawnMul: 1.3,  mineSpeedMul: 1.2,  mineCap: 16, bossHpMul: 1.33, bossFireMul: 0.8 },
+  };
+
   function buildSurges(s) {
     const fieldEnd = s.duration >= 40 ? s.duration - 20 : s.duration; // boss owns the last 20s
     const fieldStart = SURGE_WARMUP;
@@ -64,7 +72,7 @@
   function dist2(a, b) { const dx = a.x - b.x, dy = a.y - b.y; return dx * dx + dy * dy; }
 
   const G = {
-    W, H, POWER_META,
+    W, H, POWER_META, DIFF,
     phase: 'menu', // menu | ready | playing | paused | over
     mode: 'daily',
     state: null,
@@ -72,11 +80,13 @@
   };
   SY.nvGame = G;
 
-  function freshState(mode, seedStr) {
+  function freshState(mode, seedStr, difficulty) {
     const rng = SY.makeRng(seedStr);
     const duration = Math.round(SY.tweaks.duration);
+    const diffKey = DIFF[difficulty] ? difficulty : 'normal';
     const st = {
       rng, seedStr, mode, duration,
+      difficulty: diffKey, diff: DIFF[diffKey],
       t: 0,                       // elapsed sim time
       timeLeft: duration,
       readyT: 1.4,
@@ -673,10 +683,12 @@
   }
 
   // ---------- public API ----------
-  G.start = function (mode) {
+  G.start = function (mode, difficulty) {
     const seed = mode === 'daily' ? 'daily-' + SY.todayUTC() : 'free-' + Math.random().toString(36).slice(2);
     G.mode = mode;
-    G.state = freshState(mode, seed);
+    // daily is always Normal — keeps the worldwide daily map+difficulty identical (fairness)
+    const diff = mode === 'daily' ? 'normal' : difficulty;
+    G.state = freshState(mode, seed, diff);
     G.phase = 'ready';
     resetKeys(); // a key stuck since the menu (blurred mid-press) must not steer the new run
   };
