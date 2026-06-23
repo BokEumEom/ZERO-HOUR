@@ -16,6 +16,13 @@
 
   const gameStore = SY.store.forGame('neonvortex'); // namespaced records
 
+  // difficulty (free-play only; daily is always Normal — engine-enforced)
+  const NV_DIFFICULTIES = ['easy', 'normal', 'hard'];
+  const difficultyValue = () => {
+    const d = recs.settings && recs.settings.nvDifficulty;
+    return NV_DIFFICULTIES.includes(d) ? d : 'normal';
+  };
+
   // ---------- lifecycle (shell-driven; registered via SY.registerGame below) ----------
   function enter() {
     recs.settings = SY.settings; // shared settings, loaded by the shell at boot
@@ -302,6 +309,7 @@
       gameStore.loadRecentDailies(14),
       gameStore.computeStreak(),
     ]);
+    // leaderboard uses Normal as the canonical board (matches daily = Normal); per-difficulty boards are out of scope
     const b = (recs.bestByDiff && recs.bestByDiff.normal) || null;
 
     // Leaderboard rows from REAL local data only (no invented/fetched entries):
@@ -1037,8 +1045,9 @@
     recs.bestByDiff = recs.bestByDiff || { easy: null, normal: null, hard: null };
     if (!recs.bestByDiff[runDiff] || res.score > recs.bestByDiff[runDiff].score) {
       newAll = true;
-      recs.bestByDiff[runDiff] = { score: res.score, combo: res.maxCombo, date: recs.today, mode: res.mode };
-      gameStore.saveBestFor(runDiff, recs.bestByDiff[runDiff]);
+      const rec = { score: res.score, combo: res.maxCombo, date: recs.today, mode: res.mode };
+      recs.bestByDiff = { ...recs.bestByDiff, [runDiff]: rec };
+      gameStore.saveBestFor(runDiff, rec);
     }
     // cosmetic lifetime totals (display-only; wired to UI in a later task)
     recs.lifetime = SY.nvMeta.accumulateLifetime(recs.lifetime, { score: res.score, crystals: res.crystalsCollected || 0 });
@@ -1213,12 +1222,9 @@
   }
   function applyVolume(v0to100) { SY.audio.setVolume(v0to100 / 100); }
 
-  // ---------- difficulty (free-play only; daily is always Normal) ----------
-  const NV_DIFFICULTIES = ['easy', 'normal', 'hard'];
-  const difficultyValue = () => {
-    const d = recs.settings && recs.settings.nvDifficulty;
-    return NV_DIFFICULTIES.includes(d) ? d : 'normal';
-  };
+  // ---------- difficulty selector (free-play only; daily is always Normal) ----------
+  // NV_DIFFICULTIES / difficultyValue are declared at the top of the IIFE (used by
+  // loadRecords + renderMenuStats); setDifficulty lives here with the other settings setters.
   function setDifficulty(id) {
     const next = NV_DIFFICULTIES.includes(id) ? id : 'normal';
     recs.settings.nvDifficulty = next;
