@@ -34,6 +34,18 @@
     damaged:     { x: 1209, y: 833, w: 122, h: 126 }, // DAMAGED frame (cracks + sparks)
   };
 
+  // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
+  // Keyed by SY.nvGame power-up type. Tinted per POWER_META color at draw time.
+  const POWER_ICONS = {
+    MAGNET: { x: 228, y: 23, w: 66, h: 87 }, // horseshoe-U magnet badge
+    SHIELD: { x: 88,  y: 16, w: 66, h: 94 }, // shield badge
+    BOOST:  { x: 158, y: 16, w: 66, h: 94 }, // lightning-bolt badge
+    SPREAD: { x: 298, y: 23, w: 66, h: 87 }, // double-chevron badge
+    X2:     { x: 369, y: 23, w: 66, h: 87 }, // burst/star badge
+    SLOW:   { x: 509, y: 24, w: 66, h: 86 }, // orbit-ring badge
+    TIME:   { x: 19,  y: 16, w: 65, h: 94 }, // plus badge (+5 sec)
+  };
+
   // ---- hull coatings (cosmetic paint) -------------------------------------
   // The player ship can be re-tinted to one of these coatings. This is PURELY
   // visual — it never touches the simulation, hitboxes, RNG, or the daily seed.
@@ -156,6 +168,55 @@
     return true;
   }
 
+  // ---- power-up pickup icons -------------------------------------------------
+  // Each badge is tinted to its power-up's color once per (type,color) and
+  // cached (nested object key — no per-frame string allocation on the hot path).
+  const iconCache = {}; // iconCache[type][color] -> { canvas, builtReady }
+  function powerIconCanvas(type, color) {
+    const r = POWER_ICONS[type];
+    if (!r || !decoded()) return null;
+    let byType = iconCache[type];
+    const cached = byType && byType[color];
+    if (cached && cached.builtReady) return cached.canvas;
+    const c = (cached && cached.canvas) || document.createElement('canvas');
+    c.width = r.w;
+    c.height = r.h;
+    const cx = c.getContext('2d');
+    cx.clearRect(0, 0, r.w, r.h);
+    cx.drawImage(sheet, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+    // single translucent recolor pass (no multiply shade — keeps small icons crisp)
+    cx.globalCompositeOperation = 'source-atop';
+    cx.globalAlpha = 0.55;
+    cx.fillStyle = color;
+    cx.fillRect(0, 0, r.w, r.h);
+    cx.globalAlpha = 1;
+    cx.globalCompositeOperation = 'source-over';
+    if (!byType) byType = iconCache[type] = {};
+    byType[color] = { canvas: c, builtReady: true };
+    return c;
+  }
+
+  // Draw power-up `type` centred at (x,y), longest edge = `size`, tinted to
+  // `color`. Returns false until the atlas decodes (caller falls back to vector).
+  function drawPowerIcon(ctx, type, x, y, size, rot, color) {
+    const r = POWER_ICONS[type];
+    if (!r) return false;
+    const img = powerIconCanvas(type, color);
+    if (!img) return false;
+    const sc = size / Math.max(r.w, r.h);
+    const dw = r.w * sc, dh = r.h * sc;
+    if (rot) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rot);
+      ctx.drawImage(img, -dw / 2, -dh / 2, dw, dh);
+      ctx.restore();
+    } else {
+      ctx.drawImage(img, x - dw / 2, y - dh / 2, dw, dh);
+    }
+    return true;
+  }
+
   // Pure: choose the hull frame for the current player state. Cosmetic only —
   // reads no RNG and mutates nothing. `st` is a non-null { shield, hp, boost }
   // object (caller's responsibility). Priority: the shield bubble hides the
@@ -167,5 +228,5 @@
     return 'player';
   }
 
-  SY.nvSprites = { draw, drawFit, drawPlayer, setPaint, getPaint, pickHullFrame, atlas: A, isReady: () => ready, image: sheet };
+  SY.nvSprites = { draw, drawFit, drawPlayer, drawPowerIcon, setPaint, getPaint, pickHullFrame, atlas: A, powerIcons: POWER_ICONS, isReady: () => ready, image: sheet };
 })();

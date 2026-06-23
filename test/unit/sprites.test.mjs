@@ -33,3 +33,15 @@ test('atlas exposes hull-state frames and renames shieldDome', () => {
   assert.deepEqual({ ...A.boosted }, { x: 907, y: 827, w: 109, h: 133 });
   assert.deepEqual({ ...A.damaged }, { x: 1209, y: 833, w: 122, h: 126 });
 });
+
+test('power-up icons: all 7 types mapped + drawPowerIcon guards on undecoded atlas', () => {
+  const SP = load();
+  const types = ['MAGNET', 'SHIELD', 'SLOW', 'X2', 'BOOST', 'SPREAD', 'TIME'];
+  for (const t of types) {
+    const r = SP.powerIcons[t];
+    assert.ok(r && typeof r.x === 'number' && r.w > 0 && r.h > 0, `${t} icon rect`);
+  }
+  assert.equal(typeof SP.drawPowerIcon, 'function', 'drawPowerIcon exported');
+  // atlas never decodes in the test sandbox (Image stub complete=false) -> false
+  assert.equal(SP.drawPowerIcon({}, 'MAGNET', 0, 0, 20, 0, '#2de2c6'), false);
+});
