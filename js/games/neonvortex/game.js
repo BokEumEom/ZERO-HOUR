@@ -31,9 +31,9 @@
   // *Mul knobs multiply onto base constants. bossFireMul multiplies the boss
   // fire-interval (burstT/aimT), so <1 = faster fire, >1 = slower.
   const DIFF = Object.freeze({
-    easy:   Object.freeze({ turretCap: 0, turretFire: 2.6, spawnMul: 0.75, mineSpeedMul: 0.85, mineCap: 9,  bossHpMul: 0.75, bossFireMul: 1.25 }),
-    normal: Object.freeze({ turretCap: 2, turretFire: 2.6, spawnMul: 1.0,  mineSpeedMul: 1.0,  mineCap: 12, bossHpMul: 1.0,  bossFireMul: 1.0 }),
-    hard:   Object.freeze({ turretCap: 3, turretFire: 1.9, spawnMul: 1.3,  mineSpeedMul: 1.2,  mineCap: 16, bossHpMul: 1.33, bossFireMul: 0.8 }),
+    easy:   Object.freeze({ turretCap: 0, turretFire: 2.6, spawnMul: 0.75, mineSpeedMul: 0.85, mineCap: 9,  bossHpMul: 0.75, bossFireMul: 1.25, foes: Object.freeze({}) }),
+    normal: Object.freeze({ turretCap: 2, turretFire: 2.6, spawnMul: 1.0,  mineSpeedMul: 1.0,  mineCap: 12, bossHpMul: 1.0,  bossFireMul: 1.0,  foes: Object.freeze({ hunter: 2, charger: 1 }) }),
+    hard:   Object.freeze({ turretCap: 3, turretFire: 1.9, spawnMul: 1.3,  mineSpeedMul: 1.2,  mineCap: 16, bossHpMul: 1.33, bossFireMul: 0.8,  foes: Object.freeze({ hunter: 2, charger: 2, shield: 1, laser: 1 }) }),
   });
 
   function buildSurges(s) {
@@ -95,7 +95,7 @@
       score: 0, combo: 0, maxCombo: 0, comboT: 0,
       pace: [0], paceSec: 0,
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
-      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [],
+      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [],
       parts: [], waves: [], floats: [],
       boss: null, bossDown: false, bossWarnT: 0,
       fx: { MAGNET: 0, SLOW: 0, X2: 0, BOOST: 0, SPREAD: 0 },
@@ -111,6 +111,7 @@
       breakdown: { crystals: 0, combo: 0, destruction: 0, boss: 0, heat: 0 },
       tookDamage: false, // for the NO HIT medal (shield blocks don't count as damage)
     };
+    SY.nvFoes.initTimers(st);
     st.surges = buildSurges(st);
     return st;
   }
@@ -292,6 +293,11 @@
     s.breakdown.heat += heatBonus;
     if (x !== undefined) floatText(s, x, y, '+' + v + (label ? ' ' + label : ''), mul > 1 ? '#ffc34d' : '#9ff5e8');
   }
+
+  // injected into SY.nvFoes so foes.js never imports game internals directly.
+  // hurtPlayer/addScore/burst/wave/floatText are hoisted function declarations,
+  // so referencing them in this literal before their definitions is safe.
+  const foeApi = { hurtPlayer, addScore, burst, wave, floatText };
 
   // ---------- player damage ----------
   function hurtPlayer(s, x, y) {
@@ -497,6 +503,7 @@
       for (const m of s.mines) cand.push(m);
       for (const r of s.rocks) cand.push(r);
       for (const t of s.turrets) cand.push(t);
+      for (const f of s.foes) cand.push(f);
       for (const c of cand) { const d = dist2(c, p); if (d < best) { best = d; target = c; } }
       if (target) {
         p.fireCd = 0.19;
@@ -594,6 +601,9 @@
       }
     }
 
+    // ---------- new-archetype foes (Hunter/Charger; Shield/Laser in Phase 2) ----------
+    SY.nvFoes.update(s, dt, slowMul, foeApi);
+
     // ---------- bullets vs things ----------
     for (let i = s.bullets.length - 1; i >= 0; i--) {
       const b = s.bullets[i];
@@ -661,6 +671,17 @@
           }
           break;
         }
+      }
+      if (!dead) for (let j = s.foes.length - 1; j >= 0; j--) {
+        const f = s.foes[j];
+        const hit = SY.nvFoes.bulletHit(f, b);
+        if (hit === 'miss') continue;
+        dead = true;
+        if (hit === 'blocked') { burst(s, b.x, b.y, '#5aa7ff', 4, 110, 2); break; } // Phase 2 shield arc
+        burst(s, b.x, b.y, '#ff9a5a', 4, 110, 2);
+        SY.nvFoes.damage(s, f, 1, foeApi);
+        if (f.hp <= 0) SY.audio.explode();
+        break;
       }
       if (dead) s.bullets.splice(i, 1);
     }
