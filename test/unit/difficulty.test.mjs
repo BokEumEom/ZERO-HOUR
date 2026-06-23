@@ -62,3 +62,17 @@ test('game-over result carries the run difficulty', () => {
   assert.ok(res, 'game over fired');
   assert.equal(res.difficulty, 'hard');
 });
+
+test('turrets spawn on hard (capped) and never on easy', () => {
+  const G = boot().SY.nvGame;
+  G.start('free', 'easy');
+  for (let i = 0; i < 200 && G.phase !== 'playing'; i++) G.update(1 / 60);
+  for (let i = 0; i < 60 * 12; i++) G.update(1 / 60);
+  assert.equal(G.state.turrets.length, 0, 'easy spawns no turrets');
+  G.start('free', 'hard');
+  for (let i = 0; i < 200 && G.phase !== 'playing'; i++) G.update(1 / 60);
+  let maxSeen = 0;
+  for (let i = 0; i < 60 * 20; i++) { G.update(1 / 60); maxSeen = Math.max(maxSeen, G.state.turrets.length); }
+  assert.ok(maxSeen > 0, 'hard spawns turrets');
+  assert.ok(maxSeen <= G.DIFF.hard.turretCap, 'never exceeds turretCap (3)');
+});

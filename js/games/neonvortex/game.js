@@ -95,7 +95,7 @@
       score: 0, combo: 0, maxCombo: 0, comboT: 0,
       pace: [0], paceSec: 0,
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
-      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [],
+      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [],
       parts: [], waves: [], floats: [],
       boss: null, bossDown: false, bossWarnT: 0,
       fx: { MAGNET: 0, SLOW: 0, X2: 0, BOOST: 0, SPREAD: 0 },
@@ -103,7 +103,7 @@
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
       heat: 0, heatMul: 1,
-      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6 },
+      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5 },
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
@@ -140,6 +140,19 @@
         vx: 0, vy: 0, r: 7, phase: s.rng() * Math.PI * 2,
       });
     }
+  }
+
+  // stationary aimed-fire emplacement. Seeded position kept >=260px from the
+  // player so it never spawns on top of them. Gameplay threat (no contact damage).
+  function spawnTurret(s) {
+    const p = s.player;
+    let x = 0, y = 0, tries = 0;
+    do {
+      x = 90 + s.rng() * (W - 180);
+      y = 80 + s.rng() * (H - 200);
+      tries++;
+    } while (((x - p.x) * (x - p.x) + (y - p.y) * (y - p.y)) < 260 * 260 && tries < 8);
+    s.turrets.push({ x, y, r: 16, hp: 5, maxHp: 5, fireT: 1 + s.rng() * s.diff.turretFire, flash: 0, phase: s.rng() * Math.PI * 2 });
   }
 
   function spawnRock(s) {
@@ -507,6 +520,11 @@
     }
     s.spawnT.pow -= dt;
     if (s.spawnT.pow <= 0) { s.spawnT.pow = 9.5; if (s.pows.length < 3) spawnPow(s); }
+    s.spawnT.turret -= dt;
+    if (s.spawnT.turret <= 0) {
+      s.spawnT.turret = 6 / s.diff.spawnMul; // density-scaled cadence
+      if (s.diff.turretCap > 0 && s.turrets.length < s.diff.turretCap) spawnTurret(s);
+    }
 
     // ---------- crystals ----------
     const magnetR = s.fx.MAGNET > 0 ? 215 : 0;
