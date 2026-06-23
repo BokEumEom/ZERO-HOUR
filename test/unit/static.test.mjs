@@ -156,3 +156,23 @@ test('render.js draws turrets', () => {
   assert.ok(src.includes('s.turrets'), 'turrets are rendered');
   assert.ok(/drawTurret/.test(src), 'has a drawTurret routine');
 });
+
+test('atlas URL carries a matching cache-bust version in index.html and sprites.js', () => {
+  const html = read('index.html');
+  const spr = read(`${NV}/sprites.js`);
+  // preload link and the runtime image src must use the SAME versioned URL,
+  // else the preload is wasted and a stale opaque atlas can persist in cache.
+  const linkMatch = html.match(/href="assets\/sprite-atlas\.png\?v=(\d+)"/);
+  const srcMatch = spr.match(/sheet\.src = 'assets\/sprite-atlas\.png\?v=(\d+)'/);
+  assert.ok(linkMatch, 'index.html preloads a versioned atlas URL');
+  assert.ok(srcMatch, 'sprites.js loads a versioned atlas URL');
+  assert.equal(linkMatch[1], srcMatch[1], 'preload and runtime atlas versions match');
+});
+
+test('shell.js scales the canvas backing store by devicePixelRatio', () => {
+  const src = read('js/shell.js');
+  assert.ok(src.includes('devicePixelRatio'), 'shell reads devicePixelRatio');
+  assert.match(src, /canvas\.width = SW \* dpr/, 'backing store width scaled by dpr');
+  assert.match(src, /canvas\.style\.width = SW \+ /, 'CSS width pinned to logical size');
+  assert.match(src, /ctx\.setTransform\(dpr, 0, 0, dpr, 0, 0\)/, 'context maps logical coords to backing store');
+});

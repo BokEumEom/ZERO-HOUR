@@ -19,6 +19,23 @@
   const stage = $('stage');
   const canvas = $('game-canvas');
   const ctx = canvas.getContext('2d');
+
+  // High-DPR backing store: keep the logical coordinate space at SW×SH (game +
+  // render code never change), but back it with devicePixelRatio physical pixels
+  // so the CSS-scaled stage doesn't upsample a low-res canvas (blur on phones).
+  // Re-applied on resize; only reallocates when the dpr-scaled size actually
+  // changes (reassigning canvas.width clears it, so guard the assignment).
+  function applyResolution() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 3); // cap at 3× (perf)
+    if (canvas.width !== SW * dpr) {
+      canvas.width = SW * dpr;
+      canvas.height = SH * dpr;
+      canvas.style.width = SW + 'px';
+      canvas.style.height = SH + 'px';
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // logical 960×600 → physical backing store
+  }
+
   let lastT = 0;
   function loop(t) {
     const dt = Math.min(1 / 30, (t - lastT) / 1000 || 0.016);
@@ -31,6 +48,7 @@
   // ---------- responsive layout (only the stage scales) — ADR-0006 ----------
   const hudEl = $('neonvortex-hud');
   function fit() {
+    applyResolution();
     const vv = window.visualViewport;
     const vw = vv ? vv.width : window.innerWidth;
     const vh = vv ? vv.height : window.innerHeight;
