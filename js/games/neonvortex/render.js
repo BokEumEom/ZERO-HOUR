@@ -295,6 +295,36 @@
       }
       return;
     }
+    if (f.kind === 'shield') {
+      if (!SP.draw(ctx, 'enemyBig', f.x, f.y, (f.r + 4) * 2.2, 0)) {
+        ctx.save(); ctx.fillStyle = f.flash > 0 ? '#fff' : '#5aa7ff';
+        ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+      }
+      ctx.save(); // shield arc facing the player
+      ctx.strokeStyle = 'rgba(90,167,255,0.9)'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r + 7, f.aimA - 1.05, f.aimA + 1.05); ctx.stroke();
+      ctx.restore();
+      return;
+    }
+    if (f.kind === 'laser') {
+      if (f.state === 'warn' || f.state === 'fire') {
+        const dx = f.bx - f.x, dy = f.by - f.y, L = Math.hypot(dx, dy) || 1;
+        const ux = dx / L, uy = dy / L, far = 1100;
+        ctx.save();
+        if (f.state === 'warn') {
+          ctx.strokeStyle = 'rgba(255,90,120,0.5)'; ctx.lineWidth = 2; ctx.setLineDash([10, 10]);
+        } else {
+          ctx.strokeStyle = 'rgba(255,90,120,0.95)'; ctx.lineWidth = 11; ctx.shadowColor = '#ff5a78'; ctx.shadowBlur = 16;
+        }
+        ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x + ux * far, f.y + uy * far); ctx.stroke();
+        ctx.restore();
+      }
+      if (!SP.draw(ctx, 'enemyMid', f.x, f.y, (f.r + 4) * 2.2, f.phase * 0.1)) {
+        ctx.save(); ctx.fillStyle = f.flash > 0 ? '#fff' : '#ff7a3a';
+        ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+      }
+      return;
+    }
   }
 
   function drawBoss(ctx, s) {
