@@ -146,8 +146,9 @@ shell.js  requestAnimationFrame(loop):
 | `keyart.png` | 키아트(히어로 배너) | ✗ 디자인 참조 |
 
 함선 상태 프레임 `shielded`·`boosted`·`damaged`는 `render.drawPlayer`가 상태
-(실드/저체력/부스트)에 따라 선택해 사용(`SY.nvSprites.pickHullFrame`). 미사용 키
-3개(`enemyMid`·`beam`·`burst`) — 중형 적·보스 빔·정적 폭발은 대응 메커니즘 부재로
+(실드/저체력/부스트)에 따라 선택해 사용(`SY.nvSprites.pickHullFrame`). 터렛 적은
+`enemyMid`(빨강 중형 드론)를 사용한다. 미사용 키 2개(`beam`·`burst`) — 보스 빔·정적
+폭발은 대응 메커니즘 부재로
 벡터/파티클 유지. 파워업 7종은 섹션1 "POWER-UPS/PICKUPS" 배지를 색 틴트해 사용
 (`SY.nvSprites.drawPowerIcon`). 참조 이미지 4개는 코드 미로드(설계 자료).
 
