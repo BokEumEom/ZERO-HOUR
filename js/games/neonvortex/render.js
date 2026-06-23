@@ -134,7 +134,10 @@
     const blink = o.life < 2 && Math.floor(o.life * 6) % 2 === 0;
     if (blink) return;
     const bob = Math.sin(o.phase) * 3;
-    if (!SP.draw(ctx, 'crystalAmber', o.x, o.y + bob, (o.r + 4) * 2.3, Math.sin(o.phase * 0.3) * 0.12)) {
+    // dedicated badge sprite, tinted to the power-up color
+    const drew = SP.drawPowerIcon(ctx, o.type, o.x, o.y + bob, (o.r + 4) * 2.3, Math.sin(o.phase * 0.3) * 0.12, meta.color);
+    if (!drew) {
+      // fallback: hex capsule (atlas not decoded / failed)
       ctx.save();
       ctx.translate(o.x, o.y + bob);
       ctx.shadowColor = meta.color;
@@ -147,16 +150,19 @@
       ctx.stroke();
       ctx.restore();
     }
-    // glyph overlay (always — identifies the power-up)
-    ctx.save();
-    ctx.shadowColor = '#04090f';
-    ctx.shadowBlur = 4;
-    ctx.fillStyle = meta.color;
-    ctx.font = 'bold ' + (o.type === 'X2' || o.type === 'TIME' ? 11 : 13) + 'px ' + MONO;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(meta.glyph, o.x, o.y + bob + 1);
-    ctx.restore();
+    // glyph overlay: always on the vector fallback (identifies the pickup); with
+    // the badge sprite, only for the ambiguous types — the rest read from their icon.
+    if (!drew || o.type === 'X2' || o.type === 'SLOW' || o.type === 'TIME') {
+      ctx.save();
+      ctx.shadowColor = '#04090f';
+      ctx.shadowBlur = 4;
+      ctx.fillStyle = meta.color;
+      ctx.font = 'bold ' + (o.type === 'X2' || o.type === 'TIME' ? 11 : 13) + 'px ' + MONO;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(meta.glyph, o.x, o.y + bob + 1);
+      ctx.restore();
+    }
   }
 
   function drawPlayer(ctx, s) {

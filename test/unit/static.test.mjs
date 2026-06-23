@@ -129,3 +129,10 @@ test('render.js drives the player hull via state frames', () => {
   assert.ok(src.includes('pickHullFrame'), 'drawPlayer must select a hull frame');
   assert.ok(/frame === 'shielded'/.test(src), 'shielded frame replaces the vector ring path');
 });
+
+test('render.js drawPow uses power-up badge sprites with conditional glyph', () => {
+  const src = read(`${NV}/render.js`);
+  assert.ok(src.includes('drawPowerIcon'), 'drawPow blits the badge sprite');
+  assert.ok(/o\.type === 'X2' \|\| o\.type === 'SLOW' \|\| o\.type === 'TIME'/.test(src),
+    'glyph kept only for the ambiguous power-up types');
+});
