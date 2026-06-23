@@ -3336,11 +3336,25 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 }
 #neonvortex-screen-pilotlog .nv-plg-entry-yield { color: var(--nv-primary-bright); }
 
-/* ── difficulty selector chips (menu, free-play only) ── */
+/* ── difficulty selector chips (menu, free-play only; mirrors .nv-coat-chip) ── */
 .nv-diff-row { display: flex; gap: 8px; margin: 6px 0 2px; }
 .nv-diff-chip {
-  flex: 1; padding: 8px 4px; font: 600 12px/1 "IBM Plex Mono", ui-monospace, monospace;
-  letter-spacing: 0.08em; color: #7dd9c8; background: transparent;
-  border: 1px solid rgba(45, 226, 198, 0.35); border-radius: 8px; cursor: pointer;
+  flex: 1; padding: 8px 4px;
+  font-family: var(--nv-font-mono); font-size: 12px; font-weight: 600; line-height: 1;
+  letter-spacing: 0.08em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 80%, transparent);
+  background: color-mix(in srgb, var(--nv-on-surface) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-on-surface-variant) 18%, transparent);
+  border-radius: 8px; cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
-.nv-diff-chip.active { color: #04090f; background: #2de2c6; border-color: #2de2c6; }
+.nv-diff-chip:hover,
+.nv-diff-chip:focus-visible {
+  border-color: color-mix(in srgb, var(--nv-primary) 30%, transparent);
+}
+.nv-diff-chip.is-active {
+  color: var(--nv-primary);
+  background: color-mix(in srgb, var(--nv-primary) 8%, transparent);
+  border-color: color-mix(in srgb, var(--nv-primary) 50%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--nv-primary) 18%, transparent);
+}

@@ -1231,13 +1231,16 @@
     recs.settings.nvDifficulty = next;
     SY.store.saveSettings(recs.settings);
     renderMenuStats();           // headline best reflects the selected difficulty
-    if (typeof syncDifficultyChips === 'function') syncDifficultyChips(); // added in Task 4 (DOM)
+    syncDifficultyChips();
   }
   function syncDifficultyChips() {
     const sel = difficultyValue();
     for (const d of NV_DIFFICULTIES) {
       const el = $('diff-' + d);
-      if (el) el.classList.toggle('active', d === sel);
+      if (el) {
+        el.classList.toggle('is-active', d === sel);
+        el.setAttribute('aria-pressed', d === sel ? 'true' : 'false');
+      }
     }
   }
 
