@@ -152,6 +152,8 @@
       y = 80 + s.rng() * (H - 200);
       tries++;
     } while (((x - p.x) * (x - p.x) + (y - p.y) * (y - p.y)) < 260 * 260 && tries < 8);
+    // fireT staggers the first shot; scaled by turretFire so hard (1.9) fires
+    // sooner than normal (2.6) — shorter post-spawn grace on higher difficulty.
     s.turrets.push({ x, y, r: 16, hp: 5, maxHp: 5, fireT: 1 + s.rng() * s.diff.turretFire, flash: 0, phase: s.rng() * Math.PI * 2 });
   }
 
