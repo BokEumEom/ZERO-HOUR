@@ -227,6 +227,43 @@
     }
   }
 
+  function drawTurret(ctx, t) {
+    const charging = t.fireT < 0.5; // telegraph window before firing
+    if (!SP.draw(ctx, 'enemyMid', t.x, t.y, (t.r + 4) * 2.2, 0)) {
+      ctx.save();
+      ctx.translate(t.x, t.y);
+      ctx.shadowColor = '#ff5a78';
+      ctx.shadowBlur = 10;
+      poly(ctx, 0, 0, t.r, 6, t.phase * 0.2);
+      ctx.fillStyle = t.flash > 0 ? '#ffd9e1' : '#2a0f16';
+      ctx.fill();
+      ctx.strokeStyle = '#ff5a78';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, t.r * 0.4, 0, Math.PI * 2);
+      ctx.fillStyle = '#ff5a78';
+      ctx.fill();
+      ctx.restore();
+    } else if (t.flash > 0) {
+      ctx.save();
+      ctx.globalAlpha = 0.5;
+      ctx.globalCompositeOperation = 'lighter';
+      SP.draw(ctx, 'enemyMid', t.x, t.y, (t.r + 4) * 2.2, 0);
+      ctx.restore();
+    }
+    if (charging) {
+      ctx.save();
+      ctx.translate(t.x, t.y);
+      ctx.beginPath();
+      ctx.arc(0, 0, t.r + 6, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,90,120,' + (0.35 + 0.3 * Math.sin(t.phase * 8)) + ')';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
   function drawBoss(ctx, s) {
     const b = s.boss;
     const dyingShake = b.dying > 0 ? (Math.random() - 0.5) * 6 : 0;
@@ -295,6 +332,7 @@
     for (const r of s.rocks) drawRock(ctx, r);
     for (const o of s.pows) drawPow(ctx, o);
     for (const m of s.mines) drawMine(ctx, m);
+    for (const t of s.turrets) drawTurret(ctx, t);
 
     // player bullets (teal laser sprite, oriented along travel)
     ctx.shadowBlur = 0;

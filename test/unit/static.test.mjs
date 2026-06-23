@@ -150,3 +150,9 @@ test('menu has a difficulty selector wired to setDifficulty', () => {
   const src = read(`${NV}/main.js`);
   assert.ok(src.includes('syncDifficultyChips'), 'chips synced to active difficulty');
 });
+
+test('render.js draws turrets', () => {
+  const src = read(`${NV}/render.js`);
+  assert.ok(src.includes('s.turrets'), 'turrets are rendered');
+  assert.ok(/drawTurret/.test(src), 'has a drawTurret routine');
+});
