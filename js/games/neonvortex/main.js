@@ -1061,7 +1061,9 @@
     $('over-reason').textContent = res.reason === 'down' ? 'DRONE DESTROYED' : 'TIME UP';
     $('over-score').textContent = fmt(res.score);
     $('over-best-banner').classList.toggle('show', isNewBest);
-    $('over-best-label').textContent = newAll ? 'NEW ALL-TIME BEST!' : 'NEW DAILY BEST!';
+    $('over-best-label').textContent = newAll
+      ? 'NEW ' + (runDiff === 'normal' ? 'ALL-TIME' : runDiff.toUpperCase()) + ' BEST!'
+      : 'NEW DAILY BEST!';
     const bd = res.breakdown;
     $('over-stats').innerHTML =
       statRow('CRYSTAL PTS', '+' + fmt(bd.crystals)) +
