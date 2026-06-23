@@ -222,6 +222,8 @@
   function spawnBoss(s) {
     const bhp = Math.round(72 * s.diff.bossHpMul);
     const fm = s.diff.bossFireMul;
+    // initial burst/aim delays (1.8/2.6) are shorter than the steady-state resets
+    // (2.4/1.7) — a brief opening beat before the boss's first shots.
     s.boss = {
       x: W / 2, y: -90, ty: 128, r: 46, hp: bhp, maxHp: bhp,
       t: 0, burstT: 1.8 * fm, aimT: 2.6 * fm, fireMul: fm, flash: 0, dying: 0, ringRot: 0,
@@ -342,7 +344,7 @@
     // radial burst
     b.burstT -= dt * slowMul;
     if (b.burstT <= 0) {
-      b.burstT = 2.4 * b.fireMul;
+      b.burstT = 2.4 * b.fireMul; // fireMul < 1 → shorter interval → faster fire
       const n = 10, off = b.t;
       for (let i = 0; i < n; i++) {
         const a = off + (i / n) * Math.PI * 2;
@@ -500,7 +502,7 @@
       const ramp = Math.max(0.45, 1 - s.t * 0.007);
       const calmEase = s.inSurge ? 1 : 1.6; // fewer ambient mines between surges
       s.spawnT.mine = (2.7 * ramp * calmEase) / (Math.max(0.2, SY.tweaks.spawnRate) * s.diff.spawnMul);
-      if (s.mines.length < s.diff.mineCap) spawnMine(s);
+      if (s.mines.length < s.diff.mineCap) spawnMine(s); // cap is ambient-only; surge formations are uncapped spikes by design
     }
     s.spawnT.pow -= dt;
     if (s.spawnT.pow <= 0) { s.spawnT.pow = 9.5; if (s.pows.length < 3) spawnPow(s); }
