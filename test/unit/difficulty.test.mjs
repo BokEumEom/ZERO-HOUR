@@ -32,3 +32,21 @@ test('daily is always Normal regardless of requested difficulty (fairness)', () 
   G.start('daily', undefined);
   assert.equal(G.state.difficulty, 'normal');
 });
+
+test('mine cap and speed honor the difficulty', () => {
+  const G = boot().SY.nvGame;
+  G.start('free', 'hard');
+  const s = G.state;
+  for (let i = 0; i < 200 && G.phase !== 'playing'; i++) G.update(1 / 60);
+  for (let i = 0; i < 600; i++) G.update(1 / 60);
+  assert.ok(s.mines.length > 0, 'mines spawned');
+  assert.ok(s.mines.length <= G.DIFF.hard.mineCap, 'respects hard mine cap (16)');
+  assert.equal(s.diff.mineSpeedMul, 1.2);
+});
+
+test('boss hp/fire knobs are present on the active tier', () => {
+  const G = boot().SY.nvGame;
+  G.start('free', 'easy');
+  assert.equal(G.state.diff.bossHpMul, 0.75);
+  assert.equal(G.state.diff.bossFireMul, 1.25);
+});

@@ -160,13 +160,13 @@
     else { x = -20; y = s.rng() * H; }
     // unified mine shape: vx/vy/entryT keep standard + formation mines monomorphic
     // (entryT: 0 → the entry branch is skipped, so standard mines home as before)
-    s.mines.push({ x, y, r: 11, hp: 1, speed: 62 + s.t * 1.1, phase: s.rng() * Math.PI * 2, flash: 0, vx: 0, vy: 0, entryT: 0 });
+    s.mines.push({ x, y, r: 11, hp: 1, speed: (62 + s.t * 1.1) * s.diff.mineSpeedMul, phase: s.rng() * Math.PI * 2, flash: 0, vx: 0, vy: 0, entryT: 0 });
   }
 
   function pushFormMine(s, x, y, dx, dy, speed) {
     const d = Math.hypot(dx, dy) || 1;
     s.mines.push({
-      x, y, r: 11, hp: 1, speed: 62 + s.t * 1.1,
+      x, y, r: 11, hp: 1, speed: (62 + s.t * 1.1) * s.diff.mineSpeedMul,
       phase: s.rng() * Math.PI * 2, flash: 0,
       vx: (dx / d) * speed, vy: (dy / d) * speed, entryT: 1.5,
     });
@@ -220,9 +220,11 @@
   }
 
   function spawnBoss(s) {
+    const bhp = Math.round(72 * s.diff.bossHpMul);
+    const fm = s.diff.bossFireMul;
     s.boss = {
-      x: W / 2, y: -90, ty: 128, r: 46, hp: 72, maxHp: 72,
-      t: 0, burstT: 1.8, aimT: 2.6, flash: 0, dying: 0, ringRot: 0,
+      x: W / 2, y: -90, ty: 128, r: 46, hp: bhp, maxHp: bhp,
+      t: 0, burstT: 1.8 * fm, aimT: 2.6 * fm, fireMul: fm, flash: 0, dying: 0, ringRot: 0,
     };
     s.bossWarnT = 1.6;
     s.shake = Math.max(s.shake, 7);
@@ -340,7 +342,7 @@
     // radial burst
     b.burstT -= dt * slowMul;
     if (b.burstT <= 0) {
-      b.burstT = 2.4;
+      b.burstT = 2.4 * b.fireMul;
       const n = 10, off = b.t;
       for (let i = 0; i < n; i++) {
         const a = off + (i / n) * Math.PI * 2;
@@ -351,7 +353,7 @@
     // aimed volley
     b.aimT -= dt * slowMul;
     if (b.aimT <= 0) {
-      b.aimT = 1.7;
+      b.aimT = 1.7 * b.fireMul;
       const p = s.player;
       const base = Math.atan2(p.y - b.y, p.x - b.x);
       for (let k = -1; k <= 1; k++) {
@@ -492,13 +494,13 @@
     s.spawnT.crystal -= dt;
     if (s.spawnT.crystal <= 0) { s.spawnT.crystal = 1.55; if (s.crystals.length < 36) spawnCrystalCluster(s); }
     s.spawnT.rock -= dt;
-    if (s.spawnT.rock <= 0) { s.spawnT.rock = 5; if (s.rocks.length < 4) spawnRock(s); }
+    if (s.spawnT.rock <= 0) { s.spawnT.rock = 5 / s.diff.spawnMul; if (s.rocks.length < 4) spawnRock(s); }
     s.spawnT.mine -= dt;
     if (s.spawnT.mine <= 0) {
       const ramp = Math.max(0.45, 1 - s.t * 0.007);
       const calmEase = s.inSurge ? 1 : 1.6; // fewer ambient mines between surges
-      s.spawnT.mine = (2.7 * ramp * calmEase) / Math.max(0.2, SY.tweaks.spawnRate);
-      if (s.mines.length < 12) spawnMine(s);
+      s.spawnT.mine = (2.7 * ramp * calmEase) / (Math.max(0.2, SY.tweaks.spawnRate) * s.diff.spawnMul);
+      if (s.mines.length < s.diff.mineCap) spawnMine(s);
     }
     s.spawnT.pow -= dt;
     if (s.spawnT.pow <= 0) { s.spawnT.pow = 9.5; if (s.pows.length < 3) spawnPow(s); }
