@@ -107,11 +107,9 @@
         // per-difficulty all-time best (free-play). daily stays Normal (Phase 1).
         saveBestFor(diff, rec) { return kvSet(k('best_' + diff), rec); },
         async loadBestFor(diff) { return (await kvGet(k('best_' + diff))) || null; },
-        async loadBests() {
-          const [easy, normal, hard] = await Promise.all([
-            kvGet(k('best_easy')), kvGet(k('best_normal')), kvGet(k('best_hard')),
-          ]);
-          return { easy: easy || null, normal: normal || null, hard: hard || null };
+        async loadBests(diffs = ['easy', 'normal', 'hard']) {
+          const vals = await Promise.all(diffs.map((d) => kvGet(k('best_' + d))));
+          return Object.fromEntries(diffs.map((d, i) => [d, vals[i] || null]));
         },
         saveDaily(date, rec) { return kvSet(k('daily_' + date), rec); },
         async loadRecentDailies(n) {

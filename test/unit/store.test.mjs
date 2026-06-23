@@ -170,3 +170,21 @@ test('migrateBest copies legacy best_all into best_normal once (idempotent)', as
   await flushMicrotasks();
   assert.equal((await g.loadBestFor('normal')).score, 999, 'migration does not overwrite existing best_normal');
 });
+
+test('migrateBest is a no-op on a fresh install (no legacy keys)', async () => {
+  const sb = loadModules(['js/store.js'], { nowIso: '2026-03-01T00:00:00Z', idb: fakeIndexedDB() });
+  await sb.SY.store.migrateBest('neonvortex');
+  await flushMicrotasks();
+  assert.equal(await sb.SY.store.forGame('neonvortex').loadBestFor('normal'), null);
+});
+
+test('loadBests returns the three tiers (null for missing)', async () => {
+  const sb = loadModules(['js/store.js'], { nowIso: '2026-03-01T00:00:00Z', idb: fakeIndexedDB() });
+  const g = sb.SY.store.forGame('neonvortex');
+  await g.saveBestFor('easy', { score: 7 });
+  await flushMicrotasks();
+  const all = await g.loadBests();
+  assert.equal(all.easy.score, 7);
+  assert.equal(all.normal, null);
+  assert.equal(all.hard, null);
+});
