@@ -67,7 +67,7 @@
         const spd = (95 + s.t * 1.3) * s.diff.mineSpeedMul;
         f.x += ((p.x - f.x) / d) * spd * slowMul * dt;
         f.y += ((p.y - f.y) / d) * spd * slowMul * dt;
-        if (Math.sqrt(dist2(f, p)) < f.r + p.r) {
+        if (dist2(f, p) < (f.r + p.r) * (f.r + p.r)) {
           s.foes.splice(i, 1);
           api.burst(s, f.x, f.y, '#ff5a78', 14, 200, 3);
           api.hurtPlayer(s, f.x, f.y);
@@ -86,7 +86,7 @@
         } else if (f.state === 'dash') {
           f.x += f.dirX * 520 * slowMul * dt;
           f.y += f.dirY * 520 * slowMul * dt;
-          if (Math.sqrt(dist2(f, p)) < f.r + p.r) api.hurtPlayer(s, f.x, f.y);
+          if (dist2(f, p) < (f.r + p.r) * (f.r + p.r)) api.hurtPlayer(s, f.x, f.y);
           if (f.stateT <= 0 || f.x < -40 || f.x > W + 40 || f.y < -40 || f.y > H + 40) {
             f.state = 'recover'; f.stateT = 0.8;
           }
