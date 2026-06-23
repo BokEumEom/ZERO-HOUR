@@ -264,6 +264,39 @@
     }
   }
 
+  function drawFoe(ctx, f) {
+    if (f.kind === 'hunter') {
+      if (!SP.draw(ctx, 'enemyMid', f.x, f.y, (f.r + 4) * 2.2, f.phase * 0.1)) {
+        ctx.save();
+        ctx.fillStyle = f.flash > 0 ? '#fff' : '#ff5a78';
+        ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
+      return;
+    }
+    if (f.kind === 'charger') {
+      if (f.state === 'lock') { // telegraph the locked dash line
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,90,120,0.55)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 8]);
+        ctx.beginPath();
+        ctx.moveTo(f.x, f.y);
+        ctx.lineTo(f.x + f.dirX * 900, f.y + f.dirY * 900);
+        ctx.stroke();
+        ctx.restore();
+      }
+      const rot = (f.dirX || f.dirY) ? Math.atan2(f.dirY, f.dirX) + Math.PI / 2 : 0;
+      if (!SP.draw(ctx, 'enemyBig', f.x, f.y, (f.r + 4) * 2.2, rot)) {
+        ctx.save();
+        ctx.fillStyle = f.flash > 0 ? '#fff' : (f.state === 'dash' ? '#ff7a3a' : '#ff5a78');
+        ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
+      return;
+    }
+  }
+
   function drawBoss(ctx, s) {
     const b = s.boss;
     const dyingShake = b.dying > 0 ? (Math.random() - 0.5) * 6 : 0;
@@ -333,6 +366,7 @@
     for (const o of s.pows) drawPow(ctx, o);
     for (const m of s.mines) drawMine(ctx, m);
     for (const t of s.turrets) drawTurret(ctx, t);
+    for (const f of s.foes) drawFoe(ctx, f);
 
     // player bullets (teal laser sprite, oriented along travel)
     ctx.shadowBlur = 0;

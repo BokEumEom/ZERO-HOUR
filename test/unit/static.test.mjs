@@ -11,7 +11,7 @@ const read = (f) => readFileSync(path.join(root, f), 'utf8');
 
 const NV = 'js/games/neonvortex';
 const CORE = ['js/store.js', 'js/audio.js', 'js/shell.js',
-  `${NV}/sprites.js`, `${NV}/meta.js`, `${NV}/medals.js`, `${NV}/game.js`, `${NV}/render.js`, `${NV}/main.js`];
+  `${NV}/sprites.js`, `${NV}/meta.js`, `${NV}/medals.js`, `${NV}/foes.js`, `${NV}/game.js`, `${NV}/render.js`, `${NV}/main.js`];
 
 test('game core stays React-free', () => {
   for (const f of CORE) {
@@ -72,7 +72,7 @@ test('script load order in index.html is store -> audio -> shell -> game modules
   // match basenames regardless of folder (the game's modules live under js/games/neonvortex/)
   const order = [...html.matchAll(/<script src="js[^"]*\/([a-z-]+)\.js">/g)].map((m) => m[1]);
   // shell core, then the single game: sprites (atlas) -> meta -> medals -> game -> render -> main
-  assert.deepEqual(order, ['store', 'audio', 'shell', 'sprites', 'meta', 'medals', 'game', 'render', 'main']);
+  assert.deepEqual(order, ['store', 'audio', 'shell', 'sprites', 'meta', 'medals', 'foes', 'game', 'render', 'main']);
 });
 
 test('render.js reacts to surge state (telegraph + tint)', () => {
@@ -155,6 +155,12 @@ test('render.js draws turrets', () => {
   const src = read(`${NV}/render.js`);
   assert.ok(src.includes('s.turrets'), 'turrets are rendered');
   assert.ok(/drawTurret/.test(src), 'has a drawTurret routine');
+});
+
+test('render.js draws new-archetype foes', () => {
+  const src = read(`${NV}/render.js`);
+  assert.ok(src.includes('s.foes'), 'foes are iterated for drawing');
+  assert.ok(/drawFoe/.test(src), 'has a drawFoe routine');
 });
 
 test('atlas URL carries a matching cache-bust version in index.html and sprites.js', () => {
