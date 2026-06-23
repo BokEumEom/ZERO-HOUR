@@ -28,11 +28,13 @@
 
   // ---- difficulty tiers (fixed knobs; daily is always 'normal') ----
   // turretCap/turretFire are inert until Phase 2 (turret enemy).
-  const DIFF = {
-    easy:   { turretCap: 0, turretFire: 2.6, spawnMul: 0.75, mineSpeedMul: 0.85, mineCap: 9,  bossHpMul: 0.75, bossFireMul: 1.25 },
-    normal: { turretCap: 2, turretFire: 2.6, spawnMul: 1.0,  mineSpeedMul: 1.0,  mineCap: 12, bossHpMul: 1.0,  bossFireMul: 1.0 },
-    hard:   { turretCap: 3, turretFire: 1.9, spawnMul: 1.3,  mineSpeedMul: 1.2,  mineCap: 16, bossHpMul: 1.33, bossFireMul: 0.8 },
-  };
+  // *Mul knobs multiply onto base constants. bossFireMul multiplies the boss
+  // fire-interval (burstT/aimT), so <1 = faster fire, >1 = slower.
+  const DIFF = Object.freeze({
+    easy:   Object.freeze({ turretCap: 0, turretFire: 2.6, spawnMul: 0.75, mineSpeedMul: 0.85, mineCap: 9,  bossHpMul: 0.75, bossFireMul: 1.25 }),
+    normal: Object.freeze({ turretCap: 2, turretFire: 2.6, spawnMul: 1.0,  mineSpeedMul: 1.0,  mineCap: 12, bossHpMul: 1.0,  bossFireMul: 1.0 }),
+    hard:   Object.freeze({ turretCap: 3, turretFire: 1.9, spawnMul: 1.3,  mineSpeedMul: 1.2,  mineCap: 16, bossHpMul: 1.33, bossFireMul: 0.8 }),
+  });
 
   function buildSurges(s) {
     const fieldEnd = s.duration >= 40 ? s.duration - 20 : s.duration; // boss owns the last 20s

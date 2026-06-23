@@ -964,7 +964,7 @@
     // fullscreen is opt-in via the ⛶ button — we no longer force it on game start
     syncToday(); // don't pace-compare a new day's run against yesterday's best
     runBestPace = mode === 'daily' && recs.dailyBest ? recs.dailyBest.pace : null;
-    G.start(mode);
+    G.start(mode); // Phase 1B: pass selected difficulty — G.start(mode, difficultyValue())
     show(null);
   }
 

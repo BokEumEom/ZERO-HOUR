@@ -27,4 +27,8 @@ test('daily is always Normal regardless of requested difficulty (fairness)', () 
   const G = boot().SY.nvGame;
   G.start('daily', 'hard');
   assert.equal(G.state.difficulty, 'normal');
+  G.start('daily', 'easy');
+  assert.equal(G.state.difficulty, 'normal');
+  G.start('daily', undefined);
+  assert.equal(G.state.difficulty, 'normal');
 });
