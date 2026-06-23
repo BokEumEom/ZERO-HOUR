@@ -144,3 +144,29 @@ test('medals are isolated per game id', async () => {
   await flushMicrotasks();
   assert.equal((await sb.SY.store.forGame('other').loadMedals()).length, 0);
 });
+
+test('per-difficulty best is namespaced and round-trips', async () => {
+  const sb = loadModules(['js/store.js'], { nowIso: '2026-03-01T00:00:00Z', idb: fakeIndexedDB() });
+  const g = sb.SY.store.forGame('neonvortex');
+  await g.saveBestFor('hard', { score: 1234, combo: 9, date: '2026-03-01', mode: 'free' });
+  await flushMicrotasks();
+  const easy = await g.loadBestFor('easy');
+  const hard = await g.loadBestFor('hard');
+  assert.equal(easy, null, 'easy untouched');
+  assert.equal(hard.score, 1234, 'hard round-trips');
+});
+
+test('migrateBest copies legacy best_all into best_normal once (idempotent)', async () => {
+  const idb = fakeIndexedDB();
+  const sb = loadModules(['js/store.js'], { nowIso: '2026-03-01T00:00:00Z', idb });
+  idb._dbs.set('scoreyard', new Map([['neonvortex:best_all', { score: 500, combo: 5, date: '2026-02-01', mode: 'daily' }]]));
+  const g = sb.SY.store.forGame('neonvortex');
+  await sb.SY.store.migrateBest('neonvortex');
+  await flushMicrotasks();
+  assert.equal((await g.loadBestFor('normal')).score, 500, 'best_normal seeded from best_all');
+  await g.saveBestFor('normal', { score: 999, combo: 1, date: '2026-03-01', mode: 'free' });
+  await flushMicrotasks();
+  await sb.SY.store.migrateBest('neonvortex');
+  await flushMicrotasks();
+  assert.equal((await g.loadBestFor('normal')).score, 999, 'migration does not overwrite existing best_normal');
+});

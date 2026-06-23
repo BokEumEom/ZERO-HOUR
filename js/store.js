@@ -104,6 +104,15 @@
         // lighter than loadAll() for the hub card scent: one read, best only
         async loadBest() { return (await kvGet(k('best_all'))) || null; },
         saveBestAll(rec) { return kvSet(k('best_all'), rec); },
+        // per-difficulty all-time best (free-play). daily stays Normal (Phase 1).
+        saveBestFor(diff, rec) { return kvSet(k('best_' + diff), rec); },
+        async loadBestFor(diff) { return (await kvGet(k('best_' + diff))) || null; },
+        async loadBests() {
+          const [easy, normal, hard] = await Promise.all([
+            kvGet(k('best_easy')), kvGet(k('best_normal')), kvGet(k('best_hard')),
+          ]);
+          return { easy: easy || null, normal: normal || null, hard: hard || null };
+        },
         saveDaily(date, rec) { return kvSet(k('daily_' + date), rec); },
         async loadRecentDailies(n) {
           const dates = [];
@@ -147,6 +156,16 @@
         const v = await kvGet('daily_' + d);
         if (v !== undefined) await kvSet(id + ':daily_' + d, v);
       }
+    },
+    // One-time: copy a player's legacy single best (best_all) into best_normal so
+    // the pre-difficulty personal best is attributed to Normal. Idempotent: skips
+    // if best_normal already exists.
+    async migrateBest(id) {
+      const k = (s) => id + ':' + s;
+      if ((await kvGet(k('best_normal'))) !== undefined) return;
+      const legacy = await kvGet(k('best_all'));
+      if (legacy === undefined) return;
+      await kvSet(k('best_normal'), legacy);
     },
   };
 })();
