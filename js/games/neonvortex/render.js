@@ -153,11 +153,13 @@
     // glyph overlay: always on the vector fallback (identifies the pickup); with
     // the badge sprite, only for the ambiguous types — the rest read from their icon.
     if (!drew || o.type === 'X2' || o.type === 'SLOW' || o.type === 'TIME') {
+      // multi-char glyphs (X2 = '×2', TIME = '+5') shrink to fit; single-char stays 13px
+      const smallGlyph = o.type === 'X2' || o.type === 'TIME';
       ctx.save();
       ctx.shadowColor = '#04090f';
       ctx.shadowBlur = 4;
       ctx.fillStyle = meta.color;
-      ctx.font = 'bold ' + (o.type === 'X2' || o.type === 'TIME' ? 11 : 13) + 'px ' + MONO;
+      ctx.font = 'bold ' + (smallGlyph ? 11 : 13) + 'px ' + MONO;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(meta.glyph, o.x, o.y + bob + 1);
