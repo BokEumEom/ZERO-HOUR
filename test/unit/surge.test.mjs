@@ -125,7 +125,9 @@ test('a full free run passes through at least one surge and back to calm', () =>
   const G = sb.SY.nvGame;
   let sawSurge = false, sawCalmAfter = false;
   G.events.onGameOver = () => {};
-  G.start('free');
+  // easy: no turrets + gentler mines so the stationary test pilot survives long
+  // enough to observe a surge → calm cycle. Surge timing is difficulty-independent.
+  G.start('free', 'easy');
   for (let i = 0; i < 30 && G.phase === 'ready'; i++) G.update(0.1);
   for (let i = 0; i < 60 * 60 && G.phase === 'playing'; i++) {
     G.update(1 / 60);
