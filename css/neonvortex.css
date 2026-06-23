@@ -3335,3 +3335,12 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   color: color-mix(in srgb, var(--nv-on-surface-variant) 92%, #fff);
 }
 #neonvortex-screen-pilotlog .nv-plg-entry-yield { color: var(--nv-primary-bright); }
+
+/* ── difficulty selector chips (menu, free-play only) ── */
+.nv-diff-row { display: flex; gap: 8px; margin: 6px 0 2px; }
+.nv-diff-chip {
+  flex: 1; padding: 8px 4px; font: 600 12px/1 "IBM Plex Mono", ui-monospace, monospace;
+  letter-spacing: 0.08em; color: #7dd9c8; background: transparent;
+  border: 1px solid rgba(45, 226, 198, 0.35); border-radius: 8px; cursor: pointer;
+}
+.nv-diff-chip.active { color: #04090f; background: #2de2c6; border-color: #2de2c6; }

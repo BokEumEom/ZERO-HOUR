@@ -34,6 +34,7 @@
     updateVolumeUi();
     updateCrtBtn();
     renderMenuStats();           // shows defaults until records load
+    syncDifficultyChips(); // highlight the persisted difficulty on menu entry
     show('screen-menu');         // instant — records hydrate asynchronously
     loadRecords();
   }
@@ -1232,6 +1233,13 @@
     renderMenuStats();           // headline best reflects the selected difficulty
     if (typeof syncDifficultyChips === 'function') syncDifficultyChips(); // added in Task 4 (DOM)
   }
+  function syncDifficultyChips() {
+    const sel = difficultyValue();
+    for (const d of NV_DIFFICULTIES) {
+      const el = $('diff-' + d);
+      if (el) el.classList.toggle('active', d === sel);
+    }
+  }
 
   // ---------- hull coating (cosmetic ship paint) ----------
   // Persisted under recs.settings.nvPaint (neonvortex-scoped). Purely visual:
@@ -1290,6 +1298,9 @@
   $('btn-start').addEventListener('click', () => startGame('daily')); // headline action → today's daily
   $('btn-daily').addEventListener('click', () => { renderChallenge(); show('screen-challenge'); });
   $('btn-free').addEventListener('click', () => startGame('free'));
+  for (const d of NV_DIFFICULTIES) {
+    $('diff-' + d).addEventListener('click', () => setDifficulty(d));
+  }
   $('btn-retry').addEventListener('click', () => startGame(lastResult ? lastResult.mode : 'daily'));
   $('btn-menu').addEventListener('click', quitToMenu);
   $('btn-share').addEventListener('click', copyShare);

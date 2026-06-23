@@ -143,3 +143,10 @@ test('main.js wires difficulty into start + per-difficulty best routing', () => 
   assert.ok(src.includes('saveBestFor'), 'onGameOver routes to per-difficulty best');
   assert.ok(src.includes('nvDifficulty'), 'difficulty persisted in settings');
 });
+
+test('menu has a difficulty selector wired to setDifficulty', () => {
+  const html = read('index.html');
+  assert.ok(html.includes('neonvortex-menu-difficulty'), 'selector markup present');
+  const src = read(`${NV}/main.js`);
+  assert.ok(src.includes('syncDifficultyChips'), 'chips synced to active difficulty');
+});
