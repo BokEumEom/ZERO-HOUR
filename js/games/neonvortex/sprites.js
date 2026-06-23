@@ -174,10 +174,11 @@
   const iconCache = {}; // iconCache[type][color] -> { canvas, builtReady }
   function powerIconCanvas(type, color) {
     const r = POWER_ICONS[type];
-    if (!r || !decoded()) return null;
+    if (!r) return null;
     let byType = iconCache[type];
     const cached = byType && byType[color];
-    if (cached && cached.builtReady) return cached.canvas;
+    if (cached && cached.builtReady) return cached.canvas; // cache hit first
+    if (!decoded()) return null;                            // then atlas guard
     const c = (cached && cached.canvas) || document.createElement('canvas');
     c.width = r.w;
     c.height = r.h;
