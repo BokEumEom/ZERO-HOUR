@@ -14,7 +14,7 @@
   // the standalone data-URI atlas, where onload may not have run yet)
   const decoded = () => ready || (sheet.complete && sheet.naturalWidth > 0);
   // relative path works both from index.html and the generated standalone.html
-  sheet.src = 'assets/sprite-atlas.png';
+  sheet.src = 'assets/sprite-atlas.png?v=2';
 
   // { x, y, w, h } source rects in the 1448×1086 sheet.
   const A = {
