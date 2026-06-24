@@ -38,7 +38,11 @@ test('mine cap and speed honor the difficulty', () => {
   G.start('free', 'hard');
   const s = G.state;
   for (let i = 0; i < 200 && G.phase !== 'playing'; i++) G.update(1 / 60);
-  for (let i = 0; i < 600; i++) G.update(1 / 60);
+  // keep the (stationary, no-input) pilot invulnerable for the run: on HARD the
+  // new foe archetypes can otherwise kill it before the first mine spawns (~3.2s),
+  // which made the `mines spawned` evidence flaky. Survival is incidental here —
+  // the test is about the difficulty knobs.
+  for (let i = 0; i < 600; i++) { s.player.inv = 1; G.update(1 / 60); }
   assert.ok(s.mines.length > 0, 'mines spawned');
   // ambient mineCap is not a hard ceiling on total mines — surge formations are
   // uncapped by design and free mode uses a random seed — so assert the knob,
