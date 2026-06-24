@@ -15,6 +15,11 @@
     TIME:   { glyph: '+5', color: '#eaf6ff', label: '+5 SEC' },
   };
 
+  // power-up active durations (seconds). Single source of truth — main.js reads
+  // these via G.POWER_DURATION for the HUD timer bar/countdown. SHIELD is
+  // consumable and TIME is instant, so neither has a duration here.
+  const POWER_DURATION = { MAGNET: 9, SLOW: 6, X2: 9, BOOST: 8, SPREAD: 9 };
+
   // ---- surge director tuning ----
   const SURGE_WARMUP = 8;     // calm intro before the first surge (s)
   const SURGE_GAP_DIV = 16;   // field seconds per surge (count = floor(fieldLen / this))
@@ -74,7 +79,7 @@
   function dist2(a, b) { const dx = a.x - b.x, dy = a.y - b.y; return dx * dx + dy * dy; }
 
   const G = {
-    W, H, POWER_META, DIFF,
+    W, H, POWER_META, POWER_DURATION, DIFF,
     phase: 'menu', // menu | ready | playing | paused | over
     mode: 'daily',
     state: null,
@@ -729,17 +734,11 @@
     wave(s, o.x, o.y, 56, meta.color);
     burst(s, o.x, o.y, meta.color, 12, 170, 2.6);
     floatText(s, o.x, o.y - 18, meta.label, meta.color);
-    switch (o.type) {
-      case 'MAGNET': s.fx.MAGNET = 7; break;
-      case 'SHIELD': s.shield = true; break;
-      case 'SLOW': s.fx.SLOW = 5; break;
-      case 'X2': s.fx.X2 = 7; break;
-      case 'BOOST': s.fx.BOOST = 6; break;
-      case 'SPREAD': s.fx.SPREAD = 7; break;
-      case 'TIME':
-        s.timeLeft = Math.min(s.duration + 20, s.timeLeft + 5);
-        break;
-    }
+    if (o.type === 'SHIELD') { s.shield = true; return; }       // consumable
+    if (o.type === 'TIME') { s.timeLeft = Math.min(s.duration + 20, s.timeLeft + 5); return; } // instant
+    // timed buffs: extend remaining time by the base duration, capped at 2x base
+    const dur = POWER_DURATION[o.type];
+    s.fx[o.type] = Math.min(2 * dur, s.fx[o.type] + dur);
   }
 
   function stepCosmeticsLight(s, dt) {
