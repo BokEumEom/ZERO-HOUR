@@ -356,7 +356,7 @@
         burst(s, b.x, b.y, '#eaf6ff', 40, 320, 2.5);
         for (let i = 0; i < 14; i++) {
           const a = Math.random() * Math.PI * 2, d = 20 + Math.random() * 70;
-          s.crystals.push({ x: b.x + Math.cos(a) * d, y: b.y + Math.sin(a) * d, vx: Math.cos(a) * 120, vy: Math.sin(a) * 120, r: 7, phase: Math.random() * 6 });
+          s.crystals.push({ x: b.x + Math.cos(a) * d, y: b.y + Math.sin(a) * d, vx: Math.cos(a) * 120, vy: Math.sin(a) * 120, r: 7, phase: Math.random() * 6, tier: 'boss' }); // purple prize gem (cosmetic tier)
         }
         addScore(s, 1500, b.x, b.y, 'CORE WARDEN', 'boss');
         s.bossDown = true;

@@ -163,6 +163,15 @@ test('render.js draws new-archetype foes', () => {
   assert.ok(/drawFoe/.test(src), 'has a drawFoe routine');
 });
 
+test('crystals use context gem variants (surge amber, boss-drop purple)', () => {
+  const spr = read(`${NV}/sprites.js`);
+  assert.ok(/crystalBoss:\s*\{/.test(spr), 'atlas defines the boss prize gem');
+  const game = read(`${NV}/game.js`);
+  assert.ok(/tier: 'boss'/.test(game), 'boss-kill crystals are tagged');
+  const render = read(`${NV}/render.js`);
+  assert.ok(/crystalBoss/.test(render) && /crystalAmber/.test(render), 'drawCrystal selects gem by tier/surge');
+});
+
 test('alternate hull skins are wired (atlas rects + selector + render override)', () => {
   const spr = read(`${NV}/sprites.js`);
   for (const key of ['hullUpg1', 'hullUpg2', 'hullUpg3']) {

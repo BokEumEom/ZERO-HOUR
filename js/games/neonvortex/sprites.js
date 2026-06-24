@@ -23,8 +23,9 @@
     enemyBig:    { x: 900,  y: 32,  w: 112, h: 108 }, // red turret-drone (rock)
     enemyMid:    { x: 1022, y: 48,  w: 90,  h: 76  },
     enemySmall:  { x: 1124, y: 62,  w: 68,  h: 60  }, // round red orb-eye (mine)
-    crystalTeal: { x: 216,  y: 734, w: 40,  h: 64  }, // collectible crystal
-    crystalAmber:{ x: 400,  y: 730, w: 46,  h: 64  }, // power-up capsule
+    crystalTeal: { x: 216,  y: 734, w: 40,  h: 64  }, // collectible crystal (normal)
+    crystalAmber:{ x: 400,  y: 730, w: 46,  h: 64  }, // amber gem — surge (HEAT) crystals
+    crystalBoss: { x: 758,  y: 701, w: 46,  h: 89  }, // purple prize gem — boss-kill drops
     bulletTeal:  { x: 872,  y: 270, w: 42,  h: 120 }, // player shot (cyan energy bolt)
     bulletPink:  { x: 964,  y: 274, w: 50,  h: 114 }, // enemy/boss shot (red missile)
     beam:        { x: 1152, y: 274, w: 52,  h: 114 }, // boss beam column

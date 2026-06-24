@@ -58,19 +58,24 @@
     ctx.strokeRect(1, 1, W - 2, H - 2);
   }
 
-  function drawCrystal(ctx, c) {
+  // gem variant by context (cosmetic): boss-kill drops = purple prize, crystals
+  // during a surge = amber (HEAT window), otherwise the default teal.
+  function drawCrystal(ctx, c, inSurge) {
     const bob = Math.sin(c.phase) * 2;
-    if (SP.draw(ctx, 'crystalTeal', c.x, c.y + bob, (c.r + 2) * 2.9, Math.sin(c.phase * 0.7) * 0.16)) return;
+    const key = c.tier === 'boss' ? 'crystalBoss' : (inSurge ? 'crystalAmber' : 'crystalTeal');
+    if (SP.draw(ctx, key, c.x, c.y + bob, (c.r + 2) * 2.9, Math.sin(c.phase * 0.7) * 0.16)) return;
+    const glow = c.tier === 'boss' ? '#9c43e1' : (inSurge ? '#ffb028' : '#2de2c6');
+    const core = c.tier === 'boss' ? '#e3b6ff' : (inSurge ? '#ffe6a8' : '#9ff5e8');
     const squish = 0.62 + Math.sin(c.phase * 0.7) * 0.1;
     ctx.save();
     ctx.translate(c.x, c.y + bob);
-    ctx.shadowColor = '#2de2c6';
+    ctx.shadowColor = glow;
     ctx.shadowBlur = 10;
     diamond(ctx, 0, 0, c.r + 2, squish);
-    ctx.fillStyle = '#0fae97';
+    ctx.fillStyle = glow;
     ctx.fill();
     diamond(ctx, 0, -1, c.r - 2, squish);
-    ctx.fillStyle = '#9ff5e8';
+    ctx.fillStyle = core;
     ctx.fill();
     ctx.restore();
   }
@@ -395,7 +400,7 @@
       ctx.globalAlpha = 1;
     }
 
-    for (const c of s.crystals) drawCrystal(ctx, c);
+    for (const c of s.crystals) drawCrystal(ctx, c, s.inSurge);
     for (const r of s.rocks) drawRock(ctx, r);
     for (const o of s.pows) drawPow(ctx, o);
     for (const m of s.mines) drawMine(ctx, m);
