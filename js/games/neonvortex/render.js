@@ -187,7 +187,11 @@
     // hull sprite — frame reacts to state (shielded/damaged/boosted/default).
     // shielded is the hull+bubble composite, so it draws larger; +90° aligns
     // the sprite nose with p.angle. Pure choice, no per-frame allocation churn.
-    const frame = SP.pickHullFrame({ shield: s.shield, hp: p.hp, boost: s.fx.BOOST });
+    // an active hull skin replaces every frame with its single ship sprite; the
+    // default hull keeps its baked state frames. Shield then shows via the vector
+    // ring below (frame !== 'shielded' so bubbleDrawn stays false).
+    const hullKey = SP.activeHullKey();
+    const frame = hullKey || SP.pickHullFrame({ shield: s.shield, hp: p.hp, boost: s.fx.BOOST });
     const size = frame === 'shielded' ? HULL_SIZE_SHIELDED : HULL_SIZE;
     const drew = SP.draw(ctx, frame, p.x, p.y, size, p.angle + Math.PI / 2);
     if (!drew) {

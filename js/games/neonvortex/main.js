@@ -27,6 +27,7 @@
   function enter() {
     recs.settings = SY.settings; // shared settings, loaded by the shell at boot
     SY.nvSprites.setPaint(paintValue()); // cosmetic hull coating from persisted settings
+    SY.nvSprites.setHull(hullValue());   // cosmetic hull skin from persisted settings
     applyVolume(volumeValue());  // cosmetic SFX level from persisted settings
     applyCrt(crtOn());           // cosmetic CRT overlay from persisted settings
     updateMuteBtn();
@@ -449,7 +450,8 @@
     if (!ctx) return;
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0, 0, w, h);
-    const r = SP && SP.atlas && SP.atlas.player; // player source rect in the atlas
+    const hullKey = SP && SP.activeHullKey && SP.activeHullKey(); // active alternate hull, or null
+    const r = SP && SP.atlas && (hullKey ? SP.atlas[hullKey] : SP.atlas.player); // source rect
     const sheet = SP && SP.image;
     // gate on the image being decoded (works for the standalone data-URI atlas,
     // where the module's onload-driven isReady() may not have fired yet)
@@ -461,8 +463,9 @@
     ctx.save();
     ctx.shadowBlur = 28;
     ctx.shadowColor = 'rgba(0, 219, 231, 0.55)'; // cyan hologram glow
-    // routes through the active coating's cached tinted canvas (cosmetic)
-    SP.drawPlayer(ctx, w / 2 - dw / 2, h / 2 - dh / 2, dw, dh);
+    // alternate hull: blit its sprite (native colour); default: the coated player
+    if (hullKey) SP.draw(ctx, hullKey, w / 2, h / 2, Math.max(dw, dh), 0);
+    else SP.drawPlayer(ctx, w / 2 - dw / 2, h / 2 - dh / 2, dw, dh);
     ctx.restore();
     return true;
   }
@@ -527,6 +530,34 @@
       coatRow.appendChild(chip);
     }
     model.appendChild(coatRow);
+
+    // HULL selector (cosmetic alternate ship sprites from the atlas)
+    model.appendChild(nvEl('span', 'nv-hgr-coat-label', 'HULL FRAME · 기체 형식'));
+    const hullRow = nvEl('div', 'nv-hgr-coats');
+    const activeHull = hullValue();
+    for (const hh of NV_HULLS) {
+      const chip = nvEl('button', 'nv-coat-chip' + (hh.id === activeHull ? ' is-active' : ''));
+      chip.type = 'button';
+      chip.dataset.hull = hh.id;
+      chip.setAttribute('aria-pressed', hh.id === activeHull ? 'true' : 'false');
+      chip.setAttribute('aria-label', hh.nameEN + ' // ' + hh.nameKR);
+      chip.appendChild(nvEl('span', 'nv-coat-chip-glyph', hh.glyph));
+      const names = nvEl('span', 'nv-coat-chip-names');
+      names.appendChild(nvEl('span', 'nv-coat-chip-en', hh.nameEN));
+      names.appendChild(nvEl('span', 'nv-coat-chip-kr', hh.nameKR));
+      chip.appendChild(names);
+      chip.addEventListener('click', () => {
+        setHull(hh.id);
+        for (const el of hullRow.children) {
+          const on = el.dataset.hull === hh.id;
+          el.classList.toggle('is-active', on);
+          el.setAttribute('aria-pressed', on ? 'true' : 'false');
+        }
+        drawHangarShip(canvas);
+      });
+      hullRow.appendChild(chip);
+    }
+    model.appendChild(hullRow);
     show.appendChild(model);
     body.appendChild(show);
 
@@ -1263,6 +1294,24 @@
     const next = NV_COATINGS.some((c) => c.id === id) ? id : 'neon';
     recs.settings.nvPaint = next;
     SY.nvSprites.setPaint(next);
+    SY.store.saveSettings(recs.settings);
+  }
+  // alternate hull skins (atlas ship variants). Persisted under settings.nvHull.
+  // Purely visual — swaps the player sprite, no gameplay/seed effect.
+  const NV_HULLS = [
+    { id: 'default', nameEN: 'INTERCEPTOR', nameKR: '인터셉터',   glyph: '▲' },
+    { id: 'upg1',    nameEN: 'STRIKE MK-I', nameKR: '스트라이크 I', glyph: '◤' },
+    { id: 'upg2',    nameEN: 'STRIKE MK-II', nameKR: '스트라이크 II', glyph: '◢' },
+    { id: 'upg3',    nameEN: 'STRIKE MK-III', nameKR: '스트라이크 III', glyph: '✪' },
+  ];
+  const hullValue = () => {
+    const id = recs.settings && recs.settings.nvHull;
+    return NV_HULLS.some((h) => h.id === id) ? id : 'default';
+  };
+  function setHull(id) {
+    const next = NV_HULLS.some((h) => h.id === id) ? id : 'default';
+    recs.settings.nvHull = next;
+    SY.nvSprites.setHull(next);
     SY.store.saveSettings(recs.settings);
   }
   function updateVolumeUi() {

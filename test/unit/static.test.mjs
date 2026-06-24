@@ -163,6 +163,18 @@ test('render.js draws new-archetype foes', () => {
   assert.ok(/drawFoe/.test(src), 'has a drawFoe routine');
 });
 
+test('alternate hull skins are wired (atlas rects + selector + render override)', () => {
+  const spr = read(`${NV}/sprites.js`);
+  for (const key of ['hullUpg1', 'hullUpg2', 'hullUpg3']) {
+    assert.ok(new RegExp(key + ':\\s*\\{').test(spr), `sprites atlas defines ${key}`);
+  }
+  assert.ok(/activeHullKey/.test(spr), 'sprites exposes activeHullKey');
+  const main = read(`${NV}/main.js`);
+  assert.ok(/NV_HULLS/.test(main) && /setHull/.test(main) && /nvHull/.test(main), 'hangar wires hull selection + persistence');
+  const render = read(`${NV}/render.js`);
+  assert.ok(/activeHullKey/.test(render), 'drawPlayer honors the active hull skin');
+});
+
 test('foes use dedicated atlas art (not tinted reuse of generic enemies)', () => {
   const spr = read(`${NV}/sprites.js`);
   for (const key of ['foeHunter', 'foeCharger', 'foeShield', 'foeLaser']) {

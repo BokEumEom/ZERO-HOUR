@@ -39,11 +39,13 @@ test('mine cap and speed honor the difficulty', () => {
   const s = G.state;
   for (let i = 0; i < 200 && G.phase !== 'playing'; i++) G.update(1 / 60);
   // keep the (stationary, no-input) pilot invulnerable for the run: on HARD the
-  // new foe archetypes can otherwise kill it before the first mine spawns (~3.2s),
-  // which made the `mines spawned` evidence flaky. Survival is incidental here —
-  // the test is about the difficulty knobs.
-  for (let i = 0; i < 600; i++) { s.player.inv = 1; G.update(1 / 60); }
-  assert.ok(s.mines.length > 0, 'mines spawned');
+  // new foe archetypes can otherwise kill it before the first mine spawns (~3.2s).
+  // Track whether mines spawned AT ANY POINT — a snapshot of s.mines.length at the
+  // end flakes because auto-fire can transiently clear every mine. Survival/spawn
+  // are incidental; the test is about the difficulty knobs.
+  let everMines = false;
+  for (let i = 0; i < 600; i++) { s.player.inv = 1; G.update(1 / 60); if (s.mines.length > 0) everMines = true; }
+  assert.ok(everMines, 'mines spawned at some point');
   // ambient mineCap is not a hard ceiling on total mines — surge formations are
   // uncapped by design and free mode uses a random seed — so assert the knob,
   // not a runtime count (which flakes).

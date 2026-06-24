@@ -38,6 +38,11 @@
     foeCharger:  { x: 606,  y: 832, w: 85,  h: 68  }, // teal chevron interceptor (dasher)
     foeShield:   { x: 1344, y: 709, w: 68,  h: 47  }, // purple hex pod (front-armoured)
     foeLaser:    { x: 756,  y: 405, w: 131, h: 83  }, // cyan emitter ring (beam source)
+    // selectable alternate hulls (hangar skins) — the atlas "UPGRADED I/II/III"
+    // ship variants. Cosmetic only; used as the player sprite for every state.
+    hullUpg1:    { x: 150,  y: 828, w: 120, h: 100 },
+    hullUpg2:    { x: 292,  y: 828, w: 118, h: 100 },
+    hullUpg3:    { x: 432,  y: 828, w: 122, h: 100 },
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
@@ -115,6 +120,17 @@
     if (paint !== 'neon') HULL_FRAMES.forEach((frameKey) => playerCanvas(frameKey, paint));
   }
   function getPaint() { return paint; }
+
+  // ---- alternate hull skins (cosmetic) ---------------------------------------
+  // A hull skin replaces the player sprite with an atlas ship variant for ALL
+  // states (the default hull keeps its baked shielded/boosted/damaged frames).
+  // Display-only: never touches the sim, hitboxes, RNG, or the daily seed.
+  const HULL_SKINS = { upg1: 'hullUpg1', upg2: 'hullUpg2', upg3: 'hullUpg3' };
+  let hull = 'default';
+  function setHull(id) { hull = HULL_SKINS[id] ? id : 'default'; }
+  function getHull() { return hull; }
+  // the atlas key to draw for the active hull, or null to use the default frames
+  function activeHullKey() { return hull === 'default' ? null : HULL_SKINS[hull]; }
 
   // Blit the player sprite (current coating) into an arbitrary dest rect — used
   // by the HANGAR preview canvas, which fits the hull without rotation. Honors
@@ -235,5 +251,5 @@
     return 'player';
   }
 
-  SY.nvSprites = { draw, drawFit, drawPlayer, drawPowerIcon, setPaint, getPaint, pickHullFrame, atlas: A, powerIcons: POWER_ICONS, isReady: () => ready, image: sheet };
+  SY.nvSprites = { draw, drawFit, drawPlayer, drawPowerIcon, setPaint, getPaint, setHull, getHull, activeHullKey, pickHullFrame, atlas: A, powerIcons: POWER_ICONS, isReady: () => ready, image: sheet };
 })();
