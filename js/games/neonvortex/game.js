@@ -101,7 +101,7 @@
       pace: [0], paceSec: 0,
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
       crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [],
-      parts: [], waves: [], floats: [],
+      parts: [], waves: [], floats: [], blasts: [],
       boss: null, bossDown: false, bossWarnT: 0,
       fx: { MAGNET: 0, SLOW: 0, X2: 0, BOOST: 0, SPREAD: 0 },
       shield: false,
@@ -270,6 +270,12 @@
   function wave(s, x, y, maxR, color) {
     s.waves.push({ x, y, r: 6, maxR, life: 1, color });
   }
+  // explosion-sprite flash on a destruction event (cosmetic; uses the atlas burst)
+  function blast(s, x, y, size) {
+    // rot is deterministic from position (cosmetic variety without adding a
+    // Math.random call to the fairness baseline)
+    s.blasts.push({ x, y, size, life: 1, rot: (x * 0.7 + y * 0.3) % (Math.PI * 2) });
+  }
   function floatText(s, x, y, text, color) {
     s.floats.push({ x, y, text, color, life: 1 });
   }
@@ -309,7 +315,7 @@
       s.crystals.push({ x, y, vx: Math.cos(a) * 120, vy: Math.sin(a) * 120, r: 7, phase: s.rng() * 6 });
     }
   }
-  const foeApi = { hurtPlayer, addScore, burst, wave, floatText, dropCrystals };
+  const foeApi = { hurtPlayer, addScore, burst, wave, floatText, dropCrystals, blast };
 
   // ---------- player damage ----------
   function hurtPlayer(s, x, y) {
@@ -350,6 +356,7 @@
       if (Math.random() < 0.4) burst(s, b.x + (Math.random() - 0.5) * 70, b.y + (Math.random() - 0.5) * 70, '#ffc34d', 6, 200, 3);
       if (b.dying <= 0) {
         // final detonation
+        blast(s, b.x, b.y, 200); blast(s, b.x + 40, b.y - 30, 130);
         wave(s, b.x, b.y, 320, '#ffc34d');
         wave(s, b.x, b.y, 220, '#2de2c6');
         burst(s, b.x, b.y, '#ffc34d', 60, 420, 4);
@@ -653,6 +660,7 @@
             s.rocks.splice(j, 1);
             addScore(s, 40, r.x, r.y, undefined, 'destroy');
             burst(s, r.x, r.y, '#2de2c6', 18, 220, 3);
+            blast(s, r.x, r.y, 64);
             wave(s, r.x, r.y, 60, '#2de2c6');
             SY.audio.explode();
             const drops = 4 + Math.floor(s.rng() * 2);
@@ -674,6 +682,7 @@
             s.turrets.splice(j, 1);
             addScore(s, 60, t.x, t.y, undefined, 'destroy');
             burst(s, t.x, t.y, '#ff9a5a', 16, 230, 3);
+            blast(s, t.x, t.y, 60);
             wave(s, t.x, t.y, 56, '#ff9a5a');
             SY.audio.explode();
             for (let kk = 0; kk < 3; kk++) {
@@ -764,6 +773,11 @@
       const f = s.floats[i];
       f.y -= 34 * dt; f.life -= dt * 0.9;
       if (f.life <= 0) s.floats.splice(i, 1);
+    }
+    for (let i = s.blasts.length - 1; i >= 0; i--) {
+      const bl = s.blasts[i];
+      bl.life -= dt * 2.6; // ~0.38s flash
+      if (bl.life <= 0) s.blasts.splice(i, 1);
     }
     if (s.shake > 0) s.shake = Math.max(0, s.shake - dt * 26);
   }

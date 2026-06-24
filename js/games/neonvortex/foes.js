@@ -189,6 +189,7 @@
     api.addScore(s, FOE_SCORE[foe.kind] || 30, foe.x, foe.y, undefined, 'destroy');
     api.burst(s, foe.x, foe.y, '#ff9a5a', 16, 230, 3);
     api.wave(s, foe.x, foe.y, 52, '#ff9a5a');
+    if (api.blast) api.blast(s, foe.x, foe.y, 58);
     if (foe.kind === 'shield') api.dropCrystals(s, foe.x, foe.y, 3);
     else if (foe.kind === 'laser') api.dropCrystals(s, foe.x, foe.y, 2);
     return true;

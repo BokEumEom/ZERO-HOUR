@@ -163,6 +163,15 @@ test('render.js draws new-archetype foes', () => {
   assert.ok(/drawFoe/.test(src), 'has a drawFoe routine');
 });
 
+test('big kills spawn an atlas burst-sprite explosion flash (FX polish)', () => {
+  const game = read(`${NV}/game.js`);
+  assert.ok(/function blast\(/.test(game), 'game has a blast() helper');
+  assert.ok(/blasts: \[\]/.test(game), 'state seeds a blasts array');
+  const render = read(`${NV}/render.js`);
+  assert.ok(/s\.blasts/.test(render), 'render iterates blasts');
+  assert.ok(/SP\.draw\(ctx, 'burst'/.test(render), 'blasts blit the atlas burst sprite');
+});
+
 test('crystals use context gem variants (surge amber, boss-drop purple)', () => {
   const spr = read(`${NV}/sprites.js`);
   assert.ok(/crystalBoss:\s*\{/.test(spr), 'atlas defines the boss prize gem');

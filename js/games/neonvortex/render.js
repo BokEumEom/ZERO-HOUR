@@ -407,6 +407,21 @@
     for (const t of s.turrets) drawTurret(ctx, t);
     for (const f of s.foes) drawFoe(ctx, f);
 
+    // explosion-sprite flashes (atlas burst), additive, growing + fading
+    for (const bl of s.blasts) {
+      const grow = bl.size * (0.6 + (1 - bl.life) * 0.9);
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, bl.life);
+      ctx.globalCompositeOperation = 'lighter';
+      if (!SP.draw(ctx, 'burst', bl.x, bl.y, grow, bl.rot)) {
+        ctx.beginPath();
+        ctx.arc(bl.x, bl.y, grow * 0.4, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffd9a8';
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
     // player bullets (teal laser sprite, oriented along travel)
     ctx.shadowBlur = 0;
     for (const b of s.bullets) {
