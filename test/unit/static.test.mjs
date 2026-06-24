@@ -163,6 +163,17 @@ test('render.js draws new-archetype foes', () => {
   assert.ok(/drawFoe/.test(src), 'has a drawFoe routine');
 });
 
+test('foes use dedicated atlas art (not tinted reuse of generic enemies)', () => {
+  const spr = read(`${NV}/sprites.js`);
+  for (const key of ['foeHunter', 'foeCharger', 'foeShield', 'foeLaser']) {
+    assert.ok(new RegExp(key + ':\\s*\\{').test(spr), `sprites atlas defines ${key}`);
+  }
+  const render = read(`${NV}/render.js`);
+  for (const key of ['foeHunter', 'foeCharger', 'foeShield', 'foeLaser']) {
+    assert.ok(render.includes(`'${key}'`), `drawFoe blits ${key}`);
+  }
+});
+
 test('main.js reads power-up durations from G.POWER_DURATION (no duplicate table)', () => {
   const src = read(`${NV}/main.js`);
   assert.ok(/G\.POWER_DURATION/.test(src), 'main.js uses the shared duration source');

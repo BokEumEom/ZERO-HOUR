@@ -32,6 +32,12 @@
     shielded:    { x: 1050, y: 826, w: 142, h: 142 }, // SHIELDED frame (hull + hex bubble)
     boosted:     { x: 907,  y: 827, w: 109, h: 133 }, // BOOSTED frame (large triple flames)
     damaged:     { x: 1209, y: 833, w: 122, h: 126 }, // DAMAGED frame (cracks + sparks)
+    // dedicated art for the new foe archetypes (used by render.drawFoe). Each
+    // keeps its native colour for maximum visual distinction (red/teal/purple/cyan).
+    foeHunter:   { x: 1228, y: 36,  w: 88,  h: 92  }, // red hex orb-drone (relentless chaser)
+    foeCharger:  { x: 606,  y: 832, w: 85,  h: 68  }, // teal chevron interceptor (dasher)
+    foeShield:   { x: 1344, y: 709, w: 68,  h: 47  }, // purple hex pod (front-armoured)
+    foeLaser:    { x: 756,  y: 405, w: 131, h: 83  }, // cyan emitter ring (beam source)
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).

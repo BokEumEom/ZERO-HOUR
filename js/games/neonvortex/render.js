@@ -266,7 +266,7 @@
 
   function drawFoe(ctx, f) {
     if (f.kind === 'hunter') {
-      if (!SP.draw(ctx, 'enemyMid', f.x, f.y, (f.r + 4) * 2.2, f.phase * 0.1)) {
+      if (!SP.draw(ctx, 'foeHunter', f.x, f.y, (f.r + 6) * 2.4, f.phase * 0.1)) {
         ctx.save();
         ctx.fillStyle = f.flash > 0 ? '#fff' : '#ff5a78';
         ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
@@ -287,7 +287,7 @@
         ctx.restore();
       }
       const rot = (f.dirX || f.dirY) ? Math.atan2(f.dirY, f.dirX) + Math.PI / 2 : 0;
-      if (!SP.draw(ctx, 'enemyBig', f.x, f.y, (f.r + 4) * 2.2, rot)) {
+      if (!SP.draw(ctx, 'foeCharger', f.x, f.y, (f.r + 5) * 2.3, rot)) {
         ctx.save();
         ctx.fillStyle = f.flash > 0 ? '#fff' : (f.state === 'dash' ? '#ff7a3a' : '#ff5a78');
         ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
@@ -296,7 +296,7 @@
       return;
     }
     if (f.kind === 'shield') {
-      if (!SP.draw(ctx, 'enemyBig', f.x, f.y, (f.r + 4) * 2.2, 0)) {
+      if (!SP.draw(ctx, 'foeShield', f.x, f.y, (f.r + 6) * 2.4, 0)) {
         ctx.save(); ctx.fillStyle = f.flash > 0 ? '#fff' : '#5aa7ff';
         ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
       }
@@ -319,7 +319,7 @@
         ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x + ux * far, f.y + uy * far); ctx.stroke();
         ctx.restore();
       }
-      if (!SP.draw(ctx, 'enemyMid', f.x, f.y, (f.r + 4) * 2.2, f.phase * 0.1)) {
+      if (!SP.draw(ctx, 'foeLaser', f.x, f.y, (f.r + 8) * 2.6, f.phase * 0.4)) {
         ctx.save(); ctx.fillStyle = f.flash > 0 ? '#fff' : '#ff7a3a';
         ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
       }
