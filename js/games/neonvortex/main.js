@@ -63,7 +63,7 @@
   }
 
   // ---------- HUD ----------
-  const POWER_DUR = { MAGNET: 7, SLOW: 5, X2: 7, BOOST: 6, SPREAD: 7 }; // for effect timer bars
+  // power-up durations come from G.POWER_DURATION (single source in game.js)
   const hudEls = {
     time: $('hud-time'), score: $('hud-score'), combo: $('hud-combo'), heat: $('hud-heat'),
     hearts: $('hud-hearts'), pace: $('hud-pace'), fx: $('hud-fx'), mode: $('hud-mode'),
@@ -140,7 +140,7 @@
     const meta = G.POWER_META;
     if (s.shield) chips += chip(meta.SHIELD, 0, 0); // consumable: glyph only, no bar
     for (const k of ['MAGNET', 'SLOW', 'X2', 'BOOST', 'SPREAD']) {
-      if (s.fx[k] > 0) chips += chip(meta[k], s.fx[k], POWER_DUR[k]);
+      if (s.fx[k] > 0) chips += chip(meta[k], s.fx[k], G.POWER_DURATION[k]);
     }
     hudEls.fx.innerHTML = chips;
   }
@@ -149,6 +149,7 @@
     const pct = max > 0 ? Math.max(0, Math.min(1, secs / max)) * 100 : 0;
     return '<span class="fx-badge" style="--c:' + meta.color + '">' +
       '<span class="fx-glyph">' + meta.glyph + '</span>' +
+      (max > 0 ? '<span class="fx-num">' + Math.ceil(secs) + '</span>' : '') +
       (max > 0 ? '<span class="fx-bar"><i style="width:' + pct.toFixed(0) + '%"></i></span>' : '') +
       '</span>';
   }

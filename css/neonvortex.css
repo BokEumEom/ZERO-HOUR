@@ -230,6 +230,7 @@ body.portrait #neonvortex-hud {
   color: var(--c);
 }
 .fx-glyph { font-size: 11px; font-weight: 700; line-height: 1; text-shadow: 0 0 8px var(--c); }
+.fx-num { font-family: var(--font-mono, 'Space Mono', monospace); font-size: 10px; line-height: 1; opacity: 0.9; }
 .fx-bar { width: 100%; height: 3px; background: rgba(255,255,255,0.12); overflow: hidden; }
 .fx-bar > i { display: block; height: 100%; background: var(--c); box-shadow: 0 0 6px var(--c); }
 #neonvortex-hud-mode { font-size: 10px; letter-spacing: 0.12em; color: color-mix(in srgb, var(--nv-primary) 55%, transparent); }

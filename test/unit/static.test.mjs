@@ -163,6 +163,17 @@ test('render.js draws new-archetype foes', () => {
   assert.ok(/drawFoe/.test(src), 'has a drawFoe routine');
 });
 
+test('main.js reads power-up durations from G.POWER_DURATION (no duplicate table)', () => {
+  const src = read(`${NV}/main.js`);
+  assert.ok(/G\.POWER_DURATION/.test(src), 'main.js uses the shared duration source');
+  assert.ok(!/const POWER_DUR =/.test(src), 'no duplicate POWER_DUR table in main.js');
+});
+
+test('fx badge shows a numeric countdown', () => {
+  const src = read(`${NV}/main.js`);
+  assert.ok(/fx-num/.test(src), 'chip renders a numeric remaining-time element');
+});
+
 test('atlas URL carries a matching cache-bust version in index.html and sprites.js', () => {
   const html = read('index.html');
   const spr = read(`${NV}/sprites.js`);
