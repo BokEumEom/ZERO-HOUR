@@ -575,6 +575,12 @@
     drawPlayer(ctx, s);
     for (const dr of s.drones) drawDrone(ctx, dr);
 
+    // targeting reticle on the current auto-fire target (ui-kit, additive black-key)
+    if (s.aimTarget && s.aimTarget.x != null) {
+      const t = s.aimTarget;
+      SP.drawUi(ctx, 'reticle', t.x, t.y, (t.r || 16) * 2 + 26);
+    }
+
     for (const pa of s.parts) {
       ctx.globalAlpha = Math.max(0, pa.life / pa.maxLife);
       ctx.fillStyle = pa.color;
@@ -597,12 +603,11 @@
       ctx.save();
       ctx.translate(W / 2, H / 2);
       ctx.rotate(-rot);
-      ctx.fillStyle = 'rgba(255,154,90,0.12)';
-      ctx.fillRect(-W, -30, W * 2, 60);
-      ctx.fillStyle = '#ff9a5a';
-      ctx.font = 'bold 24px ' + MONO;
-      ctx.textAlign = 'center';
-      ctx.fillText('▲ SURGE INCOMING ▲', 0, 8);
+      if (!SP.drawUi(ctx, 'bWarning', 0, 0, 380)) { // ui-kit WARNING banner (falls back to text)
+        ctx.fillStyle = 'rgba(255,154,90,0.12)'; ctx.fillRect(-W, -30, W * 2, 60);
+        ctx.fillStyle = '#ff9a5a'; ctx.font = 'bold 24px ' + MONO; ctx.textAlign = 'center';
+        ctx.fillText('▲ SURGE INCOMING ▲', 0, 8);
+      }
       ctx.restore();
     }
 
@@ -610,12 +615,23 @@
       ctx.save();
       ctx.translate(W / 2, H / 2);
       ctx.rotate(-rot);
-      ctx.fillStyle = 'rgba(255,90,120,0.12)';
-      ctx.fillRect(-W, -34, W * 2, 68);
-      ctx.fillStyle = '#ff5a78';
-      ctx.font = 'bold 28px ' + MONO;
-      ctx.textAlign = 'center';
-      ctx.fillText('⚠ CORE WARDEN INBOUND ⚠', 0, 9);
+      if (!SP.drawUi(ctx, 'bBoss', 0, 0, 360)) { // ui-kit BOSS banner (falls back to text)
+        ctx.fillStyle = 'rgba(255,90,120,0.12)'; ctx.fillRect(-W, -34, W * 2, 68);
+        ctx.fillStyle = '#ff5a78'; ctx.font = 'bold 28px ' + MONO; ctx.textAlign = 'center';
+        ctx.fillText('⚠ CORE WARDEN INBOUND ⚠', 0, 9);
+      }
+      ctx.restore();
+    }
+
+    if (s.clearT > 0) { // MISSION CLEAR banner on boss-down (ui-kit, fades out)
+      ctx.save();
+      ctx.translate(W / 2, H / 2 - 40);
+      ctx.rotate(-rot);
+      if (!SP.drawUi(ctx, 'bClear', 0, 0, 420, Math.min(1, s.clearT))) {
+        ctx.globalAlpha = Math.min(1, s.clearT);
+        ctx.fillStyle = '#2de2c6'; ctx.font = 'bold 28px ' + MONO; ctx.textAlign = 'center';
+        ctx.fillText('MISSION CLEAR', 0, 9);
+      }
       ctx.restore();
     }
 

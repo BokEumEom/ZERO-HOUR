@@ -109,6 +109,8 @@
       elite: null, eliteSpawned: false,
       eliteAt: (SURGE_WARMUP + (duration >= 40 ? duration - 20 : duration)) / 2,
       fx: { MAGNET: 0, SLOW: 0, X2: 0, BOOST: 0, SPREAD: 0, DRONE: 0, MISSILE: 0 },
+      aimTarget: null, // display-only: current auto-fire target (for the reticle)
+      clearT: 0,       // display-only: MISSION CLEAR banner timer (set on boss-down)
       shield: false,
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
@@ -422,6 +424,7 @@
         }
         addScore(s, 1500, b.x, b.y, 'CORE WARDEN', 'boss');
         s.bossDown = true;
+        s.clearT = 2.2; // MISSION CLEAR banner (display-only)
         s.boss = null;
         s.freeze = Math.max(s.freeze, 0.32);
         s.shake = Math.max(s.shake, 16);
@@ -550,6 +553,7 @@
     // effect timers
     for (const k in s.fx) if (s.fx[k] > 0) s.fx[k] -= dt;
     if (s.comboT > 0) { s.comboT -= dt; if (s.comboT <= 0) s.combo = 0; }
+    if (s.clearT > 0) s.clearT -= dt; // MISSION CLEAR banner countdown (display-only)
 
     // ---------- player ----------
     const p = s.player;
@@ -588,6 +592,7 @@
       for (const f of s.foes) cand.push(f);
       for (const cr of s.crates) cand.push(cr);
       for (const c of cand) { const d = dist2(c, p); if (d < best) { best = d; target = c; } }
+      s.aimTarget = target; // display-only: the reticle tracks this (deterministic nearest; never read by the sim)
       if (target) {
         p.fireCd = 0.19;
         const a = Math.atan2(target.y - p.y, target.x - p.x);

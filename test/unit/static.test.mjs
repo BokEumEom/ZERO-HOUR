@@ -206,6 +206,17 @@ test('elite sentinel (E4a) is wired', () => {
   assert.ok(/eliteCore:\s*\{/.test(spr), 'eliteCore rect');
 });
 
+test('ui-kit arena art (reticle + game-state banners) is wired, cosmetic', () => {
+  const spr = read(`${NV}/sprites.js`);
+  assert.ok(/ui-kit\.png/.test(spr) && /function drawUi/.test(spr), 'ui-kit sheet + drawUi helper');
+  assert.ok(/globalCompositeOperation = 'lighter'/.test(spr), 'additive black-key blend (no matte box)');
+  const render = read(`${NV}/render.js`);
+  assert.ok(/drawUi\(ctx, 'reticle'/.test(render), 'reticle drawn on the auto-fire target');
+  assert.ok(/'bWarning'/.test(render) && /'bBoss'/.test(render) && /'bClear'/.test(render), 'WARNING/BOSS/MISSION CLEAR banners');
+  const game = read(`${NV}/game.js`);
+  assert.ok(/s\.aimTarget = target/.test(game) && /s\.clearT = 2\.2/.test(game), 'aim target + clear timer set (display-only)');
+});
+
 test('1UP extra-life pickup (E6) is wired, rare + out of the bag', () => {
   const game = read(`${NV}/game.js`);
   assert.ok(/spawnOneUp/.test(game) && /'1UP'/.test(game), 'spawnOneUp + 1UP apply branch');
