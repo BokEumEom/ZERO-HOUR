@@ -555,6 +555,13 @@
     }
     // enemy bullets (pink)
     for (const b of s.ebullets) {
+      if (b.plasma) { // boss heavy plasma orb (atlas orb sprite)
+        if (!SP.draw(ctx, 'plasmaOrb', b.x, b.y, b.r * 2.6, b.x * 0.5 + b.y * 0.5)) {
+          ctx.save(); ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+          ctx.fillStyle = '#5ad1ff'; ctx.shadowColor = '#5ad1ff'; ctx.shadowBlur = 12; ctx.fill(); ctx.restore();
+        }
+        continue;
+      }
       if (!SP.draw(ctx, 'bulletPink', b.x, b.y, b.r * 3.2, Math.atan2(b.vy, b.vx) + Math.PI / 2)) {
         ctx.beginPath();
         ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
