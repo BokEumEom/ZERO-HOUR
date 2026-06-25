@@ -4294,6 +4294,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     lootConsole: { x: 206,  y: 286, w: 96,  h: 74  }, // console objective — drops a power-up
     eliteCore:   { x: 1097, y: 532, w: 89,  h: 101 }, // elite sentinel — hex armored core (beam emitter)
     frameCorner: { x: 454,  y: 511, w: 54,  h: 54  }, // cockpit/targeting frame corner bracket (section 5)
+    missile:     { x: 966,  y: 284, w: 44,  h: 105 }, // homing missile projectile (section 4)
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
@@ -4307,6 +4308,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     SLOW:   { x: 509, y: 24, w: 66, h: 86 }, // orbit-ring badge
     TIME:   { x: 19,  y: 16, w: 65, h: 94 }, // plus badge (+5 sec)
     DRONE:  { x: 1215, y: 1019, w: 44, h: 38 }, // companion drone (also the entity sprite)
+    MISSILE:{ x: 966, y: 284, w: 44, h: 105 }, // homing missile (also the projectile sprite)
   };
 
   // ---- hull coatings (cosmetic paint) -------------------------------------
@@ -4906,7 +4908,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   const SY = (window.SY = window.SY || {});
 
   const W = 960, H = 600;
-  const POWER_TYPES = ['MAGNET', 'SHIELD', 'SLOW', 'X2', 'BOOST', 'SPREAD', 'TIME', 'DRONE'];
+  const POWER_TYPES = ['MAGNET', 'SHIELD', 'SLOW', 'X2', 'BOOST', 'SPREAD', 'TIME', 'DRONE', 'MISSILE'];
 
   const POWER_META = {
     MAGNET: { glyph: 'M',  color: '#2de2c6', label: 'MAGNET' },
@@ -4917,12 +4919,13 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     SPREAD: { glyph: 'Ψ',  color: '#ff9a5a', label: 'SPREAD' },
     TIME:   { glyph: '+5', color: '#eaf6ff', label: '+5 SEC' },
     DRONE:  { glyph: 'D',  color: '#5ad1ff', label: 'WINGMAN' },
+    MISSILE:{ glyph: '➤',  color: '#ff8a3a', label: 'MISSILES' },
   };
 
   // power-up active durations (seconds). Single source of truth — main.js reads
   // these via G.POWER_DURATION for the HUD timer bar/countdown. SHIELD is
   // consumable and TIME is instant, so neither has a duration here.
-  const POWER_DURATION = { MAGNET: 9, SLOW: 6, X2: 9, BOOST: 8, SPREAD: 9, DRONE: 9 };
+  const POWER_DURATION = { MAGNET: 9, SLOW: 6, X2: 9, BOOST: 8, SPREAD: 9, DRONE: 9, MISSILE: 8 };
 
   // ---- surge director tuning ----
   const SURGE_WARMUP = 8;     // calm intro before the first surge (s)
@@ -5009,7 +5012,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       boss: null, bossDown: false, bossWarnT: 0,
       elite: null, eliteSpawned: false,
       eliteAt: (SURGE_WARMUP + (duration >= 40 ? duration - 20 : duration)) / 2,
-      fx: { MAGNET: 0, SLOW: 0, X2: 0, BOOST: 0, SPREAD: 0, DRONE: 0 },
+      fx: { MAGNET: 0, SLOW: 0, X2: 0, BOOST: 0, SPREAD: 0, DRONE: 0, MISSILE: 0 },
       shield: false,
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
@@ -5484,9 +5487,14 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       if (target) {
         p.fireCd = 0.19;
         const a = Math.atan2(target.y - p.y, target.x - p.x);
-        const angles = s.fx.SPREAD > 0 ? [a - 0.22, a, a + 0.22] : [a];
-        for (const an of angles) {
-          s.bullets.push({ x: p.x + Math.cos(an) * 16, y: p.y + Math.sin(an) * 16, vx: Math.cos(an) * 520, vy: Math.sin(an) * 520, life: 0.85 });
+        if (s.fx.MISSILE > 0) {
+          // homing missile: steers to the nearest enemy each frame (reuses the bullet pipeline)
+          s.bullets.push({ x: p.x + Math.cos(a) * 16, y: p.y + Math.sin(a) * 16, vx: Math.cos(a) * 430, vy: Math.sin(a) * 430, life: 1.3, homing: true });
+        } else {
+          const angles = s.fx.SPREAD > 0 ? [a - 0.22, a, a + 0.22] : [a];
+          for (const an of angles) {
+            s.bullets.push({ x: p.x + Math.cos(an) * 16, y: p.y + Math.sin(an) * 16, vx: Math.cos(an) * 520, vy: Math.sin(an) * 520, life: 0.85 });
+          }
         }
         SY.audio.shoot();
       } else p.fireCd = 0.06;
@@ -5647,6 +5655,19 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     // ---------- bullets vs things ----------
     for (let i = s.bullets.length - 1; i >= 0; i--) {
       const b = s.bullets[i];
+      if (b.homing) {
+        const tgt = nearestTarget(s, b.x, b.y, 520 * 520);
+        if (tgt) {
+          const desired = Math.atan2(tgt.y - b.y, tgt.x - b.x);
+          let cur = Math.atan2(b.vy, b.vx);
+          let d = desired - cur;
+          while (d > Math.PI) d -= Math.PI * 2;
+          while (d < -Math.PI) d += Math.PI * 2;
+          const maxTurn = 5.5 * dt;
+          cur += Math.max(-maxTurn, Math.min(maxTurn, d));
+          b.vx = Math.cos(cur) * 430; b.vy = Math.sin(cur) * 430;
+        }
+      }
       b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
       let dead = b.life <= 0 || b.x < -10 || b.x > W + 10 || b.y < -10 || b.y > H + 10;
       if (!dead && s.boss && s.boss.dying <= 0 && dist2(b, s.boss) < (s.boss.r + 4) * (s.boss.r + 4)) {
@@ -6413,6 +6434,13 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     // player bullets (teal laser sprite, oriented along travel)
     ctx.shadowBlur = 0;
     for (const b of s.bullets) {
+      if (b.homing) {
+        if (!SP.draw(ctx, 'missile', b.x, b.y, 26, Math.atan2(b.vy, b.vx) + Math.PI / 2)) {
+          ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(Math.atan2(b.vy, b.vx));
+          ctx.fillStyle = '#ff8a3a'; ctx.fillRect(-7, -2, 14, 4); ctx.restore();
+        }
+        continue;
+      }
       if (!SP.draw(ctx, 'bulletTeal', b.x, b.y, 18, Math.atan2(b.vy, b.vx) + Math.PI / 2)) {
         ctx.save();
         ctx.translate(b.x, b.y);
@@ -6660,7 +6688,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     let chips = '';
     const meta = G.POWER_META;
     if (s.shield) chips += chip(meta.SHIELD, 0, 0); // consumable: glyph only, no bar
-    for (const k of ['MAGNET', 'SLOW', 'X2', 'BOOST', 'SPREAD', 'DRONE']) {
+    for (const k of ['MAGNET', 'SLOW', 'X2', 'BOOST', 'SPREAD', 'DRONE', 'MISSILE']) {
       if (s.fx[k] > 0) chips += chip(meta[k], s.fx[k], G.POWER_DURATION[k]);
     }
     hudEls.fx.innerHTML = chips;
