@@ -3,7 +3,7 @@
   const SY = (window.SY = window.SY || {});
 
   const W = 960, H = 600;
-  const POWER_TYPES = ['MAGNET', 'SHIELD', 'SLOW', 'X2', 'BOOST', 'SPREAD', 'TIME', 'DRONE'];
+  const POWER_TYPES = ['MAGNET', 'SHIELD', 'SLOW', 'X2', 'BOOST', 'SPREAD', 'TIME', 'DRONE', 'MISSILE'];
 
   const POWER_META = {
     MAGNET: { glyph: 'M',  color: '#2de2c6', label: 'MAGNET' },
@@ -14,12 +14,13 @@
     SPREAD: { glyph: 'Ψ',  color: '#ff9a5a', label: 'SPREAD' },
     TIME:   { glyph: '+5', color: '#eaf6ff', label: '+5 SEC' },
     DRONE:  { glyph: 'D',  color: '#5ad1ff', label: 'WINGMAN' },
+    MISSILE:{ glyph: '➤',  color: '#ff8a3a', label: 'MISSILES' },
   };
 
   // power-up active durations (seconds). Single source of truth — main.js reads
   // these via G.POWER_DURATION for the HUD timer bar/countdown. SHIELD is
   // consumable and TIME is instant, so neither has a duration here.
-  const POWER_DURATION = { MAGNET: 9, SLOW: 6, X2: 9, BOOST: 8, SPREAD: 9, DRONE: 9 };
+  const POWER_DURATION = { MAGNET: 9, SLOW: 6, X2: 9, BOOST: 8, SPREAD: 9, DRONE: 9, MISSILE: 8 };
 
   // ---- surge director tuning ----
   const SURGE_WARMUP = 8;     // calm intro before the first surge (s)
@@ -106,7 +107,7 @@
       boss: null, bossDown: false, bossWarnT: 0,
       elite: null, eliteSpawned: false,
       eliteAt: (SURGE_WARMUP + (duration >= 40 ? duration - 20 : duration)) / 2,
-      fx: { MAGNET: 0, SLOW: 0, X2: 0, BOOST: 0, SPREAD: 0, DRONE: 0 },
+      fx: { MAGNET: 0, SLOW: 0, X2: 0, BOOST: 0, SPREAD: 0, DRONE: 0, MISSILE: 0 },
       shield: false,
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
@@ -581,9 +582,14 @@
       if (target) {
         p.fireCd = 0.19;
         const a = Math.atan2(target.y - p.y, target.x - p.x);
-        const angles = s.fx.SPREAD > 0 ? [a - 0.22, a, a + 0.22] : [a];
-        for (const an of angles) {
-          s.bullets.push({ x: p.x + Math.cos(an) * 16, y: p.y + Math.sin(an) * 16, vx: Math.cos(an) * 520, vy: Math.sin(an) * 520, life: 0.85 });
+        if (s.fx.MISSILE > 0) {
+          // homing missile: steers to the nearest enemy each frame (reuses the bullet pipeline)
+          s.bullets.push({ x: p.x + Math.cos(a) * 16, y: p.y + Math.sin(a) * 16, vx: Math.cos(a) * 430, vy: Math.sin(a) * 430, life: 1.3, homing: true });
+        } else {
+          const angles = s.fx.SPREAD > 0 ? [a - 0.22, a, a + 0.22] : [a];
+          for (const an of angles) {
+            s.bullets.push({ x: p.x + Math.cos(an) * 16, y: p.y + Math.sin(an) * 16, vx: Math.cos(an) * 520, vy: Math.sin(an) * 520, life: 0.85 });
+          }
         }
         SY.audio.shoot();
       } else p.fireCd = 0.06;
@@ -744,6 +750,19 @@
     // ---------- bullets vs things ----------
     for (let i = s.bullets.length - 1; i >= 0; i--) {
       const b = s.bullets[i];
+      if (b.homing) {
+        const tgt = nearestTarget(s, b.x, b.y, 520 * 520);
+        if (tgt) {
+          const desired = Math.atan2(tgt.y - b.y, tgt.x - b.x);
+          let cur = Math.atan2(b.vy, b.vx);
+          let d = desired - cur;
+          while (d > Math.PI) d -= Math.PI * 2;
+          while (d < -Math.PI) d += Math.PI * 2;
+          const maxTurn = 5.5 * dt;
+          cur += Math.max(-maxTurn, Math.min(maxTurn, d));
+          b.vx = Math.cos(cur) * 430; b.vy = Math.sin(cur) * 430;
+        }
+      }
       b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
       let dead = b.life <= 0 || b.x < -10 || b.x > W + 10 || b.y < -10 || b.y > H + 10;
       if (!dead && s.boss && s.boss.dying <= 0 && dist2(b, s.boss) < (s.boss.r + 4) * (s.boss.r + 4)) {

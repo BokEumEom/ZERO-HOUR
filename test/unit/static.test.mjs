@@ -206,6 +206,18 @@ test('elite sentinel (E4a) is wired', () => {
   assert.ok(/eliteCore:\s*\{/.test(spr), 'eliteCore rect');
 });
 
+test('homing missile weapon (E4b) is wired', () => {
+  const game = read(`${NV}/game.js`);
+  assert.ok(/'MISSILE'/.test(game) && /homing/.test(game), 'MISSILE type + homing logic');
+  assert.ok(/nearestTarget\(s, b\.x, b\.y/.test(game), 'missiles steer via nearestTarget');
+  const render = read(`${NV}/render.js`);
+  assert.ok(/b\.homing/.test(render) && /'missile'/.test(render), 'homing bullets drawn as missiles');
+  const spr = read(`${NV}/sprites.js`);
+  assert.ok(/missile:\s*\{/.test(spr), 'missile rect');
+  const main = read(`${NV}/main.js`);
+  assert.ok(/'SPREAD', 'DRONE', 'MISSILE'/.test(main), 'MISSILE HUD badge');
+});
+
 test('playfield cockpit frame (E5) is wired, cosmetic-only', () => {
   const render = read(`${NV}/render.js`);
   assert.ok(/function drawPlayfieldFrame/.test(render), 'frame draw routine');

@@ -54,6 +54,7 @@
     lootConsole: { x: 206,  y: 286, w: 96,  h: 74  }, // console objective — drops a power-up
     eliteCore:   { x: 1097, y: 532, w: 89,  h: 101 }, // elite sentinel — hex armored core (beam emitter)
     frameCorner: { x: 454,  y: 511, w: 54,  h: 54  }, // cockpit/targeting frame corner bracket (section 5)
+    missile:     { x: 966,  y: 284, w: 44,  h: 105 }, // homing missile projectile (section 4)
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
@@ -67,6 +68,7 @@
     SLOW:   { x: 509, y: 24, w: 66, h: 86 }, // orbit-ring badge
     TIME:   { x: 19,  y: 16, w: 65, h: 94 }, // plus badge (+5 sec)
     DRONE:  { x: 1215, y: 1019, w: 44, h: 38 }, // companion drone (also the entity sprite)
+    MISSILE:{ x: 966, y: 284, w: 44, h: 105 }, // homing missile (also the projectile sprite)
   };
 
   // ---- hull coatings (cosmetic paint) -------------------------------------
