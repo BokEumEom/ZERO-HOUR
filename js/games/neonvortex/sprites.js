@@ -44,6 +44,10 @@
     hullUpg1:    { x: 150,  y: 828, w: 120, h: 100 },
     hullUpg2:    { x: 292,  y: 828, w: 118, h: 100 },
     hullUpg3:    { x: 432,  y: 828, w: 122, h: 100 },
+    // loot economy (E1): destructible containers + reward tokens
+    lootCrate:   { x: 372,  y: 266, w: 98,  h: 78  }, // locked loot crate
+    lootCanister:{ x: 498,  y: 278, w: 94,  h: 90  }, // canister/module crate
+    coin:        { x: 884,  y: 709, w: 60,  h: 56  }, // gold reward coin
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).

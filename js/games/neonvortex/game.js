@@ -100,7 +100,7 @@
       score: 0, combo: 0, maxCombo: 0, comboT: 0,
       pace: [0], paceSec: 0,
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
-      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [],
+      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [],
       parts: [], waves: [], floats: [], blasts: [],
       boss: null, bossDown: false, bossWarnT: 0,
       fx: { MAGNET: 0, SLOW: 0, X2: 0, BOOST: 0, SPREAD: 0 },
@@ -108,12 +108,12 @@
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
       heat: 0, heatMul: 1,
-      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5 },
+      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6 },
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
       crystalsCollected: 0, // display-only (cosmetic meta); never read by the sim
-      breakdown: { crystals: 0, combo: 0, destruction: 0, boss: 0, heat: 0 },
+      breakdown: { crystals: 0, combo: 0, destruction: 0, boss: 0, heat: 0, loot: 0 },
       tookDamage: false, // for the NO HIT medal (shield blocks don't count as damage)
     };
     SY.nvFoes.initTimers(st);
@@ -170,6 +170,23 @@
       r: 22, hp: 3, maxHp: 3, rot: s.rng() * Math.PI * 2,
       spin: (s.rng() - 0.5) * 0.8, flash: 0,
     });
+  }
+
+  // ---- loot economy (E1) ----
+  const TOKEN_VALUE = { coin: 15, teal: 25, amber: 50, purple: 100 };
+  function spawnCrate(s) {
+    const kind = s.rng() < 0.5 ? 'crate' : 'canister';
+    const hp = kind === 'crate' ? 4 : 3;
+    s.crates.push({ kind, x: 90 + s.rng() * (W - 180), y: 80 + s.rng() * (H - 200), r: 20, hp, maxHp: hp, flash: 0, phase: s.rng() * 6 });
+  }
+  function spawnLoot(s, x, y) {
+    const n = 3 + Math.floor(s.rng() * 3); // 3-5 tokens
+    for (let i = 0; i < n; i++) {
+      const roll = s.rng();
+      const tier = roll < 0.6 ? 'coin' : roll < 0.82 ? 'teal' : roll < 0.95 ? 'amber' : 'purple';
+      const a = s.rng() * Math.PI * 2, sp = 60 + s.rng() * 90;
+      s.tokens.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: 8, phase: s.rng() * 6, tier });
+    }
   }
 
   function spawnMine(s) {
@@ -300,6 +317,8 @@
       s.breakdown.destruction += vBase;
     } else if (bucket === 'boss') {
       s.breakdown.boss += vBase;
+    } else if (bucket === 'loot') {
+      s.breakdown.loot += vBase;
     }
     s.breakdown.heat += heatBonus;
     if (x !== undefined) floatText(s, x, y, '+' + v + (label ? ' ' + label : ''), mul > 1 ? '#ffc34d' : '#9ff5e8');
@@ -523,6 +542,7 @@
       for (const r of s.rocks) cand.push(r);
       for (const t of s.turrets) cand.push(t);
       for (const f of s.foes) cand.push(f);
+      for (const cr of s.crates) cand.push(cr);
       for (const c of cand) { const d = dist2(c, p); if (d < best) { best = d; target = c; } }
       if (target) {
         p.fireCd = 0.19;
@@ -554,6 +574,11 @@
       s.spawnT.turret = 6 / s.diff.spawnMul; // density-scaled cadence
       if (s.diff.turretCap > 0 && s.turrets.length < s.diff.turretCap) spawnTurret(s);
     }
+    s.spawnT.crate -= dt;
+    if (s.spawnT.crate <= 0) {
+      s.spawnT.crate = 7 + s.rng() * 5;
+      if (s.crates.length < 2) spawnCrate(s);
+    }
 
     // ---------- crystals ----------
     const magnetR = s.fx.MAGNET > 0 ? 215 : 0;
@@ -579,6 +604,27 @@
         addScore(s, 10 + s.combo, c.x, c.y, undefined, 'crystal');
         burst(s, c.x, c.y, '#2de2c6', 7, 150, 2.2);
         SY.audio.collect(s.combo);
+      }
+    }
+
+    // ---------- loot tokens (collect into the loot bucket; no combo) ----------
+    for (let i = s.tokens.length - 1; i >= 0; i--) {
+      const t = s.tokens[i];
+      t.phase += dt * 3;
+      t.x += t.vx * dt; t.y += t.vy * dt;
+      t.vx *= Math.pow(0.05, dt); t.vy *= Math.pow(0.05, dt);
+      t.x = Math.min(W - 10, Math.max(10, t.x)); t.y = Math.min(H - 10, Math.max(10, t.y));
+      const d = Math.sqrt(dist2(t, p)) || 1;
+      if (magnetR && d < magnetR) {
+        const pull = 900 * (1 - d / magnetR) + 150;
+        t.vx += ((p.x - t.x) / d) * pull * dt;
+        t.vy += ((p.y - t.y) / d) * pull * dt;
+      }
+      if (d < p.r + t.r + 6) {
+        s.tokens.splice(i, 1);
+        addScore(s, TOKEN_VALUE[t.tier] || 15, t.x, t.y, undefined, 'loot');
+        burst(s, t.x, t.y, '#ffd9a8', 6, 140, 2);
+        SY.audio.collect(1);
       }
     }
 
@@ -703,6 +749,21 @@
         SY.nvFoes.damage(s, f, 1, foeApi);
         if (f.hp <= 0) SY.audio.explode();
         break;
+      }
+      if (!dead) for (let j = s.crates.length - 1; j >= 0; j--) {
+        const cr = s.crates[j];
+        if (dist2(b, cr) < (cr.r + 4) * (cr.r + 4)) {
+          cr.hp -= 1; cr.flash = 0.07; dead = true;
+          burst(s, b.x, b.y, '#ffd9a8', 4, 110, 2);
+          if (cr.hp <= 0) {
+            s.crates.splice(j, 1);
+            addScore(s, 20, cr.x, cr.y, undefined, 'destroy');
+            blast(s, cr.x, cr.y, 58);
+            spawnLoot(s, cr.x, cr.y);
+            SY.audio.explode();
+          }
+          break;
+        }
       }
       if (dead) s.bullets.splice(i, 1);
     }
