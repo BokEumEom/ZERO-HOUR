@@ -101,7 +101,7 @@
       score: 0, combo: 0, maxCombo: 0, comboT: 0,
       pace: [0], paceSec: 0,
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
-      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [],
+      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], portals: [],
       parts: [], waves: [], floats: [], blasts: [],
       boss: null, bossDown: false, bossWarnT: 0,
       fx: { MAGNET: 0, SLOW: 0, X2: 0, BOOST: 0, SPREAD: 0, DRONE: 0 },
@@ -109,7 +109,7 @@
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
       heat: 0, heatMul: 1,
-      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6 },
+      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, portal: 14 },
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
@@ -176,11 +176,12 @@
 
   // ---- loot economy (E1) ----
   const TOKEN_VALUE = { coin: 15, teal: 25, amber: 50, purple: 100 };
-  const CRATE_HP = { crate: 4, canister: 3, chest: 6 };
+  const CRATE_HP = { crate: 4, canister: 3, chest: 6, console: 5 };
   function spawnCrate(s) {
-    // chest is a rare jackpot container; otherwise a crate/canister split
+    // chest is a rare jackpot container; console is a bonus objective (drops a
+    // power-up); otherwise a crate/canister split.
     const r = s.rng();
-    const kind = r < 0.12 ? 'chest' : r < 0.56 ? 'crate' : 'canister';
+    const kind = r < 0.10 ? 'chest' : r < 0.26 ? 'console' : r < 0.63 ? 'crate' : 'canister';
     const hp = CRATE_HP[kind];
     s.crates.push({ kind, x: 90 + s.rng() * (W - 180), y: 80 + s.rng() * (H - 200), r: kind === 'chest' ? 24 : 20, hp, maxHp: hp, flash: 0, phase: s.rng() * 6 });
   }
@@ -196,6 +197,18 @@
       const a = s.rng() * Math.PI * 2, sp = 60 + s.rng() * 90;
       s.tokens.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: 8, phase: s.rng() * 6, tier });
     }
+  }
+
+  // ---- world objects (E3): spawn portal — telegraphs, opens, emits mines, closes ----
+  function spawnPortal(s) {
+    s.portals.push({
+      x: 120 + s.rng() * (W - 240), y: 110 + s.rng() * (H - 240),
+      state: 'warn', t: 1.0, spawnT: 0, spawnsLeft: 4 + Math.floor(s.rng() * 3), phase: s.rng() * 6,
+    });
+  }
+  // emit a homing mine AT a position (the portal mouth) — reuses the mine entity
+  function spawnMineAt(s, x, y) {
+    s.mines.push({ x, y, r: 11, hp: 1, speed: (62 + s.t * 1.1) * s.diff.mineSpeedMul, phase: s.rng() * Math.PI * 2, flash: 0, vx: 0, vy: 0, entryT: 0 });
   }
 
   function spawnMine(s) {
@@ -607,6 +620,25 @@
       s.spawnT.crate = 7 + s.rng() * 5;
       if (s.crates.length < 2) spawnCrate(s);
     }
+    // ---------- spawn portals (E3a) ----------
+    s.spawnT.portal -= dt;
+    if (s.spawnT.portal <= 0) {
+      s.spawnT.portal = 16 + s.rng() * 8;
+      if (s.portals.length < 1 && s.diff.spawnMul >= 1) spawnPortal(s); // normal/hard only (easy spawnMul 0.75)
+    }
+    for (let i = s.portals.length - 1; i >= 0; i--) {
+      const pt = s.portals[i];
+      pt.phase += dt * 3; pt.t -= dt;
+      if (pt.state === 'warn') {
+        if (pt.t <= 0) { pt.state = 'open'; pt.t = 3.2; pt.spawnT = 0.2; }
+      } else if (pt.state === 'open') {
+        pt.spawnT -= dt;
+        if (pt.spawnT <= 0 && pt.spawnsLeft > 0) { pt.spawnT = 0.55; pt.spawnsLeft--; spawnMineAt(s, pt.x, pt.y); }
+        if (pt.t <= 0 || pt.spawnsLeft <= 0) { pt.state = 'closing'; pt.t = 0.6; }
+      } else { // closing
+        if (pt.t <= 0) s.portals.splice(i, 1);
+      }
+    }
 
     // ---------- crystals ----------
     const magnetR = s.fx.MAGNET > 0 ? 215 : 0;
@@ -786,9 +818,15 @@
           burst(s, b.x, b.y, '#ffd9a8', 4, 110, 2);
           if (cr.hp <= 0) {
             s.crates.splice(j, 1);
-            addScore(s, cr.kind === 'chest' ? 40 : 20, cr.x, cr.y, undefined, 'destroy');
-            blast(s, cr.x, cr.y, cr.kind === 'chest' ? 120 : 58);
-            spawnLoot(s, cr.x, cr.y, cr.kind);
+            if (cr.kind === 'console') {
+              addScore(s, 30, cr.x, cr.y, undefined, 'destroy');
+              blast(s, cr.x, cr.y, 64);
+              spawnPow(s, cr.x, cr.y); // bonus objective — guaranteed power-up
+            } else {
+              addScore(s, cr.kind === 'chest' ? 40 : 20, cr.x, cr.y, undefined, 'destroy');
+              blast(s, cr.x, cr.y, cr.kind === 'chest' ? 120 : 58);
+              spawnLoot(s, cr.x, cr.y, cr.kind);
+            }
             SY.audio.explode();
           }
           break;

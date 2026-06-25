@@ -273,8 +273,20 @@
     }
   }
 
+  function drawPortal(ctx, pt) {
+    const open = pt.state === 'open';
+    // warn: pulsing telegraph; open: bright; closing: fading
+    const a = pt.state === 'warn' ? 0.35 + 0.25 * Math.sin(pt.phase * 6) : open ? 0.95 : 0.5;
+    ctx.save(); ctx.globalAlpha = a;
+    if (!SP.draw(ctx, 'portal', pt.x, pt.y, (open ? 78 : 60) + Math.sin(pt.phase) * 4, 0)) {
+      ctx.strokeStyle = '#5ad1ff'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.arc(pt.x, pt.y, 30, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   function drawCrate(ctx, c) {
-    const key = c.kind === 'chest' ? 'lootChest' : c.kind === 'canister' ? 'lootCanister' : 'lootCrate';
+    const key = c.kind === 'chest' ? 'lootChest' : c.kind === 'console' ? 'lootConsole' : c.kind === 'canister' ? 'lootCanister' : 'lootCrate';
     if (!SP.draw(ctx, key, c.x, c.y, (c.r + 6) * 2.2, 0)) {
       ctx.save();
       ctx.fillStyle = c.flash > 0 ? '#fff' : '#caa46a';
@@ -436,6 +448,7 @@
 
     for (const c of s.crystals) drawCrystal(ctx, c, s.inSurge);
     for (const t of s.tokens) drawToken(ctx, t);
+    for (const pt of s.portals) drawPortal(ctx, pt);
     for (const r of s.rocks) drawRock(ctx, r);
     for (const c of s.crates) drawCrate(ctx, c);
     for (const o of s.pows) drawPow(ctx, o);
