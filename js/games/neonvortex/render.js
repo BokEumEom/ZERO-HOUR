@@ -463,6 +463,26 @@
     ctx.restore();
   }
 
+  // playfield cockpit frame — section-5 bracket art at the 4 corners (rotated),
+  // joined by faint edge lines. Cosmetic only; deterministic (no rng).
+  function drawPlayfieldFrame(ctx) {
+    const m = 30;   // corner inset
+    const sz = 56;  // bracket sprite size (longest edge)
+    ctx.save();
+    ctx.globalAlpha = 0.10;
+    ctx.strokeStyle = '#5ad1ff';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(m, m, W - 2 * m, H - 2 * m);
+    ctx.globalAlpha = 0.55;
+    const HALF = Math.PI / 2;
+    // top-left art rotated into each corner; bail if the sheet hasn't decoded yet
+    if (!SP.draw(ctx, 'frameCorner', m, m, sz, 0)) { ctx.restore(); return; }
+    SP.draw(ctx, 'frameCorner', W - m, m, sz, HALF);
+    SP.draw(ctx, 'frameCorner', W - m, H - m, sz, Math.PI);
+    SP.draw(ctx, 'frameCorner', m, H - m, sz, -HALF);
+    ctx.restore();
+  }
+
   function render(ctx) {
     const s = G.state;
     const rot = (SY.layout && SY.layout.rot) || 0;
@@ -563,6 +583,8 @@
       ctx.fillText(f.text, f.x, f.y);
     }
     ctx.globalAlpha = 1;
+
+    drawPlayfieldFrame(ctx); // cockpit border (cosmetic), under the big alert overlays
 
     if (s.surgeWarnT > 0 && Math.floor(s.surgeWarnT * 6) % 2 === 0) {
       ctx.save();

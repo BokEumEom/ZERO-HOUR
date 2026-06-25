@@ -53,6 +53,7 @@
     portal:      { x: 36,   y: 271, w: 75,  h: 103 }, // spawn portal ring (world object)
     lootConsole: { x: 206,  y: 286, w: 96,  h: 74  }, // console objective — drops a power-up
     eliteCore:   { x: 1097, y: 532, w: 89,  h: 101 }, // elite sentinel — hex armored core (beam emitter)
+    frameCorner: { x: 454,  y: 511, w: 54,  h: 54  }, // cockpit/targeting frame corner bracket (section 5)
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
