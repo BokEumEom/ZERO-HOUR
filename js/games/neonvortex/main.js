@@ -843,6 +843,7 @@
     };
     strip.appendChild(chip('LIFETIME SCORE', fmt(lt.score || 0), false));
     strip.appendChild(chip('CRYSTALS', fmt(lt.crystals || 0), true));
+    strip.appendChild(chip('CREDITS', fmt(lt.credits || 0), false));
     strip.appendChild(chip(perfectLabel, perfectVal, false));
     body.appendChild(strip);
 
@@ -942,6 +943,7 @@
     strip.appendChild(chip('TOTAL MISSIONS', '총 작전 수행 수', fmt(lt.runs || 0), null));
     strip.appendChild(chip('PERFECT FLIGHTS', '무결점 완벽 비행', perfectVal, 'green'));
     strip.appendChild(chip('CRYSTAL YIELD', '획득 차원 결정', fmt(lt.crystals || 0), 'cyan'));
+    strip.appendChild(chip('CREDIT YIELD', '획득 크레딧', fmt(lt.credits || 0), 'amber'));
     strip.appendChild(chip('RECORD SCORE', '역대 최고 점수',
       (recs.bestByDiff && recs.bestByDiff.normal) ? fmt(recs.bestByDiff.normal.score) : '—', 'gold'));
     body.appendChild(strip);
@@ -1083,7 +1085,7 @@
       gameStore.saveBestFor(runDiff, rec);
     }
     // cosmetic lifetime totals (display-only; wired to UI in a later task)
-    recs.lifetime = SY.nvMeta.accumulateLifetime(recs.lifetime, { score: res.score, crystals: res.crystalsCollected || 0 });
+    recs.lifetime = SY.nvMeta.accumulateLifetime(recs.lifetime, { score: res.score, crystals: res.crystalsCollected || 0, credits: res.creditsCollected || 0 });
     gameStore.saveLifetime(recs.lifetime);
     const tier = SY.nvMeta.rankTier(recs.lifetime.score);
     const prEl = $('over-pilot-rank'); prEl.textContent = tier.name; prEl.style.color = tier.color;
