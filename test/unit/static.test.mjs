@@ -206,6 +206,18 @@ test('elite sentinel (E4a) is wired', () => {
   assert.ok(/eliteCore:\s*\{/.test(spr), 'eliteCore rect');
 });
 
+test('playfield cockpit frame (E5) is wired, cosmetic-only', () => {
+  const render = read(`${NV}/render.js`);
+  assert.ok(/function drawPlayfieldFrame/.test(render), 'frame draw routine');
+  assert.ok(/drawPlayfieldFrame\(ctx\);/.test(render), 'frame pass in render()');
+  const spr = read(`${NV}/sprites.js`);
+  assert.ok(/frameCorner:\s*\{/.test(spr), 'frameCorner rect');
+  // cosmetic: the frame body must not introduce gameplay randomness
+  const start = render.indexOf('function drawPlayfieldFrame');
+  const body = render.slice(start, render.indexOf('\n  function ', start + 1));
+  assert.ok(!/Math\.random|s\.rng/.test(body), 'frame is deterministic (no rng)');
+});
+
 test('big kills spawn an atlas burst-sprite explosion flash (FX polish)', () => {
   const game = read(`${NV}/game.js`);
   assert.ok(/function blast\(/.test(game), 'game has a blast() helper');
