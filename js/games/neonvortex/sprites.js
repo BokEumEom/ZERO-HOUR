@@ -50,6 +50,8 @@
     coin:        { x: 884,  y: 709, w: 60,  h: 56  }, // gold reward coin
     lootChest:   { x: 1258, y: 697, w: 94,  h: 64  }, // rare treasure chest (jackpot)
     drone:       { x: 1215, y: 1019, w: 44, h: 38 }, // companion wingman drone
+    portal:      { x: 36,   y: 271, w: 75,  h: 103 }, // spawn portal ring (world object)
+    lootConsole: { x: 206,  y: 286, w: 96,  h: 74  }, // console objective — drops a power-up
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).

@@ -184,6 +184,16 @@ test('loot crates and tokens are rendered from atlas art', () => {
   for (const k of ['lootCrate', 'lootCanister', 'coin', 'lootChest']) assert.ok(new RegExp(k + ':\\s*\\{').test(spr), k);
 });
 
+test('world objects (E3): spawn portal + console objective are wired', () => {
+  const game = read(`${NV}/game.js`);
+  assert.ok(/spawnPortal/.test(game) && /s\.portals/.test(game), 'portal spawn + state array');
+  assert.ok(/'console'/.test(game), 'console crate kind');
+  const render = read(`${NV}/render.js`);
+  assert.ok(/drawPortal/.test(render) && /s\.portals/.test(render), 'portals drawn');
+  const spr = read(`${NV}/sprites.js`);
+  for (const k of ['portal', 'lootConsole']) assert.ok(new RegExp(k + ':\\s*\\{').test(spr), k);
+});
+
 test('big kills spawn an atlas burst-sprite explosion flash (FX polish)', () => {
   const game = read(`${NV}/game.js`);
   assert.ok(/function blast\(/.test(game), 'game has a blast() helper');
