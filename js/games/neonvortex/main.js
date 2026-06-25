@@ -1102,6 +1102,7 @@
       statRow('COMBO BONUS', '+' + fmt(bd.combo)) +
       statRow('HEAT BONUS', '+' + fmt(bd.heat || 0)) +
       statRow('DESTRUCTION', '+' + fmt(bd.destruction)) +
+      statRow('LOOT PTS', '+' + fmt(bd.loot || 0)) +
       statRow('BOSS PTS', '+' + fmt(bd.boss)) +
       statRow('MAX COMBO', '\u00d7' + res.maxCombo) +
       statRow('CRYSTALS', fmt(res.collected)) +
