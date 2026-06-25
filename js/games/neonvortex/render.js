@@ -273,6 +273,31 @@
     }
   }
 
+  function drawCrate(ctx, c) {
+    const key = c.kind === 'canister' ? 'lootCanister' : 'lootCrate';
+    if (!SP.draw(ctx, key, c.x, c.y, (c.r + 6) * 2.2, 0)) {
+      ctx.save();
+      ctx.fillStyle = c.flash > 0 ? '#fff' : '#caa46a';
+      ctx.fillRect(c.x - c.r, c.y - c.r, c.r * 2, c.r * 2);
+      ctx.restore();
+    } else if (c.flash > 0) {
+      ctx.save();
+      ctx.globalAlpha = 0.5; ctx.globalCompositeOperation = 'lighter';
+      SP.draw(ctx, key, c.x, c.y, (c.r + 6) * 2.2, 0);
+      ctx.restore();
+    }
+  }
+
+  function drawToken(ctx, t) {
+    const bob = Math.sin(t.phase) * 2;
+    const key = t.tier === 'coin' ? 'coin' : t.tier === 'amber' ? 'crystalAmber' : t.tier === 'purple' ? 'crystalBoss' : 'crystalTeal';
+    if (SP.draw(ctx, key, t.x, t.y + bob, (t.r + 2) * 2.4, Math.sin(t.phase * 0.6) * 0.15)) return;
+    ctx.save();
+    ctx.fillStyle = t.tier === 'coin' ? '#ffcf4d' : '#9ff5e8';
+    ctx.beginPath(); ctx.arc(t.x, t.y + bob, t.r, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
   function drawFoe(ctx, f) {
     if (f.kind === 'hunter') {
       if (!SP.draw(ctx, 'foeHunter', f.x, f.y, (f.r + 6) * 2.4, f.phase * 0.1)) {
@@ -401,7 +426,9 @@
     }
 
     for (const c of s.crystals) drawCrystal(ctx, c, s.inSurge);
+    for (const t of s.tokens) drawToken(ctx, t);
     for (const r of s.rocks) drawRock(ctx, r);
+    for (const c of s.crates) drawCrate(ctx, c);
     for (const o of s.pows) drawPow(ctx, o);
     for (const m of s.mines) drawMine(ctx, m);
     for (const t of s.turrets) drawTurret(ctx, t);

@@ -163,6 +163,14 @@ test('render.js draws new-archetype foes', () => {
   assert.ok(/drawFoe/.test(src), 'has a drawFoe routine');
 });
 
+test('loot crates and tokens are rendered from atlas art', () => {
+  const render = read(`${NV}/render.js`);
+  assert.ok(/drawCrate/.test(render) && /s\.crates/.test(render), 'crates drawn');
+  assert.ok(/drawToken/.test(render) && /s\.tokens/.test(render), 'tokens drawn');
+  const spr = read(`${NV}/sprites.js`);
+  for (const k of ['lootCrate', 'lootCanister', 'coin']) assert.ok(new RegExp(k + ':\\s*\\{').test(spr), k);
+});
+
 test('big kills spawn an atlas burst-sprite explosion flash (FX polish)', () => {
   const game = read(`${NV}/game.js`);
   assert.ok(/function blast\(/.test(game), 'game has a blast() helper');
