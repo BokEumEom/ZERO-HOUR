@@ -947,7 +947,7 @@
   // two companion wingman drones, evenly spaced (deterministic — no rng)
   function spawnDrones(s) {
     for (let i = 0; i < 2; i++) {
-      s.drones.push({ angle: i * Math.PI, orbitR: 40, fireCd: 0.3 + i * 0.2, x: s.player.x, y: s.player.y });
+      s.drones.push({ angle: i * Math.PI, orbitR: 40, fireCd: 0.3 + i * 0.2, x: s.player.x, y: s.player.y, variant: i });
     }
   }
 
