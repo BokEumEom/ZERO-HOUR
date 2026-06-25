@@ -120,3 +120,13 @@
 ### `ctx.setLineDash([...])`는 호출마다 배열을 새로 할당한다
 - 텔레그래프 점선 등에서 `ctx.setLineDash([10,8])`를 프레임마다 호출하면 매번 2-요소 배열 GC. **모듈 상수로 호이스팅**(`const BEAM_DASH=[10,8]`) 후 전달. save/restore가 dash 상태를 복원하므로 리셋 불필요. (performance-analyzer가 적발 — 사소하지만 진짜 프레임당 할당.)
 - 같은 맥락: 회전 빔/광선은 `createLinearGradient`(프레임당 객체) 대신 **상수 rgba 문자열 fillRect 2~3겹**으로 글로우를 흉내내면 무할당.
+
+## 9. 헤드리스 렌더 갤러리 (시각 검증 도구)
+
+### 헤드리스에서 게임 캔버스는 `SY.nvRender()`로 직접 페인트
+- 가상시간/실시간 헤드리스 모두 rAF가 굶어 셸 루프가 게임 캔버스를 안 그림. 시각 캡처는 상태를 셋업한 뒤 **`w.SY.nvRender(canvas.getContext('2d'))`를 직접 호출** → `canvas.toDataURL()`로 PNG 추출(서버에 POST 저장). E2E 단언("not blank")으론 못 잡는 보스 형상·빔·프레임 정합을 사람이 눈으로 확인.
+### 갤러리 러너의 두 함정 (gallery.sh에서 실제로 겪음)
+- **chrome 수명:** `--virtual-time-budget` 없이 헤드리스 chrome는 스스로 종료 안 함 → 포그라운드로 띄우면 러너가 멈춤. **chrome를 백그라운드(&)로 띄우고 서버의 `/done`을 `wait`** 하거나, run.sh처럼 virtual-time-budget으로 chrome가 종료되게 할 것.
+- **로컬 서버 바인딩:** Node `server.listen(port)`(host 생략)이 WSL에서 IPv6-only로 바인딩돼 `127.0.0.1`(IPv4) 접속이 거부될 수 있음 → **`listen(port, '127.0.0.1', …)` 명시**. 또 정적 핸들러는 `readFile`를 **먼저** await하고 그 다음 `writeHead` — 404가 헤더 이중 전송(`ERR_HTTP_HEADERS_SENT`)으로 서버를 죽이는 것 방지.
+### 플레이어가 안 그려지면 무적 깜빡임을 의심
+- `drawPlayer`는 `p.inv>0 && floor(inv*12)%2===0`이면 그리기를 건너뜀(피격 깜빡임). 시각 캡처/검증에서 플레이어가 사라지면 **`s.player.inv=0`**으로 두라 — 제품 버그로 오인하기 쉬움.

@@ -68,7 +68,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File test\e2e\run.ps1   # E2E (�
 powershell -NoProfile -ExecutionPolicy Bypass -File test\run-all.ps1   # 전체 (번들 동기화 포함)
 node .claude/skills/build-standalone/build.mjs                          # 번들 재생성
 node --check js/<file>.js                                               # 빠른 구문 검사
+bash test/e2e/gallery.sh [outDir]                                       # 시각 갤러리(렌더 PNG 캡처, 게이트 아님)
 ```
+
+`gallery.sh`는 실제 게임 렌더 상태(보스 형상·엘리트 빔·미사일·루트/1UP·콕핏 프레임·hull 스킨)를
+PNG로 떠 눈으로 확인하는 **개발 도구**(pass/fail 게이트 아님). 헤드리스에서 rAF가 굶으므로
+하네스가 `SY.nvRender()`로 직접 페인트한다.
 
 ## 테스트 작성 규칙
 

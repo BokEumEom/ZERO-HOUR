@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<!-- Visual gallery harness: boots the real page, sets up representative game
+     states, paints each via SY.nvRender() (rAF is starved headless), and POSTs
+     the game-canvas PNG to gallery.mjs. A dev tool to eyeball the real render
+     (boss shape, beams, frames, pickups) — NOT a pass/fail gate. Run: gallery.sh -->
+<html><body style="margin:0;background:#000">
+<iframe id="f" style="width:1100px;height:760px;border:0"></iframe>
+<script>
+const f = document.getElementById('f');
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function boot() {
+  return new Promise((resolve) => {
+    f.addEventListener('load', async () => {
+      for (let t = 0; t < 6000; t += 50) {
+        const w = f.contentWindow, d = f.contentDocument;
+        if (w && w.SY && w.SY.nvGame && w.SY.nvRender && d && d.getElementById('game-canvas')) break;
+        await sleep(50);
+      }
+      resolve({ w: f.contentWindow, d: f.contentDocument });
+    }, { once: true });
+    f.src = '/?' + Math.random();
+  });
+}
+async function post(url, body) { try { await fetch(url, { method: 'POST', body: JSON.stringify(body) }); } catch (e) {} }
+
+(async () => { try {
+  const { w, d } = await boot();
+  if (!w || !w.SY || !w.SY.nvGame) { await post('/done', { error: 'boot failed' }); return; }
+  const g = w.SY.nvGame, SP = w.SY.nvSprites;
+  const cv = d.getElementById('game-canvas');
+  g.start('free');
+  for (let i = 0; i < 200 && g.phase !== 'playing'; i++) { if (g.state) g.state.readyT = 0.01; g.update(0.05); }
+  const s = g.state;
+  s.player.x = 480; s.player.y = 380; s.player.inv = 1; s.player.hp = 3;
+  const clear = () => { for (const k of ['crystals', 'mines', 'bullets', 'ebullets', 'foes', 'rocks', 'turrets', 'crates', 'tokens', 'drones', 'pows', 'parts', 'waves', 'floats', 'blasts']) s[k] = []; s.boss = null; s.elite = null; };
+  const foe = (kind, x, y, r) => ({ kind, x, y, vx: 0, vy: 0, r, hp: 2, maxHp: 2, flash: 0, phase: 1, aimA: 0, state: 'idle', warnT: 0, fireT: 1, t: 0 });
+  async function shot(name) { w.SY.nvRender(cv.getContext('2d')); await post('/shot', { name, dataUrl: cv.toDataURL('image/png') }); await sleep(60); }
+
+  // 1) playfield: 4 foe archetypes + crystals + crate/console + drones + cockpit frame
+  clear();
+  s.foes = [foe('hunter', 240, 180, 14), foe('charger', 720, 200, 18), foe('shield', 360, 300, 20), foe('laser', 680, 340, 16)];
+  for (let i = 0; i < 8; i++) s.crystals.push({ x: 380 + (i % 4) * 60, y: 150 + Math.floor(i / 4) * 40, vx: 0, vy: 0, r: 7, phase: i });
+  s.crates = [{ kind: 'crate', x: 540, y: 460, r: 20, hp: 4, maxHp: 4, flash: 0, phase: 1 }, { kind: 'console', x: 160, y: 460, r: 20, hp: 5, maxHp: 5, flash: 0, phase: 2 }];
+  s.drones = [{ angle: 0, orbitR: 40, fireCd: 1, x: 520, y: 380 }, { angle: Math.PI, orbitR: 40, fireCd: 1, x: 440, y: 380 }];
+  await shot('1-playfield');
+
+  // 2) boss (must render as a round Core Warden, not a square)
+  clear();
+  s.boss = { x: 480, y: 150, ty: 150, r: 46, hp: 60, maxHp: 72, t: 1, burstT: 1, aimT: 1, fireMul: 1, flash: 0, dying: 0, ringRot: 0.5 };
+  for (let i = 0; i < 6; i++) s.ebullets.push({ x: 480 + Math.cos(i) * 80, y: 150 + Math.sin(i) * 80, vx: 0, vy: 0, r: 6 });
+  await shot('2-boss');
+
+  // 3) elite Sentinel mid beam-sweep
+  clear();
+  s.elite = { x: 480, y: 170, hx: 480, hy: 170, r: 30, hp: 16, maxHp: 20, state: 'firing', t: 0.8, flash: 0, phase: 2, beamA: 1.2, beamFrom: 0.4, beamTo: 1.9, beamDir: 1 };
+  await shot('3-elite-beam');
+
+  // 4) homing missiles in flight
+  clear();
+  s.fx.MISSILE = 8;
+  s.foes = [foe('hunter', 300, 140, 14), foe('charger', 660, 160, 18)];
+  s.bullets = [{ x: 460, y: 320, vx: -200, vy: -380, life: 1, homing: true }, { x: 500, y: 330, vx: 240, vy: -360, life: 1, homing: true }, { x: 480, y: 300, vx: 0, vy: -430, life: 1, homing: true }];
+  await shot('4-missiles');
+
+  // 5) loot tiers + 1UP / MISSILE pickups + chest
+  clear();
+  s.tokens = [{ x: 360, y: 240, vx: 0, vy: 0, r: 8, phase: 1, tier: 'coin' }, { x: 420, y: 260, vx: 0, vy: 0, r: 8, phase: 2, tier: 'teal' }, { x: 480, y: 240, vx: 0, vy: 0, r: 8, phase: 3, tier: 'amber' }, { x: 540, y: 260, vx: 0, vy: 0, r: 8, phase: 4, tier: 'purple' }];
+  s.pows = [{ x: 480, y: 180, type: '1UP', r: 13, life: 9, phase: 1, vy: 0 }, { x: 360, y: 180, type: 'MISSILE', r: 12, life: 9, phase: 2, vy: 0 }];
+  s.crates = [{ kind: 'chest', x: 620, y: 420, r: 24, hp: 6, maxHp: 6, flash: 0, phase: 1 }];
+  await shot('5-loot-1up');
+
+  // 6) hull skins: render the player under each selectable hull (incl. E7 upg4)
+  for (const id of ['default', 'upg1', 'upg2', 'upg3', 'upg4']) {
+    clear(); SP.setHull(id); s.player.x = 480; s.player.y = 300; s.player.inv = 0; // inv>0 blinks the ship off
+    await shot('6-hull-' + id);
+  }
+  SP.setHull('default');
+
+  await post('/done', { ok: true });
+} catch (e) { await post('/done', { error: (e && e.message) + ' | ' + (e && e.stack) }); } })();
+</script></body></html>
