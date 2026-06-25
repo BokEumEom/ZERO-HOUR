@@ -278,6 +278,7 @@ body.portrait #neonvortex-hud {
   color: var(--c);
 }
 .fx-glyph { font-size: 11px; font-weight: 700; line-height: 1; text-shadow: 0 0 8px var(--c); }
+.fx-num { font-family: var(--font-mono, 'Space Mono', monospace); font-size: 10px; line-height: 1; opacity: 0.9; }
 .fx-bar { width: 100%; height: 3px; background: rgba(255,255,255,0.12); overflow: hidden; }
 .fx-bar > i { display: block; height: 100%; background: var(--c); box-shadow: 0 0 6px var(--c); }
 #neonvortex-hud-mode { font-size: 10px; letter-spacing: 0.12em; color: color-mix(in srgb, var(--nv-primary) 55%, transparent); }
@@ -3384,8 +3385,31 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 }
 #neonvortex-screen-pilotlog .nv-plg-entry-yield { color: var(--nv-primary-bright); }
 
+/* ── difficulty selector chips (menu, free-play only; mirrors .nv-coat-chip) ── */
+.nv-diff-row { display: flex; gap: 8px; margin: 6px 0 2px; }
+.nv-diff-chip {
+  flex: 1; padding: 8px 4px;
+  font-family: var(--nv-font-mono); font-size: 12px; font-weight: 600; line-height: 1;
+  letter-spacing: 0.08em;
+  color: color-mix(in srgb, var(--nv-on-surface-variant) 80%, transparent);
+  background: color-mix(in srgb, var(--nv-on-surface) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nv-on-surface-variant) 18%, transparent);
+  border-radius: 8px; cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+.nv-diff-chip:hover,
+.nv-diff-chip:focus-visible {
+  border-color: color-mix(in srgb, var(--nv-primary) 30%, transparent);
+}
+.nv-diff-chip.is-active {
+  color: var(--nv-primary);
+  background: color-mix(in srgb, var(--nv-primary) 8%, transparent);
+  border-color: color-mix(in srgb, var(--nv-primary) 50%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--nv-primary) 18%, transparent);
+}
+
 </style>
-<link rel="preload" as="image" href="assets/illustrations/ship_assets.png">
+<link rel="preload" as="image" href="assets/sprite-atlas.png?v=3">
 </head>
 <body>
   <template id="__bundler_thumbnail" data-bg-color="#04090f">
@@ -3456,6 +3480,11 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
               <svg class="nv-mi-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="9" rx="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7 12.5h3M8.5 11v3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="15.5" cy="11.5" r="1.1" fill="currentColor"/><circle cx="17.6" cy="13.6" r="1.1" fill="currentColor"/></svg>
               <span class="nv-mi-sub">무작위 시드 아레나</span>
             </button>
+            <div id="neonvortex-menu-difficulty" class="nv-diff-row" role="group" aria-label="Free-play difficulty">
+              <button id="neonvortex-diff-easy" class="nv-diff-chip" type="button" aria-pressed="false">EASY</button>
+              <button id="neonvortex-diff-normal" class="nv-diff-chip" type="button" aria-pressed="false">NORMAL</button>
+              <button id="neonvortex-diff-hard" class="nv-diff-chip" type="button" aria-pressed="false">HARD</button>
+            </div>
             <button id="neonvortex-btn-daily" class="nv-mi-brief" type="button">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4.5 13H11l-1 9 8.5-11H12l1-9z" fill="currentColor"/></svg>
               <span>오늘의 챌린지 브리핑</span>
@@ -3877,6 +3906,13 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         // lighter than loadAll() for the hub card scent: one read, best only
         async loadBest() { return (await kvGet(k('best_all'))) || null; },
         saveBestAll(rec) { return kvSet(k('best_all'), rec); },
+        // per-difficulty all-time best (free-play). daily stays Normal (Phase 1).
+        saveBestFor(diff, rec) { return kvSet(k('best_' + diff), rec); },
+        async loadBestFor(diff) { return (await kvGet(k('best_' + diff))) || null; },
+        async loadBests(diffs = ['easy', 'normal', 'hard']) {
+          const vals = await Promise.all(diffs.map((d) => kvGet(k('best_' + d))));
+          return Object.fromEntries(diffs.map((d, i) => [d, vals[i] || null]));
+        },
         saveDaily(date, rec) { return kvSet(k('daily_' + date), rec); },
         async loadRecentDailies(n) {
           const dates = [];
@@ -3920,6 +3956,16 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         const v = await kvGet('daily_' + d);
         if (v !== undefined) await kvSet(id + ':daily_' + d, v);
       }
+    },
+    // One-time: copy a player's legacy single best (best_all) into best_normal so
+    // the pre-difficulty personal best is attributed to Normal. Idempotent: skips
+    // if best_normal already exists.
+    async migrateBest(id) {
+      const k = (s) => id + ':' + s;
+      if ((await kvGet(k('best_normal'))) !== undefined) return;
+      const legacy = await kvGet(k('best_all'));
+      if (legacy === undefined) return;
+      await kvSet(k('best_normal'), legacy);
     },
   };
 })();
@@ -4108,6 +4154,23 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   const stage = $('stage');
   const canvas = $('game-canvas');
   const ctx = canvas.getContext('2d');
+
+  // High-DPR backing store: keep the logical coordinate space at SW×SH (game +
+  // render code never change), but back it with devicePixelRatio physical pixels
+  // so the CSS-scaled stage doesn't upsample a low-res canvas (blur on phones).
+  // Re-applied on resize; only reallocates when the dpr-scaled size actually
+  // changes (reassigning canvas.width clears it, so guard the assignment).
+  function applyResolution() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 3); // cap at 3× (perf)
+    if (canvas.width !== SW * dpr) {
+      canvas.width = SW * dpr;
+      canvas.height = SH * dpr;
+      canvas.style.width = SW + 'px';
+      canvas.style.height = SH + 'px';
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // logical 960×600 → physical backing store
+  }
+
   let lastT = 0;
   function loop(t) {
     const dt = Math.min(1 / 30, (t - lastT) / 1000 || 0.016);
@@ -4120,6 +4183,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // ---------- responsive layout (only the stage scales) — ADR-0006 ----------
   const hudEl = $('neonvortex-hud');
   function fit() {
+    applyResolution();
     const vv = window.visualViewport;
     const vw = vv ? vv.width : window.innerWidth;
     const vh = vv ? vv.height : window.innerHeight;
@@ -4174,8 +4238,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 </script>
   <script>
 // --- inlined: js/games/neonvortex/sprites.js ---
-// Neon Vortex — sprite atlas for the ship_assets.png sheet
-// (assets/illustrations/ship_assets.png — a labeled, sectioned sprite kit).
+// Neon Vortex — sprite atlas for the sprite-atlas.png sheet
+// (assets/sprite-atlas.png — a labeled, sectioned sprite kit).
 // Rects were extracted by a connected-component sweep of the sheet's black
 // background, then hand-verified against per-sprite crops. Drawing uses the
 // 9-arg drawImage crop (no per-frame allocation) so it is safe on the 60fps
@@ -4190,7 +4254,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // the standalone data-URI atlas, where onload may not have run yet)
   const decoded = () => ready || (sheet.complete && sheet.naturalWidth > 0);
   // relative path works both from index.html and the generated standalone.html
-  sheet.src = 'assets/illustrations/ship_assets.png';
+  sheet.src = 'assets/sprite-atlas.png?v=3';
 
   // { x, y, w, h } source rects in the 1448×1086 sheet.
   const A = {
@@ -4199,13 +4263,49 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     enemyBig:    { x: 900,  y: 32,  w: 112, h: 108 }, // red turret-drone (rock)
     enemyMid:    { x: 1022, y: 48,  w: 90,  h: 76  },
     enemySmall:  { x: 1124, y: 62,  w: 68,  h: 60  }, // round red orb-eye (mine)
-    crystalTeal: { x: 216,  y: 734, w: 40,  h: 64  }, // collectible crystal
-    crystalAmber:{ x: 400,  y: 730, w: 46,  h: 64  }, // power-up capsule
+    crystalTeal: { x: 216,  y: 734, w: 40,  h: 64  }, // collectible crystal (normal)
+    crystalAmber:{ x: 400,  y: 730, w: 46,  h: 64  }, // amber gem — surge (HEAT) crystals
+    crystalBoss: { x: 758,  y: 701, w: 46,  h: 89  }, // purple prize gem — boss-kill drops
     bulletTeal:  { x: 872,  y: 270, w: 42,  h: 120 }, // player shot (cyan energy bolt)
     bulletPink:  { x: 964,  y: 274, w: 50,  h: 114 }, // enemy/boss shot (red missile)
     beam:        { x: 1152, y: 274, w: 52,  h: 114 }, // boss beam column
     burst:       { x: 1224, y: 278, w: 98,  h: 90  }, // destruction explosion
-    shieldDome:  { x: 1050, y: 826, w: 142, h: 142 }, // shielded-ship dome
+    shielded:    { x: 1050, y: 826, w: 142, h: 142 }, // SHIELDED frame (hull + hex bubble)
+    boosted:     { x: 907,  y: 827, w: 109, h: 133 }, // BOOSTED frame (large triple flames)
+    damaged:     { x: 1209, y: 833, w: 122, h: 126 }, // DAMAGED frame (cracks + sparks)
+    // dedicated art for the new foe archetypes (used by render.drawFoe). Each
+    // keeps its native colour for maximum visual distinction (red/teal/purple/cyan).
+    foeHunter:   { x: 1228, y: 36,  w: 88,  h: 92  }, // red hex orb-drone (relentless chaser)
+    foeCharger:  { x: 606,  y: 832, w: 85,  h: 68  }, // teal chevron interceptor (dasher)
+    foeShield:   { x: 1344, y: 709, w: 68,  h: 47  }, // purple hex pod (front-armoured)
+    foeLaser:    { x: 756,  y: 405, w: 131, h: 83  }, // cyan emitter ring (beam source)
+    // selectable alternate hulls (hangar skins) — the atlas "UPGRADED I/II/III"
+    // ship variants. Cosmetic only; used as the player sprite for every state.
+    hullUpg1:    { x: 150,  y: 828, w: 120, h: 100 },
+    hullUpg2:    { x: 292,  y: 828, w: 118, h: 100 },
+    hullUpg3:    { x: 432,  y: 828, w: 122, h: 100 },
+    // loot economy (E1): destructible containers + reward tokens
+    lootCrate:   { x: 372,  y: 266, w: 98,  h: 78  }, // locked loot crate
+    lootCanister:{ x: 498,  y: 278, w: 94,  h: 90  }, // canister/module crate
+    coin:        { x: 884,  y: 709, w: 60,  h: 56  }, // gold reward coin
+    lootChest:   { x: 1258, y: 697, w: 94,  h: 64  }, // rare treasure chest (jackpot)
+    drone:       { x: 1215, y: 1019, w: 44, h: 38 }, // companion wingman drone
+    portal:      { x: 36,   y: 271, w: 75,  h: 103 }, // spawn portal ring (world object)
+    lootConsole: { x: 206,  y: 286, w: 96,  h: 74  }, // console objective — drops a power-up
+    eliteCore:   { x: 1097, y: 532, w: 89,  h: 101 }, // elite sentinel — hex armored core (beam emitter)
+  };
+
+  // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
+  // Keyed by SY.nvGame power-up type. Tinted per POWER_META color at draw time.
+  const POWER_ICONS = {
+    MAGNET: { x: 228, y: 23, w: 66, h: 87 }, // horseshoe-U magnet badge
+    SHIELD: { x: 88,  y: 16, w: 66, h: 94 }, // shield badge
+    BOOST:  { x: 158, y: 16, w: 66, h: 94 }, // lightning-bolt badge
+    SPREAD: { x: 298, y: 23, w: 66, h: 87 }, // double-chevron badge
+    X2:     { x: 369, y: 23, w: 66, h: 87 }, // burst/star badge
+    SLOW:   { x: 509, y: 24, w: 66, h: 86 }, // orbit-ring badge
+    TIME:   { x: 19,  y: 16, w: 65, h: 94 }, // plus badge (+5 sec)
+    DRONE:  { x: 1215, y: 1019, w: 44, h: 38 }, // companion drone (also the entity sprite)
   };
 
   // ---- hull coatings (cosmetic paint) -------------------------------------
@@ -4224,23 +4324,27 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // when this cache was built; if not, rebuild once the atlas decodes).
   const playerCache = {};
 
-  // Build (once) a native-size offscreen canvas of the player sprite re-tinted
+  // hull-family frame keys: these get the cosmetic paint-coating treatment.
+  const HULL_FRAMES = new Set(['player', 'boosted', 'damaged', 'shielded']);
+
+  // Build (once) a native-size offscreen canvas of frame `frameKey` re-tinted
   // for `id`. Returns the canvas, or null for `neon` / before the atlas decodes.
-  function playerCanvas(id) {
+  // Cache is nested (playerCache[frameKey][id]) so hot-path hits allocate nothing.
+  function playerCanvas(frameKey, id) {
     const def = PAINTS[id];
     if (!def) return null;            // neon (or unknown) -> atlas sprite
-    const cached = playerCache[id];
+    let byFrame = playerCache[frameKey];
+    const cached = byFrame && byFrame[id];
     if (cached && cached.builtReady) return cached.canvas; // already good
     if (!decoded()) return null;      // can't build yet — fall back to atlas
-    const r = A.player;
+    const r = A[frameKey];
     const c = (cached && cached.canvas) || document.createElement('canvas');
     c.width = r.w;
     c.height = r.h;
     const cx = c.getContext('2d');
     cx.clearRect(0, 0, r.w, r.h);
-    // 1) the base sprite, 2) a translucent tint clipped to the sprite's pixels
-    // (source-atop keeps the existing alpha/shading), 3) a multiply shade pass
-    // to deepen the color so it reads clearly as the coating.
+    // 1) base sprite, 2) translucent tint clipped to sprite pixels, 3) multiply
+    // shade, 4) re-mask to the sprite's alpha.
     cx.drawImage(sheet, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
     cx.globalCompositeOperation = 'source-atop';
     cx.fillStyle = def.tint;
@@ -4248,10 +4352,13 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     cx.globalCompositeOperation = 'multiply';
     cx.fillStyle = def.shade;
     cx.fillRect(0, 0, r.w, r.h);
-    cx.globalCompositeOperation = 'destination-in'; // re-mask to sprite alpha
+    cx.globalCompositeOperation = 'destination-in';
     cx.drawImage(sheet, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
     cx.globalCompositeOperation = 'source-over';
-    playerCache[id] = { canvas: c, builtReady: true };
+    // intentional mutation: playerCache is a build-once singleton cache; making
+    // it immutable would re-allocate the cache structure on the hot path.
+    if (!byFrame) byFrame = playerCache[frameKey] = {};
+    byFrame[id] = { canvas: c, builtReady: true };
     return c;
   }
 
@@ -4259,9 +4366,22 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // the first in-game frame never pays the build cost.
   function setPaint(id) {
     paint = PAINTS[id] !== undefined ? id : 'neon';
-    if (paint !== 'neon') playerCanvas(paint); // warm the cache (no-op if !ready)
+    // warm every hull frame's tinted cache so no in-game state transition pays
+    // the first-build cost (no-op until the atlas decodes).
+    if (paint !== 'neon') HULL_FRAMES.forEach((frameKey) => playerCanvas(frameKey, paint));
   }
   function getPaint() { return paint; }
+
+  // ---- alternate hull skins (cosmetic) ---------------------------------------
+  // A hull skin replaces the player sprite with an atlas ship variant for ALL
+  // states (the default hull keeps its baked shielded/boosted/damaged frames).
+  // Display-only: never touches the sim, hitboxes, RNG, or the daily seed.
+  const HULL_SKINS = { upg1: 'hullUpg1', upg2: 'hullUpg2', upg3: 'hullUpg3' };
+  let hull = 'default';
+  function setHull(id) { hull = HULL_SKINS[id] ? id : 'default'; }
+  function getHull() { return hull; }
+  // the atlas key to draw for the active hull, or null to use the default frames
+  function activeHullKey() { return hull === 'default' ? null : HULL_SKINS[hull]; }
 
   // Blit the player sprite (current coating) into an arbitrary dest rect — used
   // by the HANGAR preview canvas, which fits the hull without rotation. Honors
@@ -4269,7 +4389,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   function drawPlayer(ctx, dx, dy, dw, dh) {
     if (!decoded()) return false;
     const r = A.player;
-    const tinted = playerCanvas(paint);
+    const tinted = playerCanvas('player', paint);
     if (tinted) ctx.drawImage(tinted, dx, dy, dw, dh);
     else ctx.drawImage(sheet, r.x, r.y, r.w, r.h, dx, dy, dw, dh);
     return true;
@@ -4281,12 +4401,12 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // non-neon coating, blits the CACHED tinted canvas (built once, never rebuilt
   // per frame) instead of the atlas — same scale/rotate math.
   function draw(ctx, key, x, y, size, rot) {
-    if (!ready) return false;
+    if (!decoded()) return false;
     const r = A[key];
     if (!r) return false;
     const sc = size / Math.max(r.w, r.h);
     const dw = r.w * sc, dh = r.h * sc;
-    const tinted = key === 'player' ? playerCanvas(paint) : null;
+    const tinted = HULL_FRAMES.has(key) ? playerCanvas(key, paint) : null;
     if (rot) {
       ctx.save();
       ctx.translate(x, y);
@@ -4305,9 +4425,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // Draw the player sprite stretched to an explicit width/height (the hull is
   // taller than wide), centred at (x,y), pointing up; optional rotation.
   function drawFit(ctx, key, x, y, w, h, rot) {
-    if (!ready) return false;
+    if (!decoded()) return false;
     const r = A[key];
     if (!r) return false;
+    // note: drawFit blits the raw atlas (no paint tint) — not for hull frames.
     if (rot) {
       ctx.save();
       ctx.translate(x, y);
@@ -4320,7 +4441,68 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     return true;
   }
 
-  SY.nvSprites = { draw, drawFit, drawPlayer, setPaint, getPaint, atlas: A, isReady: () => ready, image: sheet };
+  // ---- power-up pickup icons -------------------------------------------------
+  // Each badge is tinted to its power-up's color once per (type,color) and
+  // cached (nested object key — no per-frame string allocation on the hot path).
+  const iconCache = {}; // iconCache[type][color] -> { canvas, builtReady }
+  function powerIconCanvas(type, color) {
+    const r = POWER_ICONS[type];
+    if (!r) return null;
+    let byType = iconCache[type];
+    const cached = byType && byType[color];
+    if (cached && cached.builtReady) return cached.canvas; // cache hit first
+    if (!decoded()) return null;                            // then atlas guard
+    const c = (cached && cached.canvas) || document.createElement('canvas');
+    c.width = r.w;
+    c.height = r.h;
+    const cx = c.getContext('2d');
+    cx.clearRect(0, 0, r.w, r.h);
+    cx.drawImage(sheet, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+    // single translucent recolor pass (no multiply shade — keeps small icons crisp)
+    cx.globalCompositeOperation = 'source-atop';
+    cx.globalAlpha = 0.55;
+    cx.fillStyle = color;
+    cx.fillRect(0, 0, r.w, r.h);
+    cx.globalAlpha = 1;
+    cx.globalCompositeOperation = 'source-over';
+    if (!byType) byType = iconCache[type] = {};
+    byType[color] = { canvas: c, builtReady: true };
+    return c;
+  }
+
+  // Draw power-up `type` centred at (x,y), longest edge = `size`, tinted to
+  // `color`. Returns false until the atlas decodes (caller falls back to vector).
+  function drawPowerIcon(ctx, type, x, y, size, rot, color) {
+    const r = POWER_ICONS[type];
+    if (!r) return false;
+    const img = powerIconCanvas(type, color);
+    if (!img) return false;
+    const sc = size / Math.max(r.w, r.h);
+    const dw = r.w * sc, dh = r.h * sc;
+    if (rot) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rot);
+      ctx.drawImage(img, -dw / 2, -dh / 2, dw, dh);
+      ctx.restore();
+    } else {
+      ctx.drawImage(img, x - dw / 2, y - dh / 2, dw, dh);
+    }
+    return true;
+  }
+
+  // Pure: choose the hull frame for the current player state. Cosmetic only —
+  // reads no RNG and mutates nothing. `st` is a non-null { shield, hp, boost }
+  // object (caller's responsibility). Priority: the shield bubble hides the
+  // hull (wins), then low-hull danger reads over boost flair, else default.
+  function pickHullFrame(st) {
+    if (st.shield) return 'shielded';
+    if (st.hp <= 1) return 'damaged';
+    if (st.boost > 0) return 'boosted';
+    return 'player';
+  }
+
+  SY.nvSprites = { draw, drawFit, drawPlayer, drawPowerIcon, setPaint, getPaint, setHull, getHull, activeHullKey, pickHullFrame, atlas: A, powerIcons: POWER_ICONS, isReady: () => ready, image: sheet };
 })();
 
 </script>
@@ -4352,6 +4534,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     return {
       score: (p.score || 0) + (Number(run.score) || 0),
       crystals: (p.crystals || 0) + (Number(run.crystals) || 0),
+      credits: (p.credits || 0) + (Number(run.credits) || 0),
       runs: (p.runs || 0) + 1,
     };
   }
@@ -4407,13 +4590,322 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 
 </script>
   <script>
+// --- inlined: js/games/neonvortex/foes.js ---
+// Neon Vortex — new enemy archetypes (Hunter/Charger now; Shield/Laser in Phase 2).
+// Pure simulation on the shared state `s`. Rendering lives in render.js. All
+// gameplay randomness uses s.rng() (daily fairness); Math.random() is cosmetic-only.
+(function () {
+  const SY = (window.SY = window.SY || {});
+  const W = 960, H = 600;
+
+  function dist2(a, b) { const dx = a.x - b.x, dy = a.y - b.y; return dx * dx + dy * dy; }
+
+  // seeded edge spawn point
+  function edgePoint(s) {
+    const edge = Math.floor(s.rng() * 4);
+    if (edge === 0) return { x: s.rng() * W, y: -24 };
+    if (edge === 1) return { x: W + 24, y: s.rng() * H };
+    if (edge === 2) return { x: s.rng() * W, y: H + 24 };
+    return { x: -24, y: s.rng() * H };
+  }
+
+  function count(s, kind) { let n = 0; for (const f of s.foes) if (f.kind === kind) n++; return n; }
+
+  function spawnHunter(s) {
+    const p = edgePoint(s);
+    s.foes.push({ kind: 'hunter', x: p.x, y: p.y, vx: 0, vy: 0, r: 14, hp: 2, maxHp: 2, flash: 0, phase: s.rng() * 6 });
+  }
+  function spawnCharger(s) {
+    const p = edgePoint(s);
+    s.foes.push({
+      kind: 'charger', x: p.x, y: p.y, vx: 0, vy: 0, r: 18, hp: 2, maxHp: 2, flash: 0, phase: s.rng() * 6,
+      state: 'hover', stateT: 1.0, dirX: 0, dirY: 0,
+    });
+  }
+
+  function spawnShield(s) {
+    const x = 120 + s.rng() * (W - 240), y = 90 + s.rng() * (H - 220);
+    s.foes.push({
+      kind: 'shield', x, y, r: 20, hp: 4, maxHp: 4, flash: 0, phase: s.rng() * 6,
+      driftA: s.rng() * Math.PI * 2, aimA: s.rng() * Math.PI * 2,
+    });
+  }
+  function spawnLaser(s) {
+    const p = edgePoint(s); // edge-anchored emitter
+    const x = Math.max(40, Math.min(W - 40, p.x)), y = Math.max(40, Math.min(H - 40, p.y));
+    s.foes.push({
+      kind: 'laser', x, y, r: 16, hp: 3, maxHp: 3, flash: 0, phase: s.rng() * 6,
+      state: 'warn', stateT: 1.0, life: 11, bx: x, by: y,
+    });
+  }
+
+  function initTimers(s) {
+    s.foeSpawnT = { hunter: 2.5 + s.rng() * 2, charger: 4 + s.rng() * 2, shield: 6 + s.rng() * 3, laser: 8 + s.rng() * 3 };
+  }
+
+  // spawn pass (gated by s.diff.foes caps), then per-kind sim
+  function update(s, dt, slowMul, api) {
+    const gate = s.diff.foes;
+    if (!gate) return;
+    if (gate.hunter) {
+      s.foeSpawnT.hunter -= dt;
+      if (s.foeSpawnT.hunter <= 0) {
+        s.foeSpawnT.hunter = (3.5 + s.rng() * 2.5) / s.diff.spawnMul;
+        if (count(s, 'hunter') < gate.hunter) spawnHunter(s);
+      }
+    }
+    if (gate.charger) {
+      s.foeSpawnT.charger -= dt;
+      if (s.foeSpawnT.charger <= 0) {
+        s.foeSpawnT.charger = (5 + s.rng() * 3) / s.diff.spawnMul;
+        if (count(s, 'charger') < gate.charger) spawnCharger(s);
+      }
+    }
+    if (gate.shield) {
+      s.foeSpawnT.shield -= dt;
+      if (s.foeSpawnT.shield <= 0) {
+        s.foeSpawnT.shield = (9 + s.rng() * 4) / s.diff.spawnMul;
+        if (count(s, 'shield') < gate.shield) spawnShield(s);
+      }
+    }
+    if (gate.laser) {
+      s.foeSpawnT.laser -= dt;
+      if (s.foeSpawnT.laser <= 0) {
+        s.foeSpawnT.laser = (10 + s.rng() * 5) / s.diff.spawnMul;
+        if (count(s, 'laser') < gate.laser) spawnLaser(s);
+      }
+    }
+    stepFoes(s, dt, slowMul, api);
+  }
+
+  function stepFoes(s, dt, slowMul, api) {
+    const p = s.player;
+    for (let i = s.foes.length - 1; i >= 0; i--) {
+      const f = s.foes[i];
+      f.phase += dt * 3;
+      if (f.flash > 0) f.flash -= dt;
+
+      if (f.kind === 'hunter') {
+        const d = Math.sqrt(dist2(f, p)) || 1;
+        const spd = (95 + s.t * 1.3) * s.diff.mineSpeedMul;
+        f.x += ((p.x - f.x) / d) * spd * slowMul * dt;
+        f.y += ((p.y - f.y) / d) * spd * slowMul * dt;
+        if (dist2(f, p) < (f.r + p.r) * (f.r + p.r)) {
+          s.foes.splice(i, 1);
+          api.burst(s, f.x, f.y, '#ff5a78', 14, 200, 3);
+          api.hurtPlayer(s, f.x, f.y);
+        }
+        continue;
+      }
+
+      if (f.kind === 'charger') {
+        f.stateT -= dt * slowMul;
+        if (f.state === 'hover') {
+          if (f.stateT <= 0) { f.state = 'lock'; f.stateT = 0.8; }
+        } else if (f.state === 'lock') {
+          const d = Math.sqrt(dist2(p, f)) || 1; // re-aim each frame; frozen on dash entry
+          f.dirX = (p.x - f.x) / d; f.dirY = (p.y - f.y) / d;
+          if (f.stateT <= 0) { f.state = 'dash'; f.stateT = 1.0; }
+        } else if (f.state === 'dash') {
+          f.x += f.dirX * 520 * slowMul * dt;
+          f.y += f.dirY * 520 * slowMul * dt;
+          if (dist2(f, p) < (f.r + p.r) * (f.r + p.r)) api.hurtPlayer(s, f.x, f.y);
+          if (f.stateT <= 0 || f.x < -40 || f.x > W + 40 || f.y < -40 || f.y > H + 40) {
+            f.state = 'recover'; f.stateT = 0.8;
+          }
+        } else { // recover
+          if (f.stateT <= 0) {
+            if (f.x < -30 || f.x > W + 30 || f.y < -30 || f.y > H + 30) { s.foes.splice(i, 1); continue; }
+            f.state = 'lock'; f.stateT = 0.8;
+          }
+        }
+        continue;
+      }
+
+      if (f.kind === 'shield') {
+        const spd = 26 * s.diff.mineSpeedMul; // slow drift, bounce off inner bounds
+        f.x += Math.cos(f.driftA) * spd * slowMul * dt;
+        f.y += Math.sin(f.driftA) * spd * slowMul * dt;
+        if (f.x < 40 || f.x > W - 40) { f.driftA = Math.PI - f.driftA; f.x = Math.max(40, Math.min(W - 40, f.x)); }
+        if (f.y < 60 || f.y > H - 60) { f.driftA = -f.driftA; f.y = Math.max(60, Math.min(H - 60, f.y)); }
+        // rotate the shield to face the player (shortest direction)
+        const want = Math.atan2(p.y - f.y, p.x - f.x);
+        let d = want - f.aimA; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
+        const step = 2.2 * dt; f.aimA += Math.max(-step, Math.min(step, d));
+        if (dist2(f, p) < (f.r + p.r) * (f.r + p.r)) api.hurtPlayer(s, f.x, f.y);
+        continue;
+      }
+
+      if (f.kind === 'laser') {
+        f.life -= dt;
+        f.stateT -= dt * slowMul;
+        if (f.state === 'warn') {
+          if (f.stateT >= 0.98) { f.bx = p.x; f.by = p.y; } // lock the beam target at warn entry
+          if (f.stateT <= 0) { f.state = 'fire'; f.stateT = 1.2; }
+        } else if (f.state === 'fire') {
+          // point->segment distance from player to the beam line (emitter -> locked target)
+          const ex = f.x, ey = f.y, dx = f.bx - ex, dy = f.by - ey;
+          const len2 = dx * dx + dy * dy || 1;
+          let t = ((p.x - ex) * dx + (p.y - ey) * dy) / len2;
+          t = Math.max(0, Math.min(1.4, t)); // allow the beam to overshoot past the locked point
+          const cx = ex + dx * t, cy = ey + dy * t;
+          if ((p.x - cx) * (p.x - cx) + (p.y - cy) * (p.y - cy) < (p.r + 6) * (p.r + 6)) api.hurtPlayer(s, p.x, p.y);
+          if (f.stateT <= 0) { f.state = 'cool'; f.stateT = 1.6; }
+        } else { // cool
+          if (f.stateT <= 0) { f.state = 'warn'; f.stateT = 1.0; }
+        }
+        if (f.life <= 0) { s.foes.splice(i, 1); continue; }
+        continue;
+      }
+    }
+  }
+
+  // bullet geometry. Shield deflects bullets that strike its front arc.
+  const SHIELD_ARC = 1.05; // half-angle (~60deg) of the deflecting front
+  function angDiff(a, b) { let d = a - b; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; return Math.abs(d); }
+  function bulletHit(foe, b) {
+    if (dist2(foe, b) >= (foe.r + 4) * (foe.r + 4)) return 'miss';
+    if (foe.kind === 'shield') {
+      const toB = Math.atan2(b.y - foe.y, b.x - foe.x); // side the bullet is on
+      if (angDiff(toB, foe.aimA) < SHIELD_ARC) return 'blocked'; // struck the shielded front
+    }
+    return 'hit';
+  }
+
+  // apply damage; on death award score (+ drops) and remove. Returns true if killed.
+  const FOE_SCORE = { hunter: 30, charger: 35, shield: 50, laser: 40 };
+  function damage(s, foe, dmg, api) {
+    foe.hp -= dmg; foe.flash = 0.07;
+    if (foe.hp > 0) return false;
+    const idx = s.foes.indexOf(foe);
+    if (idx >= 0) s.foes.splice(idx, 1);
+    api.addScore(s, FOE_SCORE[foe.kind] || 30, foe.x, foe.y, undefined, 'destroy');
+    api.burst(s, foe.x, foe.y, '#ff9a5a', 16, 230, 3);
+    api.wave(s, foe.x, foe.y, 52, '#ff9a5a');
+    if (api.blast) api.blast(s, foe.x, foe.y, 58);
+    if (foe.kind === 'shield') api.dropCrystals(s, foe.x, foe.y, 3);
+    else if (foe.kind === 'laser') api.dropCrystals(s, foe.x, foe.y, 2);
+    return true;
+  }
+
+  SY.nvFoes = { initTimers, update, bulletHit, damage };
+})();
+
+</script>
+  <script>
+// --- inlined: js/games/neonvortex/elite.js ---
+// Neon Vortex — elite "Sentinel" mini-boss (beam-sweep). Pure simulation on the
+// shared state `s`; rendering lives in render.js. Spawn position + beam sweep
+// direction use s.rng() (daily fairness); aim tracks the player like the boss
+// (reactive, fair). Math.random() is never used here.
+(function () {
+  const SY = (window.SY = window.SY || {});
+  const W = 960, H = 600;
+  const HP = 20, R = 30;
+  const BEAM_LEN = 760, BEAM_HALF = 14;
+  const T_TELE = 1.0, T_FIRE = 1.4, T_COOL = 2.0, SWEEP = Math.PI * 2 / 3; // 120°
+
+  function edgePoint(s) {
+    const edge = Math.floor(s.rng() * 4);
+    if (edge === 0) return { x: s.rng() * W, y: -30 };
+    if (edge === 1) return { x: W + 30, y: s.rng() * H };
+    if (edge === 2) return { x: s.rng() * W, y: H + 30 };
+    return { x: -30, y: s.rng() * H };
+  }
+
+  function spawn(s) {
+    const ep = edgePoint(s);
+    const hx = 220 + s.rng() * (W - 440);   // seeded hover anchor
+    const hy = 130 + s.rng() * 150;          // upper-mid band
+    s.elite = {
+      x: ep.x, y: ep.y, hx, hy, r: R, hp: HP, maxHp: HP,
+      state: 'enter', t: 0, flash: 0, phase: s.rng() * 6,
+      beamA: 0, beamFrom: 0, beamTo: 0, beamDir: 1,
+    };
+    s.shake = Math.max(s.shake, 6);
+    SY.audio.bossSpawn();
+  }
+
+  function startTelegraph(s, e) {
+    e.state = 'telegraph'; e.t = T_TELE;
+    const p = s.player;
+    const aim = Math.atan2(p.y - e.y, p.x - e.x); // reactive aim (fair, like boss)
+    e.beamDir = s.rng() < 0.5 ? 1 : -1;
+    e.beamFrom = aim - e.beamDir * SWEEP / 2;
+    e.beamTo = aim + e.beamDir * SWEEP / 2;
+    e.beamA = e.beamFrom;
+  }
+
+  function hitPlayerByBeam(s, e, api) {
+    const p = s.player;
+    const dx = Math.cos(e.beamA), dy = Math.sin(e.beamA);
+    const rx = p.x - e.x, ry = p.y - e.y;
+    const proj = rx * dx + ry * dy;            // along the ray
+    if (proj < 0 || proj > BEAM_LEN) return;
+    const perp = Math.abs(rx * dy - ry * dx);  // perpendicular distance
+    if (perp < BEAM_HALF + p.r) api.hurtPlayer(s, p.x, p.y);
+  }
+
+  function update(s, dt, slowMul, api) {
+    const e = s.elite; if (!e) return;
+    e.phase += dt * 3; if (e.flash > 0) e.flash -= dt;
+    if (e.state === 'enter') {
+      e.x += (e.hx - e.x) * Math.min(1, dt * 2.2);
+      e.y += (e.hy - e.y) * Math.min(1, dt * 2.2);
+      if (Math.abs(e.x - e.hx) < 4 && Math.abs(e.y - e.hy) < 4) startTelegraph(s, e);
+      return;
+    }
+    e.x = e.hx + Math.sin(e.phase * 0.5) * 26; // gentle hover
+    e.t -= dt * slowMul;
+    if (e.state === 'telegraph') {
+      if (e.t <= 0) { e.state = 'firing'; e.t = T_FIRE; e.beamA = e.beamFrom; SY.audio.shoot(); }
+    } else if (e.state === 'firing') {
+      const k = 1 - Math.max(0, e.t) / T_FIRE; // 0..1 sweep progress
+      e.beamA = e.beamFrom + (e.beamTo - e.beamFrom) * k;
+      hitPlayerByBeam(s, e, api);
+      if (e.t <= 0) { e.state = 'cooldown'; e.t = T_COOL; }
+    } else { // cooldown
+      if (e.t <= 0) startTelegraph(s, e);
+    }
+  }
+
+  // bullet collision + damage + death reward. Returns true if the bullet hit.
+  function bulletHit(s, b, api) {
+    const e = s.elite; if (!e || e.state === 'enter') return false;
+    const dx = e.x - b.x, dy = e.y - b.y;
+    if (dx * dx + dy * dy > (e.r + 4) * (e.r + 4)) return false;
+    e.hp -= 1; e.flash = 0.08;
+    api.burst(s, b.x, b.y, '#ff7ad1', 4, 120, 2);
+    SY.audio.bossHit();
+    if (e.hp <= 0) die(s, e, api);
+    return true;
+  }
+
+  function die(s, e, api) {
+    s.elite = null;
+    api.addScore(s, 250, e.x, e.y, 'SENTINEL', 'destroy');
+    api.blast(s, e.x, e.y, 150);
+    api.wave(s, e.x, e.y, 180, '#ff7ad1');
+    api.burst(s, e.x, e.y, '#ff7ad1', 40, 320, 3.5);
+    api.spawnPow(s, e.x, e.y);            // guaranteed power-up
+    api.spawnLoot(s, e.x, e.y, 'chest');  // jackpot loot burst (reuses E1)
+    s.freeze = Math.max(s.freeze, 0.2);
+    s.shake = Math.max(s.shake, 12);
+    SY.audio.bossDown();
+  }
+
+  SY.nvElite = { spawn, update, bulletHit, HP };
+})();
+
+</script>
+  <script>
 // --- inlined: js/games/neonvortex/game.js ---
 // Neon Vortex — core game engine (state + simulation). Rendering lives in render.js.
 (function () {
   const SY = (window.SY = window.SY || {});
 
   const W = 960, H = 600;
-  const POWER_TYPES = ['MAGNET', 'SHIELD', 'SLOW', 'X2', 'BOOST', 'SPREAD', 'TIME'];
+  const POWER_TYPES = ['MAGNET', 'SHIELD', 'SLOW', 'X2', 'BOOST', 'SPREAD', 'TIME', 'DRONE'];
 
   const POWER_META = {
     MAGNET: { glyph: 'M',  color: '#2de2c6', label: 'MAGNET' },
@@ -4423,7 +4915,13 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     BOOST:  { glyph: '»',  color: '#7dff8a', label: 'BOOST' },
     SPREAD: { glyph: 'Ψ',  color: '#ff9a5a', label: 'SPREAD' },
     TIME:   { glyph: '+5', color: '#eaf6ff', label: '+5 SEC' },
+    DRONE:  { glyph: 'D',  color: '#5ad1ff', label: 'WINGMAN' },
   };
+
+  // power-up active durations (seconds). Single source of truth — main.js reads
+  // these via G.POWER_DURATION for the HUD timer bar/countdown. SHIELD is
+  // consumable and TIME is instant, so neither has a duration here.
+  const POWER_DURATION = { MAGNET: 9, SLOW: 6, X2: 9, BOOST: 8, SPREAD: 9, DRONE: 9 };
 
   // ---- surge director tuning ----
   const SURGE_WARMUP = 8;     // calm intro before the first surge (s)
@@ -4435,6 +4933,16 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // ---- HEAT multiplier tuning (checked high → low) ----
   const HEAT_X2_CAP = 4;      // ceiling on combined X2 × HEAT multiplier
   const HEAT_TIERS = [ { at: 26, mul: 2 }, { at: 14, mul: 1.5 }, { at: 6, mul: 1.25 } ];
+
+  // ---- difficulty tiers (fixed knobs; daily is always 'normal') ----
+  // turretCap/turretFire are inert until Phase 2 (turret enemy).
+  // *Mul knobs multiply onto base constants. bossFireMul multiplies the boss
+  // fire-interval (burstT/aimT), so <1 = faster fire, >1 = slower.
+  const DIFF = Object.freeze({
+    easy:   Object.freeze({ turretCap: 0, turretFire: 2.6, spawnMul: 0.75, mineSpeedMul: 0.85, mineCap: 9,  bossHpMul: 0.75, bossFireMul: 1.25, foes: Object.freeze({}) }),
+    normal: Object.freeze({ turretCap: 2, turretFire: 2.6, spawnMul: 1.0,  mineSpeedMul: 1.0,  mineCap: 12, bossHpMul: 1.0,  bossFireMul: 1.0,  foes: Object.freeze({ hunter: 2, charger: 1 }) }),
+    hard:   Object.freeze({ turretCap: 3, turretFire: 1.9, spawnMul: 1.3,  mineSpeedMul: 1.2,  mineCap: 16, bossHpMul: 1.33, bossFireMul: 0.8,  foes: Object.freeze({ hunter: 2, charger: 2, shield: 1, laser: 1 }) }),
+  });
 
   function buildSurges(s) {
     const fieldEnd = s.duration >= 40 ? s.duration - 20 : s.duration; // boss owns the last 20s
@@ -4474,7 +4982,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   function dist2(a, b) { const dx = a.x - b.x, dy = a.y - b.y; return dx * dx + dy * dy; }
 
   const G = {
-    W, H, POWER_META,
+    W, H, POWER_META, POWER_DURATION, DIFF,
     phase: 'menu', // menu | ready | playing | paused | over
     mode: 'daily',
     state: null,
@@ -4482,33 +4990,39 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   };
   SY.nvGame = G;
 
-  function freshState(mode, seedStr) {
+  function freshState(mode, seedStr, difficulty) {
     const rng = SY.makeRng(seedStr);
     const duration = Math.round(SY.tweaks.duration);
+    const diffKey = DIFF[difficulty] ? difficulty : 'normal';
     const st = {
       rng, seedStr, mode, duration,
+      difficulty: diffKey, diff: DIFF[diffKey],
       t: 0,                       // elapsed sim time
       timeLeft: duration,
       readyT: 1.4,
       score: 0, combo: 0, maxCombo: 0, comboT: 0,
       pace: [0], paceSec: 0,
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
-      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [],
-      parts: [], waves: [], floats: [],
+      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], portals: [],
+      parts: [], waves: [], floats: [], blasts: [],
       boss: null, bossDown: false, bossWarnT: 0,
-      fx: { MAGNET: 0, SLOW: 0, X2: 0, BOOST: 0, SPREAD: 0 },
+      elite: null, eliteSpawned: false,
+      eliteAt: (SURGE_WARMUP + (duration >= 40 ? duration - 20 : duration)) / 2,
+      fx: { MAGNET: 0, SLOW: 0, X2: 0, BOOST: 0, SPREAD: 0, DRONE: 0 },
       shield: false,
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
       heat: 0, heatMul: 1,
-      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6 },
+      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, portal: 14 },
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
       crystalsCollected: 0, // display-only (cosmetic meta); never read by the sim
-      breakdown: { crystals: 0, combo: 0, destruction: 0, boss: 0, heat: 0 },
+      creditsCollected: 0,  // display-only (cosmetic meta — coins banked); never read by the sim
+      breakdown: { crystals: 0, combo: 0, destruction: 0, boss: 0, heat: 0, loot: 0 },
       tookDamage: false, // for the NO HIT medal (shield blocks don't count as damage)
     };
+    SY.nvFoes.initTimers(st);
     st.surges = buildSurges(st);
     return st;
   }
@@ -4540,6 +5054,21 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     }
   }
 
+  // stationary aimed-fire emplacement. Seeded position kept >=260px from the
+  // player so it never spawns on top of them. Gameplay threat (no contact damage).
+  function spawnTurret(s) {
+    const p = s.player;
+    let x = 0, y = 0, tries = 0;
+    do {
+      x = 90 + s.rng() * (W - 180);
+      y = 80 + s.rng() * (H - 200);
+      tries++;
+    } while (((x - p.x) * (x - p.x) + (y - p.y) * (y - p.y)) < 260 * 260 && tries < 8);
+    // fireT staggers the first shot; scaled by turretFire so hard (1.9) fires
+    // sooner than normal (2.6) — shorter post-spawn grace on higher difficulty.
+    s.turrets.push({ x, y, r: 16, hp: 5, maxHp: 5, fireT: 1 + s.rng() * s.diff.turretFire, flash: 0, phase: s.rng() * Math.PI * 2 });
+  }
+
   function spawnRock(s) {
     s.rocks.push({
       x: 90 + s.rng() * (W - 180),
@@ -4547,6 +5076,43 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       r: 22, hp: 3, maxHp: 3, rot: s.rng() * Math.PI * 2,
       spin: (s.rng() - 0.5) * 0.8, flash: 0,
     });
+  }
+
+  // ---- loot economy (E1) ----
+  const TOKEN_VALUE = { coin: 15, teal: 25, amber: 50, purple: 100 };
+  const CRATE_HP = { crate: 4, canister: 3, chest: 6, console: 5 };
+  function spawnCrate(s) {
+    // chest is a rare jackpot container; console is a bonus objective (drops a
+    // power-up); otherwise a crate/canister split.
+    const r = s.rng();
+    const kind = r < 0.10 ? 'chest' : r < 0.26 ? 'console' : r < 0.63 ? 'crate' : 'canister';
+    const hp = CRATE_HP[kind];
+    s.crates.push({ kind, x: 90 + s.rng() * (W - 180), y: 80 + s.rng() * (H - 200), r: kind === 'chest' ? 24 : 20, hp, maxHp: hp, flash: 0, phase: s.rng() * 6 });
+  }
+  function spawnLoot(s, x, y, kind) {
+    const jackpot = kind === 'chest';
+    const n = jackpot ? 7 + Math.floor(s.rng() * 4) : 3 + Math.floor(s.rng() * 3); // chest 7-10, else 3-5
+    for (let i = 0; i < n; i++) {
+      const roll = s.rng();
+      // chest skews toward higher-value gems; crates skew toward coins
+      const tier = jackpot
+        ? (roll < 0.25 ? 'coin' : roll < 0.55 ? 'teal' : roll < 0.85 ? 'amber' : 'purple')
+        : (roll < 0.6 ? 'coin' : roll < 0.82 ? 'teal' : roll < 0.95 ? 'amber' : 'purple');
+      const a = s.rng() * Math.PI * 2, sp = 60 + s.rng() * 90;
+      s.tokens.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: 8, phase: s.rng() * 6, tier });
+    }
+  }
+
+  // ---- world objects (E3): spawn portal — telegraphs, opens, emits mines, closes ----
+  function spawnPortal(s) {
+    s.portals.push({
+      x: 120 + s.rng() * (W - 240), y: 110 + s.rng() * (H - 240),
+      state: 'warn', t: 1.0, spawnT: 0, spawnsLeft: 4 + Math.floor(s.rng() * 3), phase: s.rng() * 6,
+    });
+  }
+  // emit a homing mine AT a position (the portal mouth) — reuses the mine entity
+  function spawnMineAt(s, x, y) {
+    s.mines.push({ x, y, r: 11, hp: 1, speed: (62 + s.t * 1.1) * s.diff.mineSpeedMul, phase: s.rng() * Math.PI * 2, flash: 0, vx: 0, vy: 0, entryT: 0 });
   }
 
   function spawnMine(s) {
@@ -4558,13 +5124,13 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     else { x = -20; y = s.rng() * H; }
     // unified mine shape: vx/vy/entryT keep standard + formation mines monomorphic
     // (entryT: 0 → the entry branch is skipped, so standard mines home as before)
-    s.mines.push({ x, y, r: 11, hp: 1, speed: 62 + s.t * 1.1, phase: s.rng() * Math.PI * 2, flash: 0, vx: 0, vy: 0, entryT: 0 });
+    s.mines.push({ x, y, r: 11, hp: 1, speed: (62 + s.t * 1.1) * s.diff.mineSpeedMul, phase: s.rng() * Math.PI * 2, flash: 0, vx: 0, vy: 0, entryT: 0 });
   }
 
   function pushFormMine(s, x, y, dx, dy, speed) {
     const d = Math.hypot(dx, dy) || 1;
     s.mines.push({
-      x, y, r: 11, hp: 1, speed: 62 + s.t * 1.1,
+      x, y, r: 11, hp: 1, speed: (62 + s.t * 1.1) * s.diff.mineSpeedMul,
       phase: s.rng() * Math.PI * 2, flash: 0,
       vx: (dx / d) * speed, vy: (dy / d) * speed, entryT: 1.5,
     });
@@ -4618,9 +5184,14 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   }
 
   function spawnBoss(s) {
+    if (s.elite) s.elite = null; // sentinel retreats when the Core Warden arrives
+    const bhp = Math.round(72 * s.diff.bossHpMul);
+    const fm = s.diff.bossFireMul;
+    // initial burst/aim delays (1.8/2.6) are shorter than the steady-state resets
+    // (2.4/1.7) — a brief opening beat before the boss's first shots.
     s.boss = {
-      x: W / 2, y: -90, ty: 128, r: 46, hp: 72, maxHp: 72,
-      t: 0, burstT: 1.8, aimT: 2.6, flash: 0, dying: 0, ringRot: 0,
+      x: W / 2, y: -90, ty: 128, r: 46, hp: bhp, maxHp: bhp,
+      t: 0, burstT: 1.8 * fm, aimT: 2.6 * fm, fireMul: fm, flash: 0, dying: 0, ringRot: 0,
     };
     s.bossWarnT = 1.6;
     s.shake = Math.max(s.shake, 7);
@@ -4642,6 +5213,12 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   }
   function wave(s, x, y, maxR, color) {
     s.waves.push({ x, y, r: 6, maxR, life: 1, color });
+  }
+  // explosion-sprite flash on a destruction event (cosmetic; uses the atlas burst)
+  function blast(s, x, y, size) {
+    // rot is deterministic from position (cosmetic variety without adding a
+    // Math.random call to the fairness baseline)
+    s.blasts.push({ x, y, size, life: 1, rot: (x * 0.7 + y * 0.3) % (Math.PI * 2) });
   }
   function floatText(s, x, y, text, color) {
     s.floats.push({ x, y, text, color, life: 1 });
@@ -4667,10 +5244,25 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       s.breakdown.destruction += vBase;
     } else if (bucket === 'boss') {
       s.breakdown.boss += vBase;
+    } else if (bucket === 'loot') {
+      s.breakdown.loot += vBase;
     }
     s.breakdown.heat += heatBonus;
     if (x !== undefined) floatText(s, x, y, '+' + v + (label ? ' ' + label : ''), mul > 1 ? '#ffc34d' : '#9ff5e8');
   }
+
+  // injected into SY.nvFoes so foes.js never imports game internals directly.
+  // hurtPlayer/addScore/burst/wave/floatText are hoisted function declarations,
+  // so referencing them in this literal before their definitions is safe.
+  // seeded crystal drop (daily fairness) — used by shield/laser foe deaths
+  function dropCrystals(s, x, y, n) {
+    for (let k = 0; k < n; k++) {
+      const a = s.rng() * Math.PI * 2;
+      s.crystals.push({ x, y, vx: Math.cos(a) * 120, vy: Math.sin(a) * 120, r: 7, phase: s.rng() * 6 });
+    }
+  }
+  const foeApi = { hurtPlayer, addScore, burst, wave, floatText, dropCrystals, blast };
+  const eliteApi = { hurtPlayer, addScore, spawnPow, spawnLoot, burst, wave, blast, floatText };
 
   // ---------- player damage ----------
   function hurtPlayer(s, x, y) {
@@ -4711,13 +5303,14 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       if (Math.random() < 0.4) burst(s, b.x + (Math.random() - 0.5) * 70, b.y + (Math.random() - 0.5) * 70, '#ffc34d', 6, 200, 3);
       if (b.dying <= 0) {
         // final detonation
+        blast(s, b.x, b.y, 200); blast(s, b.x + 40, b.y - 30, 130);
         wave(s, b.x, b.y, 320, '#ffc34d');
         wave(s, b.x, b.y, 220, '#2de2c6');
         burst(s, b.x, b.y, '#ffc34d', 60, 420, 4);
         burst(s, b.x, b.y, '#eaf6ff', 40, 320, 2.5);
         for (let i = 0; i < 14; i++) {
           const a = Math.random() * Math.PI * 2, d = 20 + Math.random() * 70;
-          s.crystals.push({ x: b.x + Math.cos(a) * d, y: b.y + Math.sin(a) * d, vx: Math.cos(a) * 120, vy: Math.sin(a) * 120, r: 7, phase: Math.random() * 6 });
+          s.crystals.push({ x: b.x + Math.cos(a) * d, y: b.y + Math.sin(a) * d, vx: Math.cos(a) * 120, vy: Math.sin(a) * 120, r: 7, phase: Math.random() * 6, tier: 'boss' }); // purple prize gem (cosmetic tier)
         }
         addScore(s, 1500, b.x, b.y, 'CORE WARDEN', 'boss');
         s.bossDown = true;
@@ -4738,7 +5331,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     // radial burst
     b.burstT -= dt * slowMul;
     if (b.burstT <= 0) {
-      b.burstT = 2.4;
+      b.burstT = 2.4 * b.fireMul; // fireMul < 1 → shorter interval → faster fire
       const n = 10, off = b.t;
       for (let i = 0; i < n; i++) {
         const a = off + (i / n) * Math.PI * 2;
@@ -4749,7 +5342,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     // aimed volley
     b.aimT -= dt * slowMul;
     if (b.aimT <= 0) {
-      b.aimT = 1.7;
+      b.aimT = 1.7 * b.fireMul;
       const p = s.player;
       const base = Math.atan2(p.y - b.y, p.x - b.x);
       for (let k = -1; k <= 1; k++) {
@@ -4769,9 +5362,11 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     s.pace.push(s.score);
     const res = {
       mode: s.mode, score: s.score, maxCombo: s.maxCombo,
+      difficulty: s.difficulty,
       bossDown: s.bossDown, reason, pace: s.pace.slice(),
       collected: s.collected, duration: s.duration,
       crystalsCollected: s.crystalsCollected, // display-only (cosmetic meta)
+      creditsCollected: s.creditsCollected,   // display-only (cosmetic meta — coins)
       breakdown: { ...s.breakdown },
       seedStr: s.seedStr, // daily runs record under their seed's date, not "now"
       noHit: !s.tookDamage,
@@ -4817,6 +5412,12 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     // boss trigger at last 20s (only if round is long enough)
     if (!s.boss && !s.bossDown && s.duration >= 40 && s.timeLeft <= 20) spawnBoss(s);
     if (s.bossWarnT > 0) s.bossWarnT -= dt;
+
+    // ---------- elite Sentinel (E4a): scripted mid-field beam mini-boss ----------
+    if (!s.elite && !s.eliteSpawned && s.duration >= 40 && s.t >= s.eliteAt && s.timeLeft > 20) {
+      s.eliteSpawned = true; SY.nvElite.spawn(s);
+    }
+    if (s.elite) SY.nvElite.update(s, dt, slowMul, eliteApi);
 
     // ---------- surge director ----------
     const sd = s.surges[s.surgeIdx];
@@ -4872,8 +5473,12 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       let target = null, best = 380 * 380;
       const cand = [];
       if (s.boss && s.boss.dying <= 0 && s.boss.y > 0) cand.push(s.boss);
+      if (s.elite && s.elite.state !== 'enter') cand.push(s.elite);
       for (const m of s.mines) cand.push(m);
       for (const r of s.rocks) cand.push(r);
+      for (const t of s.turrets) cand.push(t);
+      for (const f of s.foes) cand.push(f);
+      for (const cr of s.crates) cand.push(cr);
       for (const c of cand) { const d = dist2(c, p); if (d < best) { best = d; target = c; } }
       if (target) {
         p.fireCd = 0.19;
@@ -4886,20 +5491,67 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       } else p.fireCd = 0.06;
     }
 
+    // ---------- companion drones (DRONE power-up) ----------
+    if (s.fx.DRONE <= 0 && s.drones.length) s.drones.length = 0; // expired
+    for (const dr of s.drones) {
+      dr.angle += dt * 2.4; // orbit
+      dr.x = p.x + Math.cos(dr.angle) * dr.orbitR;
+      dr.y = p.y + Math.sin(dr.angle) * dr.orbitR;
+      dr.fireCd -= dt;
+      if (dr.fireCd <= 0) {
+        const target = nearestTarget(s, dr.x, dr.y, 360 * 360);
+        if (target) {
+          dr.fireCd = 0.55;
+          const a = Math.atan2(target.y - dr.y, target.x - dr.x);
+          s.bullets.push({ x: dr.x, y: dr.y, vx: Math.cos(a) * 480, vy: Math.sin(a) * 480, life: 0.7 });
+          SY.audio.shoot();
+        } else dr.fireCd = 0.1;
+      }
+    }
+
     // ---------- spawning ----------
     s.spawnT.crystal -= dt;
     if (s.spawnT.crystal <= 0) { s.spawnT.crystal = 1.55; if (s.crystals.length < 36) spawnCrystalCluster(s); }
     s.spawnT.rock -= dt;
-    if (s.spawnT.rock <= 0) { s.spawnT.rock = 5; if (s.rocks.length < 4) spawnRock(s); }
+    if (s.spawnT.rock <= 0) { s.spawnT.rock = 5 / s.diff.spawnMul; if (s.rocks.length < 4) spawnRock(s); }
     s.spawnT.mine -= dt;
     if (s.spawnT.mine <= 0) {
       const ramp = Math.max(0.45, 1 - s.t * 0.007);
       const calmEase = s.inSurge ? 1 : 1.6; // fewer ambient mines between surges
-      s.spawnT.mine = (2.7 * ramp * calmEase) / Math.max(0.2, SY.tweaks.spawnRate);
-      if (s.mines.length < 12) spawnMine(s);
+      s.spawnT.mine = (2.7 * ramp * calmEase) / (Math.max(0.2, SY.tweaks.spawnRate) * s.diff.spawnMul);
+      if (s.mines.length < s.diff.mineCap) spawnMine(s); // cap is ambient-only; surge formations are uncapped spikes by design
     }
     s.spawnT.pow -= dt;
     if (s.spawnT.pow <= 0) { s.spawnT.pow = 9.5; if (s.pows.length < 3) spawnPow(s); }
+    s.spawnT.turret -= dt;
+    if (s.spawnT.turret <= 0) {
+      s.spawnT.turret = 6 / s.diff.spawnMul; // density-scaled cadence
+      if (s.diff.turretCap > 0 && s.turrets.length < s.diff.turretCap) spawnTurret(s);
+    }
+    s.spawnT.crate -= dt;
+    if (s.spawnT.crate <= 0) {
+      s.spawnT.crate = 7 + s.rng() * 5;
+      if (s.crates.length < 2) spawnCrate(s);
+    }
+    // ---------- spawn portals (E3a) ----------
+    s.spawnT.portal -= dt;
+    if (s.spawnT.portal <= 0) {
+      s.spawnT.portal = 16 + s.rng() * 8;
+      if (s.portals.length < 1 && s.diff.spawnMul >= 1) spawnPortal(s); // normal/hard only (easy spawnMul 0.75)
+    }
+    for (let i = s.portals.length - 1; i >= 0; i--) {
+      const pt = s.portals[i];
+      pt.phase += dt * 3; pt.t -= dt;
+      if (pt.state === 'warn') {
+        if (pt.t <= 0) { pt.state = 'open'; pt.t = 3.2; pt.spawnT = 0.2; }
+      } else if (pt.state === 'open') {
+        pt.spawnT -= dt;
+        if (pt.spawnT <= 0 && pt.spawnsLeft > 0) { pt.spawnT = 0.55; pt.spawnsLeft--; spawnMineAt(s, pt.x, pt.y); }
+        if (pt.t <= 0 || pt.spawnsLeft <= 0) { pt.state = 'closing'; pt.t = 0.6; }
+      } else { // closing
+        if (pt.t <= 0) s.portals.splice(i, 1);
+      }
+    }
 
     // ---------- crystals ----------
     const magnetR = s.fx.MAGNET > 0 ? 215 : 0;
@@ -4925,6 +5577,28 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         addScore(s, 10 + s.combo, c.x, c.y, undefined, 'crystal');
         burst(s, c.x, c.y, '#2de2c6', 7, 150, 2.2);
         SY.audio.collect(s.combo);
+      }
+    }
+
+    // ---------- loot tokens (collect into the loot bucket; no combo) ----------
+    for (let i = s.tokens.length - 1; i >= 0; i--) {
+      const t = s.tokens[i];
+      t.phase += dt * 3;
+      t.x += t.vx * dt; t.y += t.vy * dt;
+      t.vx *= Math.pow(0.05, dt); t.vy *= Math.pow(0.05, dt);
+      t.x = Math.min(W - 10, Math.max(10, t.x)); t.y = Math.min(H - 10, Math.max(10, t.y));
+      const d = Math.sqrt(dist2(t, p)) || 1;
+      if (magnetR && d < magnetR) {
+        const pull = 900 * (1 - d / magnetR) + 150;
+        t.vx += ((p.x - t.x) / d) * pull * dt;
+        t.vy += ((p.y - t.y) / d) * pull * dt;
+      }
+      if (d < p.r + t.r + 6) {
+        s.tokens.splice(i, 1);
+        if (t.tier === 'coin') s.creditsCollected++; // display-only cosmetic counter
+        addScore(s, TOKEN_VALUE[t.tier] || 15, t.x, t.y, undefined, 'loot');
+        burst(s, t.x, t.y, '#ffd9a8', 6, 140, 2);
+        SY.audio.collect(1);
       }
     }
 
@@ -4954,6 +5628,21 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       }
     }
 
+    // ---------- turrets (stationary aimed fire; telegraph handled in render) ----------
+    for (const t of s.turrets) {
+      t.phase += dt * 2;
+      if (t.flash > 0) t.flash -= dt;
+      t.fireT -= dt * slowMul;
+      if (t.fireT <= 0) {
+        const a = Math.atan2(p.y - t.y, p.x - t.x);
+        s.ebullets.push({ x: t.x, y: t.y, vx: Math.cos(a) * 210, vy: Math.sin(a) * 210, r: 5 });
+        t.fireT = s.diff.turretFire;
+      }
+    }
+
+    // ---------- new-archetype foes (Hunter/Charger; Shield/Laser in Phase 2) ----------
+    SY.nvFoes.update(s, dt, slowMul, foeApi);
+
     // ---------- bullets vs things ----------
     for (let i = s.bullets.length - 1; i >= 0; i--) {
       const b = s.bullets[i];
@@ -4968,6 +5657,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         if (s.boss.hp <= 0) { s.boss.dying = 0.9; s.freeze = 0.12; s.shake = Math.max(s.shake, 8); }
         dead = true;
       }
+      if (!dead && SY.nvElite.bulletHit(s, b, eliteApi)) dead = true;
       if (!dead) for (let j = s.mines.length - 1; j >= 0; j--) {
         const m = s.mines[j];
         if (dist2(b, m) < (m.r + 4) * (m.r + 4)) {
@@ -4991,6 +5681,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
             s.rocks.splice(j, 1);
             addScore(s, 40, r.x, r.y, undefined, 'destroy');
             burst(s, r.x, r.y, '#2de2c6', 18, 220, 3);
+            blast(s, r.x, r.y, 64);
             wave(s, r.x, r.y, 60, '#2de2c6');
             SY.audio.explode();
             const drops = 4 + Math.floor(s.rng() * 2);
@@ -4999,6 +5690,58 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
               s.crystals.push({ x: r.x, y: r.y, vx: Math.cos(a) * 140, vy: Math.sin(a) * 140, r: 7, phase: s.rng() * 6 });
             }
             if (s.rng() < 0.45) spawnPow(s, r.x, r.y);
+          }
+          break;
+        }
+      }
+      if (!dead) for (let j = s.turrets.length - 1; j >= 0; j--) {
+        const t = s.turrets[j];
+        if (dist2(b, t) < (t.r + 4) * (t.r + 4)) {
+          t.hp -= 1; t.flash = 0.07; dead = true;
+          burst(s, b.x, b.y, '#ff9a5a', 4, 110, 2);
+          if (t.hp <= 0) {
+            s.turrets.splice(j, 1);
+            addScore(s, 60, t.x, t.y, undefined, 'destroy');
+            burst(s, t.x, t.y, '#ff9a5a', 16, 230, 3);
+            blast(s, t.x, t.y, 60);
+            wave(s, t.x, t.y, 56, '#ff9a5a');
+            SY.audio.explode();
+            for (let kk = 0; kk < 3; kk++) {
+              const aa = s.rng() * Math.PI * 2;
+              s.crystals.push({ x: t.x, y: t.y, vx: Math.cos(aa) * 120, vy: Math.sin(aa) * 120, r: 7, phase: s.rng() * 6 });
+            }
+          }
+          break;
+        }
+      }
+      if (!dead) for (let j = s.foes.length - 1; j >= 0; j--) {
+        const f = s.foes[j];
+        const hit = SY.nvFoes.bulletHit(f, b);
+        if (hit === 'miss') continue;
+        dead = true;
+        if (hit === 'blocked') { burst(s, b.x, b.y, '#5aa7ff', 4, 110, 2); break; } // Phase 2 shield arc
+        burst(s, b.x, b.y, '#ff9a5a', 4, 110, 2);
+        SY.nvFoes.damage(s, f, 1, foeApi);
+        if (f.hp <= 0) SY.audio.explode();
+        break;
+      }
+      if (!dead) for (let j = s.crates.length - 1; j >= 0; j--) {
+        const cr = s.crates[j];
+        if (dist2(b, cr) < (cr.r + 4) * (cr.r + 4)) {
+          cr.hp -= 1; cr.flash = 0.07; dead = true;
+          burst(s, b.x, b.y, '#ffd9a8', 4, 110, 2);
+          if (cr.hp <= 0) {
+            s.crates.splice(j, 1);
+            if (cr.kind === 'console') {
+              addScore(s, 30, cr.x, cr.y, undefined, 'destroy');
+              blast(s, cr.x, cr.y, 64);
+              spawnPow(s, cr.x, cr.y); // bonus objective — guaranteed power-up
+            } else {
+              addScore(s, cr.kind === 'chest' ? 40 : 20, cr.x, cr.y, undefined, 'destroy');
+              blast(s, cr.x, cr.y, cr.kind === 'chest' ? 120 : 58);
+              spawnLoot(s, cr.x, cr.y, cr.kind);
+            }
+            SY.audio.explode();
           }
           break;
         }
@@ -5042,17 +5785,33 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     wave(s, o.x, o.y, 56, meta.color);
     burst(s, o.x, o.y, meta.color, 12, 170, 2.6);
     floatText(s, o.x, o.y - 18, meta.label, meta.color);
-    switch (o.type) {
-      case 'MAGNET': s.fx.MAGNET = 7; break;
-      case 'SHIELD': s.shield = true; break;
-      case 'SLOW': s.fx.SLOW = 5; break;
-      case 'X2': s.fx.X2 = 7; break;
-      case 'BOOST': s.fx.BOOST = 6; break;
-      case 'SPREAD': s.fx.SPREAD = 7; break;
-      case 'TIME':
-        s.timeLeft = Math.min(s.duration + 20, s.timeLeft + 5);
-        break;
+    if (o.type === 'SHIELD') { s.shield = true; return; }       // consumable
+    if (o.type === 'TIME') { s.timeLeft = Math.min(s.duration + 20, s.timeLeft + 5); return; } // instant
+    // timed buffs: extend remaining time by the base duration, capped at 2x base
+    const dur = POWER_DURATION[o.type];
+    s.fx[o.type] = Math.min(2 * dur, s.fx[o.type] + dur);
+    if (o.type === 'DRONE' && s.drones.length === 0) spawnDrones(s);
+  }
+
+  // two companion wingman drones, evenly spaced (deterministic — no rng)
+  function spawnDrones(s) {
+    for (let i = 0; i < 2; i++) {
+      s.drones.push({ angle: i * Math.PI, orbitR: 40, fireCd: 0.3 + i * 0.2, x: s.player.x, y: s.player.y });
     }
+  }
+
+  // nearest targetable enemy to (x,y) within maxD2 (squared), or null. Deterministic.
+  function nearestTarget(s, x, y, maxD2) {
+    let best = maxD2, target = null;
+    const probe = (e) => { const dx = e.x - x, dy = e.y - y, d = dx * dx + dy * dy; if (d < best) { best = d; target = e; } };
+    if (s.boss && s.boss.dying <= 0 && s.boss.y > 0) probe(s.boss);
+    if (s.elite && s.elite.state !== 'enter') probe(s.elite);
+    for (const m of s.mines) probe(m);
+    for (const r of s.rocks) probe(r);
+    for (const t of s.turrets) probe(t);
+    for (const f of s.foes) probe(f);
+    for (const cr of s.crates) probe(cr);
+    return target;
   }
 
   function stepCosmeticsLight(s, dt) {
@@ -5079,14 +5838,21 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       f.y -= 34 * dt; f.life -= dt * 0.9;
       if (f.life <= 0) s.floats.splice(i, 1);
     }
+    for (let i = s.blasts.length - 1; i >= 0; i--) {
+      const bl = s.blasts[i];
+      bl.life -= dt * 2.6; // ~0.38s flash
+      if (bl.life <= 0) s.blasts.splice(i, 1);
+    }
     if (s.shake > 0) s.shake = Math.max(0, s.shake - dt * 26);
   }
 
   // ---------- public API ----------
-  G.start = function (mode) {
+  G.start = function (mode, difficulty) {
     const seed = mode === 'daily' ? 'daily-' + SY.todayUTC() : 'free-' + Math.random().toString(36).slice(2);
     G.mode = mode;
-    G.state = freshState(mode, seed);
+    // daily is always Normal — keeps the worldwide daily map+difficulty identical (fairness)
+    const diff = mode === 'daily' ? 'normal' : difficulty;
+    G.state = freshState(mode, seed, diff);
     G.phase = 'ready';
     resetKeys(); // a key stuck since the menu (blurred mid-press) must not steer the new run
   };
@@ -5110,7 +5876,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   <script>
 // --- inlined: js/games/neonvortex/render.js ---
 // Neon Vortex — canvas renderer. Entities are drawn as sprites cut from
-// ship_assets.png (via SY.nvSprites). Each draw falls back to the original
+// sprite-atlas.png (via SY.nvSprites). Each draw falls back to the original
 // vector shape until the sheet decodes (or if it fails to load), so the game
 // stays playable with no image — mirroring the no-framework core invariant.
 (function () {
@@ -5120,6 +5886,13 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   const SP = SY.nvSprites;
 
   const MONO = '"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace';
+  const POW_FONT = 'bold 13px ' + MONO;       // single-char power-up glyph
+  const POW_FONT_SMALL = 'bold 11px ' + MONO; // multi-char glyph (×2, +5) shrinks to fit
+
+  // hull sprite target size (longest-edge px). 'shielded' is a hull+bubble
+  // composite, so it needs extra room than the bare hull frames.
+  const HULL_SIZE = 42;
+  const HULL_SIZE_SHIELDED = 64;
 
   function poly(ctx, x, y, r, n, rot) {
     ctx.beginPath();
@@ -5162,19 +5935,24 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     ctx.strokeRect(1, 1, W - 2, H - 2);
   }
 
-  function drawCrystal(ctx, c) {
+  // gem variant by context (cosmetic): boss-kill drops = purple prize, crystals
+  // during a surge = amber (HEAT window), otherwise the default teal.
+  function drawCrystal(ctx, c, inSurge) {
     const bob = Math.sin(c.phase) * 2;
-    if (SP.draw(ctx, 'crystalTeal', c.x, c.y + bob, (c.r + 2) * 2.9, Math.sin(c.phase * 0.7) * 0.16)) return;
+    const key = c.tier === 'boss' ? 'crystalBoss' : (inSurge ? 'crystalAmber' : 'crystalTeal');
+    if (SP.draw(ctx, key, c.x, c.y + bob, (c.r + 2) * 2.9, Math.sin(c.phase * 0.7) * 0.16)) return;
+    const glow = c.tier === 'boss' ? '#9c43e1' : (inSurge ? '#ffb028' : '#2de2c6');
+    const core = c.tier === 'boss' ? '#e3b6ff' : (inSurge ? '#ffe6a8' : '#9ff5e8');
     const squish = 0.62 + Math.sin(c.phase * 0.7) * 0.1;
     ctx.save();
     ctx.translate(c.x, c.y + bob);
-    ctx.shadowColor = '#2de2c6';
+    ctx.shadowColor = glow;
     ctx.shadowBlur = 10;
     diamond(ctx, 0, 0, c.r + 2, squish);
-    ctx.fillStyle = '#0fae97';
+    ctx.fillStyle = glow;
     ctx.fill();
     diamond(ctx, 0, -1, c.r - 2, squish);
-    ctx.fillStyle = '#9ff5e8';
+    ctx.fillStyle = core;
     ctx.fill();
     ctx.restore();
   }
@@ -5240,7 +6018,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     const blink = o.life < 2 && Math.floor(o.life * 6) % 2 === 0;
     if (blink) return;
     const bob = Math.sin(o.phase) * 3;
-    if (!SP.draw(ctx, 'crystalAmber', o.x, o.y + bob, (o.r + 4) * 2.3, Math.sin(o.phase * 0.3) * 0.12)) {
+    // dedicated badge sprite, tinted to the power-up color
+    const drew = SP.drawPowerIcon(ctx, o.type, o.x, o.y + bob, (o.r + 4) * 2.3, Math.sin(o.phase * 0.3) * 0.12, meta.color);
+    if (!drew) {
+      // fallback: hex capsule (atlas not decoded / failed)
       ctx.save();
       ctx.translate(o.x, o.y + bob);
       ctx.shadowColor = meta.color;
@@ -5253,16 +6034,20 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       ctx.stroke();
       ctx.restore();
     }
-    // glyph overlay (always — identifies the power-up)
-    ctx.save();
-    ctx.shadowColor = '#04090f';
-    ctx.shadowBlur = 4;
-    ctx.fillStyle = meta.color;
-    ctx.font = 'bold ' + (o.type === 'X2' || o.type === 'TIME' ? 11 : 13) + 'px ' + MONO;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(meta.glyph, o.x, o.y + bob + 1);
-    ctx.restore();
+    // glyph overlay: always on the vector fallback (identifies the pickup); with
+    // the badge sprite, only for the ambiguous types — the rest read from their icon.
+    if (!drew || o.type === 'X2' || o.type === 'SLOW' || o.type === 'TIME') {
+      ctx.save();
+      ctx.shadowColor = '#04090f';
+      ctx.shadowBlur = 4;
+      ctx.fillStyle = meta.color;
+      // multi-char glyphs (X2 = '×2', TIME = '+5') shrink to fit; single-char stays 13px
+      ctx.font = (o.type === 'X2' || o.type === 'TIME') ? POW_FONT_SMALL : POW_FONT;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(meta.glyph, o.x, o.y + bob + 1);
+      ctx.restore();
+    }
   }
 
   function drawPlayer(ctx, s) {
@@ -5281,9 +6066,17 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       ctx.setLineDash([]);
       ctx.restore();
     }
-    // hull sprite (points up; +90° aligns sprite nose with p.angle).
-    // aspect-preserving draw — the DEFAULT ship is a wide triangle.
-    if (!SP.draw(ctx, 'player', p.x, p.y, 42, p.angle + Math.PI / 2)) {
+    // hull sprite — frame reacts to state (shielded/damaged/boosted/default).
+    // shielded is the hull+bubble composite, so it draws larger; +90° aligns
+    // the sprite nose with p.angle. Pure choice, no per-frame allocation churn.
+    // an active hull skin replaces every frame with its single ship sprite; the
+    // default hull keeps its baked state frames. Shield then shows via the vector
+    // ring below (frame !== 'shielded' so bubbleDrawn stays false).
+    const hullKey = SP.activeHullKey();
+    const frame = hullKey || SP.pickHullFrame({ shield: s.shield, hp: p.hp, boost: s.fx.BOOST });
+    const size = frame === 'shielded' ? HULL_SIZE_SHIELDED : HULL_SIZE;
+    const drew = SP.draw(ctx, frame, p.x, p.y, size, p.angle + Math.PI / 2);
+    if (!drew) {
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(p.angle + Math.PI / 2);
@@ -5303,8 +6096,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       ctx.fill();
       ctx.restore();
     }
-    // shield ring (vector overlay)
-    if (s.shield) {
+    // shield ring (vector) — only when the sprite bubble wasn't drawn (atlas not
+    // ready/failed). When the 'shielded' sprite drew, its bubble already shows.
+    const bubbleDrawn = drew && frame === 'shielded';
+    if (s.shield && !bubbleDrawn) {
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.beginPath();
@@ -5316,6 +6111,193 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       ctx.stroke();
       ctx.restore();
     }
+  }
+
+  function drawTurret(ctx, t) {
+    const charging = t.fireT < 0.5; // telegraph window before firing
+    if (!SP.draw(ctx, 'enemyMid', t.x, t.y, (t.r + 4) * 2.2, 0)) {
+      ctx.save();
+      ctx.translate(t.x, t.y);
+      ctx.shadowColor = '#ff5a78';
+      ctx.shadowBlur = 10;
+      poly(ctx, 0, 0, t.r, 6, t.phase * 0.2);
+      ctx.fillStyle = t.flash > 0 ? '#ffd9e1' : '#2a0f16';
+      ctx.fill();
+      ctx.strokeStyle = '#ff5a78';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, t.r * 0.4, 0, Math.PI * 2);
+      ctx.fillStyle = '#ff5a78';
+      ctx.fill();
+      ctx.restore();
+    } else if (t.flash > 0) {
+      ctx.save();
+      ctx.globalAlpha = 0.5;
+      ctx.globalCompositeOperation = 'lighter';
+      SP.draw(ctx, 'enemyMid', t.x, t.y, (t.r + 4) * 2.2, 0);
+      ctx.restore();
+    }
+    if (charging) {
+      ctx.save();
+      ctx.translate(t.x, t.y);
+      ctx.beginPath();
+      ctx.arc(0, 0, t.r + 6, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,90,120,' + (0.35 + 0.3 * Math.sin(t.phase * 8)) + ')';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  function drawPortal(ctx, pt) {
+    const open = pt.state === 'open';
+    // warn: pulsing telegraph; open: bright; closing: fading
+    const a = pt.state === 'warn' ? 0.35 + 0.25 * Math.sin(pt.phase * 6) : open ? 0.95 : 0.5;
+    ctx.save(); ctx.globalAlpha = a;
+    if (!SP.draw(ctx, 'portal', pt.x, pt.y, (open ? 78 : 60) + Math.sin(pt.phase) * 4, 0)) {
+      ctx.strokeStyle = '#5ad1ff'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.arc(pt.x, pt.y, 30, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawCrate(ctx, c) {
+    const key = c.kind === 'chest' ? 'lootChest' : c.kind === 'console' ? 'lootConsole' : c.kind === 'canister' ? 'lootCanister' : 'lootCrate';
+    if (!SP.draw(ctx, key, c.x, c.y, (c.r + 6) * 2.2, 0)) {
+      ctx.save();
+      ctx.fillStyle = c.flash > 0 ? '#fff' : '#caa46a';
+      ctx.fillRect(c.x - c.r, c.y - c.r, c.r * 2, c.r * 2);
+      ctx.restore();
+    } else if (c.flash > 0) {
+      ctx.save();
+      ctx.globalAlpha = 0.5; ctx.globalCompositeOperation = 'lighter';
+      SP.draw(ctx, key, c.x, c.y, (c.r + 6) * 2.2, 0);
+      ctx.restore();
+    }
+  }
+
+  function drawDrone(ctx, dr) {
+    if (!SP.draw(ctx, 'drone', dr.x, dr.y, 26, dr.angle * 0.5)) {
+      ctx.save();
+      ctx.fillStyle = '#5ad1ff'; ctx.shadowColor = '#5ad1ff'; ctx.shadowBlur = 8;
+      ctx.beginPath(); ctx.arc(dr.x, dr.y, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawToken(ctx, t) {
+    const bob = Math.sin(t.phase) * 2;
+    const key = t.tier === 'coin' ? 'coin' : t.tier === 'amber' ? 'crystalAmber' : t.tier === 'purple' ? 'crystalBoss' : 'crystalTeal';
+    if (SP.draw(ctx, key, t.x, t.y + bob, (t.r + 2) * 2.4, Math.sin(t.phase * 0.6) * 0.15)) return;
+    ctx.save();
+    ctx.fillStyle = t.tier === 'coin' ? '#ffcf4d' : '#9ff5e8';
+    ctx.beginPath(); ctx.arc(t.x, t.y + bob, t.r, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawFoe(ctx, f) {
+    if (f.kind === 'hunter') {
+      if (!SP.draw(ctx, 'foeHunter', f.x, f.y, (f.r + 6) * 2.4, f.phase * 0.1)) {
+        ctx.save();
+        ctx.fillStyle = f.flash > 0 ? '#fff' : '#ff5a78';
+        ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
+      return;
+    }
+    if (f.kind === 'charger') {
+      if (f.state === 'lock') { // telegraph the locked dash line
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,90,120,0.55)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 8]);
+        ctx.beginPath();
+        ctx.moveTo(f.x, f.y);
+        ctx.lineTo(f.x + f.dirX * 900, f.y + f.dirY * 900);
+        ctx.stroke();
+        ctx.restore();
+      }
+      const rot = (f.dirX || f.dirY) ? Math.atan2(f.dirY, f.dirX) + Math.PI / 2 : 0;
+      if (!SP.draw(ctx, 'foeCharger', f.x, f.y, (f.r + 5) * 2.3, rot)) {
+        ctx.save();
+        ctx.fillStyle = f.flash > 0 ? '#fff' : (f.state === 'dash' ? '#ff7a3a' : '#ff5a78');
+        ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
+      return;
+    }
+    if (f.kind === 'shield') {
+      if (!SP.draw(ctx, 'foeShield', f.x, f.y, (f.r + 6) * 2.4, 0)) {
+        ctx.save(); ctx.fillStyle = f.flash > 0 ? '#fff' : '#5aa7ff';
+        ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+      }
+      ctx.save(); // shield arc facing the player
+      ctx.strokeStyle = 'rgba(90,167,255,0.9)'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r + 7, f.aimA - 1.05, f.aimA + 1.05); ctx.stroke();
+      ctx.restore();
+      return;
+    }
+    if (f.kind === 'laser') {
+      if (f.state === 'warn' || f.state === 'fire') {
+        const dx = f.bx - f.x, dy = f.by - f.y, L = Math.hypot(dx, dy) || 1;
+        const ux = dx / L, uy = dy / L, far = 1100;
+        ctx.save();
+        if (f.state === 'warn') {
+          ctx.strokeStyle = 'rgba(255,90,120,0.5)'; ctx.lineWidth = 2; ctx.setLineDash([10, 10]);
+        } else {
+          ctx.strokeStyle = 'rgba(255,90,120,0.95)'; ctx.lineWidth = 11; ctx.shadowColor = '#ff5a78'; ctx.shadowBlur = 16;
+        }
+        ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x + ux * far, f.y + uy * far); ctx.stroke();
+        ctx.restore();
+      }
+      if (!SP.draw(ctx, 'foeLaser', f.x, f.y, (f.r + 8) * 2.6, f.phase * 0.4)) {
+        ctx.save(); ctx.fillStyle = f.flash > 0 ? '#fff' : '#ff7a3a';
+        ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+      }
+      return;
+    }
+  }
+
+  const BEAM_DASH = [10, 8]; // hoisted so the telegraph dash doesn't alloc per frame
+  function drawBeamRay(ctx, x, y, a, len, w) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a);
+    ctx.fillStyle = 'rgba(255,90,158,0.22)'; ctx.fillRect(0, -w, len, w * 2);
+    ctx.fillStyle = 'rgba(255,160,210,0.65)'; ctx.fillRect(0, -w * 0.4, len, w * 0.8);
+    ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.fillRect(0, -2, len, 4);
+    ctx.restore();
+  }
+
+  function drawElite(ctx, e) {
+    // telegraph warning ray (dashed, pulsing)
+    if (e.state === 'telegraph') {
+      ctx.save();
+      ctx.globalAlpha = 0.3 + 0.3 * Math.sin(e.phase * 8);
+      ctx.strokeStyle = '#ff5a9e'; ctx.lineWidth = 2; ctx.setLineDash(BEAM_DASH);
+      ctx.beginPath(); ctx.moveTo(e.x, e.y);
+      ctx.lineTo(e.x + Math.cos(e.beamFrom) * 760, e.y + Math.sin(e.beamFrom) * 760);
+      ctx.stroke(); ctx.restore();
+    }
+    // firing beam
+    if (e.state === 'firing') {
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      drawBeamRay(ctx, e.x, e.y, e.beamA, 760, 26);
+      SP.draw(ctx, 'beam', e.x + Math.cos(e.beamA) * 22, e.y + Math.sin(e.beamA) * 22, e.r * 1.6, e.beamA + Math.PI / 2); // emitter muzzle (beam sprite)
+      ctx.restore();
+    }
+    // core body
+    if (!SP.draw(ctx, 'eliteCore', e.x, e.y, (e.r + 8) * 2.2, e.phase * 0.05)) {
+      ctx.save(); ctx.fillStyle = e.flash > 0 ? '#fff' : '#ff5a9e';
+      ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    } else if (e.flash > 0) {
+      ctx.save(); ctx.globalAlpha = 0.5; ctx.globalCompositeOperation = 'lighter';
+      SP.draw(ctx, 'eliteCore', e.x, e.y, (e.r + 8) * 2.2, e.phase * 0.05); ctx.restore();
+    }
+    // thin HP arc
+    const f = Math.max(0, e.hp / e.maxHp);
+    ctx.save(); ctx.strokeStyle = '#ff7ad1'; ctx.lineWidth = 3; ctx.globalAlpha = 0.85;
+    ctx.beginPath(); ctx.arc(e.x, e.y, e.r + 12, -Math.PI / 2, -Math.PI / 2 + f * Math.PI * 2); ctx.stroke();
+    ctx.restore();
   }
 
   function drawBoss(ctx, s) {
@@ -5382,10 +6364,30 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       ctx.globalAlpha = 1;
     }
 
-    for (const c of s.crystals) drawCrystal(ctx, c);
+    for (const c of s.crystals) drawCrystal(ctx, c, s.inSurge);
+    for (const t of s.tokens) drawToken(ctx, t);
+    for (const pt of s.portals) drawPortal(ctx, pt);
     for (const r of s.rocks) drawRock(ctx, r);
+    for (const c of s.crates) drawCrate(ctx, c);
     for (const o of s.pows) drawPow(ctx, o);
     for (const m of s.mines) drawMine(ctx, m);
+    for (const t of s.turrets) drawTurret(ctx, t);
+    for (const f of s.foes) drawFoe(ctx, f);
+
+    // explosion-sprite flashes (atlas burst), additive, growing + fading
+    for (const bl of s.blasts) {
+      const grow = bl.size * (0.6 + (1 - bl.life) * 0.9);
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, bl.life);
+      ctx.globalCompositeOperation = 'lighter';
+      if (!SP.draw(ctx, 'burst', bl.x, bl.y, grow, bl.rot)) {
+        ctx.beginPath();
+        ctx.arc(bl.x, bl.y, grow * 0.4, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffd9a8';
+        ctx.fill();
+      }
+      ctx.restore();
+    }
 
     // player bullets (teal laser sprite, oriented along travel)
     ctx.shadowBlur = 0;
@@ -5418,8 +6420,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       }
     }
 
+    if (s.elite) drawElite(ctx, s.elite);
     if (s.boss) drawBoss(ctx, s);
     drawPlayer(ctx, s);
+    for (const dr of s.drones) drawDrone(ctx, dr);
 
     for (const pa of s.parts) {
       ctx.globalAlpha = Math.max(0, pa.life / pa.maxLife);
@@ -5499,7 +6503,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   const $ = (id) => document.getElementById('neonvortex-' + id);
   // stage rotation (radians) so render.js can keep in-canvas overlay text upright
   SY.layout = SY.layout || { rot: 0 };
-  let recs = { settings: { muted: false }, bestAll: null, dailyBest: null, today: SY.todayUTC(),
+  let recs = { settings: { muted: false }, bestByDiff: { easy: null, normal: null, hard: null },
+    dailyBest: null, today: SY.todayUTC(),
     lifetime: { score: 0, crystals: 0, runs: 0 } }; // cosmetic meta (display-only)
   let lastResult = null;
   let runBestPace = null; // daily pace snapshot for live comparison
@@ -5508,10 +6513,18 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 
   const gameStore = SY.store.forGame('neonvortex'); // namespaced records
 
+  // difficulty (free-play only; daily is always Normal — engine-enforced)
+  const NV_DIFFICULTIES = ['easy', 'normal', 'hard'];
+  const difficultyValue = () => {
+    const d = recs.settings && recs.settings.nvDifficulty;
+    return NV_DIFFICULTIES.includes(d) ? d : 'normal';
+  };
+
   // ---------- lifecycle (shell-driven; registered via SY.registerGame below) ----------
   function enter() {
     recs.settings = SY.settings; // shared settings, loaded by the shell at boot
     SY.nvSprites.setPaint(paintValue()); // cosmetic hull coating from persisted settings
+    SY.nvSprites.setHull(hullValue());   // cosmetic hull skin from persisted settings
     applyVolume(volumeValue());  // cosmetic SFX level from persisted settings
     applyCrt(crtOn());           // cosmetic CRT overlay from persisted settings
     updateMuteBtn();
@@ -5519,16 +6532,18 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     updateVolumeUi();
     updateCrtBtn();
     renderMenuStats();           // shows defaults until records load
+    syncDifficultyChips(); // highlight the persisted difficulty on menu entry
     show('screen-menu');         // instant — records hydrate asynchronously
     loadRecords();
   }
   async function loadRecords() {
     await SY.store.migrate('neonvortex'); // one-time: legacy keys -> neonvortex:*
+    await SY.store.migrateBest('neonvortex'); // one-time: best_all -> bestByDiff.normal
     const gr = await gameStore.loadAll();
-    recs.bestAll = gr.bestAll;
     recs.dailyBest = gr.dailyBest;
     recs.today = gr.today;
     recs.lifetime = await gameStore.loadLifetime(); // cosmetic meta (display-only)
+    recs.bestByDiff = await gameStore.loadBests(NV_DIFFICULTIES);
     renderMenuStats();
     renderDailyHistory();
   }
@@ -5546,7 +6561,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   }
 
   // ---------- HUD ----------
-  const POWER_DUR = { MAGNET: 7, SLOW: 5, X2: 7, BOOST: 6, SPREAD: 7 }; // for effect timer bars
+  // power-up durations come from G.POWER_DURATION (single source in game.js)
   const hudEls = {
     time: $('hud-time'), score: $('hud-score'), combo: $('hud-combo'), heat: $('hud-heat'),
     hearts: $('hud-hearts'), pace: $('hud-pace'), fx: $('hud-fx'), mode: $('hud-mode'),
@@ -5622,8 +6637,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     let chips = '';
     const meta = G.POWER_META;
     if (s.shield) chips += chip(meta.SHIELD, 0, 0); // consumable: glyph only, no bar
-    for (const k of ['MAGNET', 'SLOW', 'X2', 'BOOST', 'SPREAD']) {
-      if (s.fx[k] > 0) chips += chip(meta[k], s.fx[k], POWER_DUR[k]);
+    for (const k of ['MAGNET', 'SLOW', 'X2', 'BOOST', 'SPREAD', 'DRONE']) {
+      if (s.fx[k] > 0) chips += chip(meta[k], s.fx[k], G.POWER_DURATION[k]);
     }
     hudEls.fx.innerHTML = chips;
   }
@@ -5632,6 +6647,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     const pct = max > 0 ? Math.max(0, Math.min(1, secs / max)) * 100 : 0;
     return '<span class="fx-badge" style="--c:' + meta.color + '">' +
       '<span class="fx-glyph">' + meta.glyph + '</span>' +
+      (max > 0 ? '<span class="fx-num">' + Math.ceil(secs) + '</span>' : '') +
       (max > 0 ? '<span class="fx-bar"><i style="width:' + pct.toFixed(0) + '%"></i></span>' : '') +
       '</span>';
   }
@@ -5793,7 +6809,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       gameStore.loadRecentDailies(14),
       gameStore.computeStreak(),
     ]);
-    const b = recs.bestAll;
+    // leaderboard uses Normal as the canonical board (matches daily = Normal); per-difficulty boards are out of scope
+    const b = (recs.bestByDiff && recs.bestByDiff.normal) || null;
 
     // Leaderboard rows from REAL local data only (no invented/fetched entries):
     // the all-time best plus each played day in the recent history, ranked by
@@ -5846,9 +6863,11 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     $('menu-daily-best').textContent = recs.dailyBest
       ? 'TODAY\u2019S BEST ' + fmt(recs.dailyBest.score)
       : 'NO RUN YET TODAY';
-    $('menu-all-best').textContent = recs.bestAll
-      ? 'ALL-TIME BEST ' + fmt(recs.bestAll.score) + ' \u00b7 \u00d7' + recs.bestAll.combo + ' \u00b7 ' + recs.bestAll.date
-      : 'ALL-TIME BEST \u2014';
+    const selDiff = difficultyValue();
+    const dBest = (recs.bestByDiff && recs.bestByDiff[selDiff]) || null;
+    $('menu-all-best').textContent = dBest
+      ? selDiff.toUpperCase() + ' BEST ' + fmt(dBest.score) + ' \u00b7 \u00d7' + dBest.combo + ' \u00b7 ' + dBest.date
+      : selDiff.toUpperCase() + ' BEST \u2014';
 
     // ---- Arcade Pilot meta (display-only; never read by the simulation) ----
     const lt = recs.lifetime || { score: 0, crystals: 0, runs: 0 };
@@ -5883,7 +6902,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   async function renderChallenge() {
     $('chal-seed').textContent = 'daily-' + recs.today + ' (UTC)';
     $('chal-daily-best').textContent = recs.dailyBest ? fmt(recs.dailyBest.score) : '아직 기록 없음';
-    $('chal-all-best').textContent = recs.bestAll ? fmt(recs.bestAll.score) : '—';
+    $('chal-all-best').textContent = (recs.bestByDiff && recs.bestByDiff.normal) ? fmt(recs.bestByDiff.normal.score) : '—';
 
     const streak = await gameStore.computeStreak();
     $('chal-streak').textContent = streak > 0 ? '🔥 ' + streak + '일 연속' : '0';
@@ -5928,7 +6947,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     if (!ctx) return;
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0, 0, w, h);
-    const r = SP && SP.atlas && SP.atlas.player; // player source rect in the atlas
+    const hullKey = SP && SP.activeHullKey && SP.activeHullKey(); // active alternate hull, or null
+    const r = SP && SP.atlas && (hullKey ? SP.atlas[hullKey] : SP.atlas.player); // source rect
     const sheet = SP && SP.image;
     // gate on the image being decoded (works for the standalone data-URI atlas,
     // where the module's onload-driven isReady() may not have fired yet)
@@ -5940,8 +6960,9 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     ctx.save();
     ctx.shadowBlur = 28;
     ctx.shadowColor = 'rgba(0, 219, 231, 0.55)'; // cyan hologram glow
-    // routes through the active coating's cached tinted canvas (cosmetic)
-    SP.drawPlayer(ctx, w / 2 - dw / 2, h / 2 - dh / 2, dw, dh);
+    // alternate hull: blit its sprite (native colour); default: the coated player
+    if (hullKey) SP.draw(ctx, hullKey, w / 2, h / 2, Math.max(dw, dh), 0);
+    else SP.drawPlayer(ctx, w / 2 - dw / 2, h / 2 - dh / 2, dw, dh);
     ctx.restore();
     return true;
   }
@@ -6006,6 +7027,34 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       coatRow.appendChild(chip);
     }
     model.appendChild(coatRow);
+
+    // HULL selector (cosmetic alternate ship sprites from the atlas)
+    model.appendChild(nvEl('span', 'nv-hgr-coat-label', 'HULL FRAME · 기체 형식'));
+    const hullRow = nvEl('div', 'nv-hgr-coats');
+    const activeHull = hullValue();
+    for (const hh of NV_HULLS) {
+      const chip = nvEl('button', 'nv-coat-chip' + (hh.id === activeHull ? ' is-active' : ''));
+      chip.type = 'button';
+      chip.dataset.hull = hh.id;
+      chip.setAttribute('aria-pressed', hh.id === activeHull ? 'true' : 'false');
+      chip.setAttribute('aria-label', hh.nameEN + ' // ' + hh.nameKR);
+      chip.appendChild(nvEl('span', 'nv-coat-chip-glyph', hh.glyph));
+      const names = nvEl('span', 'nv-coat-chip-names');
+      names.appendChild(nvEl('span', 'nv-coat-chip-en', hh.nameEN));
+      names.appendChild(nvEl('span', 'nv-coat-chip-kr', hh.nameKR));
+      chip.appendChild(names);
+      chip.addEventListener('click', () => {
+        setHull(hh.id);
+        for (const el of hullRow.children) {
+          const on = el.dataset.hull === hh.id;
+          el.classList.toggle('is-active', on);
+          el.setAttribute('aria-pressed', on ? 'true' : 'false');
+        }
+        drawHangarShip(canvas);
+      });
+      hullRow.appendChild(chip);
+    }
+    model.appendChild(hullRow);
     show.appendChild(model);
     body.appendChild(show);
 
@@ -6291,6 +7340,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     };
     strip.appendChild(chip('LIFETIME SCORE', fmt(lt.score || 0), false));
     strip.appendChild(chip('CRYSTALS', fmt(lt.crystals || 0), true));
+    strip.appendChild(chip('CREDITS', fmt(lt.credits || 0), false));
     strip.appendChild(chip(perfectLabel, perfectVal, false));
     body.appendChild(strip);
 
@@ -6332,7 +7382,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   }
 
   // PILOT TELEMETRY BLACKBOX — 파일럿 비행 기록 블랙박스 (DISPLAY-ONLY). Reads
-  // only persisted records: recs.lifetime ({score,crystals,runs}), recs.bestAll
+  // only persisted records: recs.lifetime ({score,crystals,runs}), recs.bestByDiff.normal
   // (record score), the owned medal set (for the perfect-flight count),
   // and the recent daily history (gameStore.loadRecentDailies). It writes no
   // record, touches no simulation/score/drop/seed state — and intentionally has
@@ -6390,8 +7440,9 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     strip.appendChild(chip('TOTAL MISSIONS', '총 작전 수행 수', fmt(lt.runs || 0), null));
     strip.appendChild(chip('PERFECT FLIGHTS', '무결점 완벽 비행', perfectVal, 'green'));
     strip.appendChild(chip('CRYSTAL YIELD', '획득 차원 결정', fmt(lt.crystals || 0), 'cyan'));
+    strip.appendChild(chip('CREDIT YIELD', '획득 크레딧', fmt(lt.credits || 0), 'amber'));
     strip.appendChild(chip('RECORD SCORE', '역대 최고 점수',
-      recs.bestAll ? fmt(recs.bestAll.score) : '—', 'gold'));
+      (recs.bestByDiff && recs.bestByDiff.normal) ? fmt(recs.bestByDiff.normal.score) : '—', 'gold'));
     body.appendChild(strip);
 
     // ---- flight log list ----
@@ -6457,7 +7508,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     // fullscreen is opt-in via the ⛶ button — we no longer force it on game start
     syncToday(); // don't pace-compare a new day's run against yesterday's best
     runBestPace = mode === 'daily' && recs.dailyBest ? recs.dailyBest.pace : null;
-    G.start(mode);
+    G.start(mode, difficultyValue()); // daily ignores it (engine forces Normal)
     show(null);
   }
 
@@ -6522,13 +7573,16 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       }
       syncToday(); // after filing: refresh the slate if midnight passed mid-run
     }
-    if (!recs.bestAll || res.score > recs.bestAll.score) {
+    const runDiff = res.difficulty || 'normal';
+    recs.bestByDiff = recs.bestByDiff || { easy: null, normal: null, hard: null };
+    if (!recs.bestByDiff[runDiff] || res.score > recs.bestByDiff[runDiff].score) {
       newAll = true;
-      recs.bestAll = { score: res.score, combo: res.maxCombo, date: recs.today, mode: res.mode };
-      gameStore.saveBestAll(recs.bestAll);
+      const rec = { score: res.score, combo: res.maxCombo, date: recs.today, mode: res.mode };
+      recs.bestByDiff = { ...recs.bestByDiff, [runDiff]: rec };
+      gameStore.saveBestFor(runDiff, rec);
     }
     // cosmetic lifetime totals (display-only; wired to UI in a later task)
-    recs.lifetime = SY.nvMeta.accumulateLifetime(recs.lifetime, { score: res.score, crystals: res.crystalsCollected || 0 });
+    recs.lifetime = SY.nvMeta.accumulateLifetime(recs.lifetime, { score: res.score, crystals: res.crystalsCollected || 0, credits: res.creditsCollected || 0 });
     gameStore.saveLifetime(recs.lifetime);
     const tier = SY.nvMeta.rankTier(recs.lifetime.score);
     const prEl = $('over-pilot-rank'); prEl.textContent = tier.name; prEl.style.color = tier.color;
@@ -6538,13 +7592,16 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     $('over-reason').textContent = res.reason === 'down' ? 'DRONE DESTROYED' : 'TIME UP';
     $('over-score').textContent = fmt(res.score);
     $('over-best-banner').classList.toggle('show', isNewBest);
-    $('over-best-label').textContent = newAll ? 'NEW ALL-TIME BEST!' : 'NEW DAILY BEST!';
+    $('over-best-label').textContent = newAll
+      ? 'NEW ' + (runDiff === 'normal' ? 'ALL-TIME' : runDiff.toUpperCase()) + ' BEST!'
+      : 'NEW DAILY BEST!';
     const bd = res.breakdown;
     $('over-stats').innerHTML =
       statRow('CRYSTAL PTS', '+' + fmt(bd.crystals)) +
       statRow('COMBO BONUS', '+' + fmt(bd.combo)) +
       statRow('HEAT BONUS', '+' + fmt(bd.heat || 0)) +
       statRow('DESTRUCTION', '+' + fmt(bd.destruction)) +
+      statRow('LOOT PTS', '+' + fmt(bd.loot || 0)) +
       statRow('BOSS PTS', '+' + fmt(bd.boss)) +
       statRow('MAX COMBO', '\u00d7' + res.maxCombo) +
       statRow('CRYSTALS', fmt(res.collected)) +
@@ -6552,7 +7609,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       statRow(res.mode === 'daily' ? 'TODAY\u2019S BEST' : 'ALL-TIME BEST',
         res.mode === 'daily'
           ? (recs.dailyBest ? fmt(recs.dailyBest.score) : '\u2014') // null right after a midnight rollover
-          : fmt(recs.bestAll.score));
+          : fmt((recs.bestByDiff[res.difficulty || 'normal'] || { score: res.score }).score));
     drawSparkline(res.pace, res.mode === 'daily' ? runBestPace : null);
 
     $('btn-share').style.display = res.mode === 'daily' ? '' : 'none';
@@ -6700,6 +7757,27 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   }
   function applyVolume(v0to100) { SY.audio.setVolume(v0to100 / 100); }
 
+  // ---------- difficulty selector (free-play only; daily is always Normal) ----------
+  // NV_DIFFICULTIES / difficultyValue are declared at the top of the IIFE (used by
+  // loadRecords + renderMenuStats); setDifficulty lives here with the other settings setters.
+  function setDifficulty(id) {
+    const next = NV_DIFFICULTIES.includes(id) ? id : 'normal';
+    recs.settings.nvDifficulty = next;
+    SY.store.saveSettings(recs.settings);
+    renderMenuStats();           // headline best reflects the selected difficulty
+    syncDifficultyChips();
+  }
+  function syncDifficultyChips() {
+    const sel = difficultyValue();
+    for (const d of NV_DIFFICULTIES) {
+      const el = $('diff-' + d);
+      if (el) {
+        el.classList.toggle('is-active', d === sel);
+        el.setAttribute('aria-pressed', d === sel ? 'true' : 'false');
+      }
+    }
+  }
+
   // ---------- hull coating (cosmetic ship paint) ----------
   // Persisted under recs.settings.nvPaint (neonvortex-scoped). Purely visual:
   // sets the cached tint in SY.nvSprites — no gameplay/seed effect.
@@ -6716,6 +7794,24 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     const next = NV_COATINGS.some((c) => c.id === id) ? id : 'neon';
     recs.settings.nvPaint = next;
     SY.nvSprites.setPaint(next);
+    SY.store.saveSettings(recs.settings);
+  }
+  // alternate hull skins (atlas ship variants). Persisted under settings.nvHull.
+  // Purely visual — swaps the player sprite, no gameplay/seed effect.
+  const NV_HULLS = [
+    { id: 'default', nameEN: 'INTERCEPTOR', nameKR: '인터셉터',   glyph: '▲' },
+    { id: 'upg1',    nameEN: 'STRIKE MK-I', nameKR: '스트라이크 I', glyph: '◤' },
+    { id: 'upg2',    nameEN: 'STRIKE MK-II', nameKR: '스트라이크 II', glyph: '◢' },
+    { id: 'upg3',    nameEN: 'STRIKE MK-III', nameKR: '스트라이크 III', glyph: '✪' },
+  ];
+  const hullValue = () => {
+    const id = recs.settings && recs.settings.nvHull;
+    return NV_HULLS.some((h) => h.id === id) ? id : 'default';
+  };
+  function setHull(id) {
+    const next = NV_HULLS.some((h) => h.id === id) ? id : 'default';
+    recs.settings.nvHull = next;
+    SY.nvSprites.setHull(next);
     SY.store.saveSettings(recs.settings);
   }
   function updateVolumeUi() {
@@ -6757,6 +7853,9 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   $('btn-start').addEventListener('click', () => startGame('daily')); // headline action → today's daily
   $('btn-daily').addEventListener('click', () => { renderChallenge(); show('screen-challenge'); });
   $('btn-free').addEventListener('click', () => startGame('free'));
+  for (const d of NV_DIFFICULTIES) {
+    $('diff-' + d).addEventListener('click', () => setDifficulty(d));
+  }
   $('btn-retry').addEventListener('click', () => startGame(lastResult ? lastResult.mode : 'daily'));
   $('btn-menu').addEventListener('click', quitToMenu);
   $('btn-share').addEventListener('click', copyShare);
