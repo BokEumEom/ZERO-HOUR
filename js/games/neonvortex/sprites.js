@@ -49,6 +49,7 @@
     lootCanister:{ x: 498,  y: 278, w: 94,  h: 90  }, // canister/module crate
     coin:        { x: 884,  y: 709, w: 60,  h: 56  }, // gold reward coin
     lootChest:   { x: 1258, y: 697, w: 94,  h: 64  }, // rare treasure chest (jackpot)
+    drone:       { x: 1215, y: 1019, w: 44, h: 38 }, // companion wingman drone
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
@@ -61,6 +62,7 @@
     X2:     { x: 369, y: 23, w: 66, h: 87 }, // burst/star badge
     SLOW:   { x: 509, y: 24, w: 66, h: 86 }, // orbit-ring badge
     TIME:   { x: 19,  y: 16, w: 65, h: 94 }, // plus badge (+5 sec)
+    DRONE:  { x: 1215, y: 1019, w: 44, h: 38 }, // companion drone (also the entity sprite)
   };
 
   // ---- hull coatings (cosmetic paint) -------------------------------------

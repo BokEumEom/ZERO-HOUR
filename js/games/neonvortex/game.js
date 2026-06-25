@@ -3,7 +3,7 @@
   const SY = (window.SY = window.SY || {});
 
   const W = 960, H = 600;
-  const POWER_TYPES = ['MAGNET', 'SHIELD', 'SLOW', 'X2', 'BOOST', 'SPREAD', 'TIME'];
+  const POWER_TYPES = ['MAGNET', 'SHIELD', 'SLOW', 'X2', 'BOOST', 'SPREAD', 'TIME', 'DRONE'];
 
   const POWER_META = {
     MAGNET: { glyph: 'M',  color: '#2de2c6', label: 'MAGNET' },
@@ -13,12 +13,13 @@
     BOOST:  { glyph: '»',  color: '#7dff8a', label: 'BOOST' },
     SPREAD: { glyph: 'Ψ',  color: '#ff9a5a', label: 'SPREAD' },
     TIME:   { glyph: '+5', color: '#eaf6ff', label: '+5 SEC' },
+    DRONE:  { glyph: 'D',  color: '#5ad1ff', label: 'WINGMAN' },
   };
 
   // power-up active durations (seconds). Single source of truth — main.js reads
   // these via G.POWER_DURATION for the HUD timer bar/countdown. SHIELD is
   // consumable and TIME is instant, so neither has a duration here.
-  const POWER_DURATION = { MAGNET: 9, SLOW: 6, X2: 9, BOOST: 8, SPREAD: 9 };
+  const POWER_DURATION = { MAGNET: 9, SLOW: 6, X2: 9, BOOST: 8, SPREAD: 9, DRONE: 9 };
 
   // ---- surge director tuning ----
   const SURGE_WARMUP = 8;     // calm intro before the first surge (s)
@@ -100,10 +101,10 @@
       score: 0, combo: 0, maxCombo: 0, comboT: 0,
       pace: [0], paceSec: 0,
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
-      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [],
+      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [],
       parts: [], waves: [], floats: [], blasts: [],
       boss: null, bossDown: false, bossWarnT: 0,
-      fx: { MAGNET: 0, SLOW: 0, X2: 0, BOOST: 0, SPREAD: 0 },
+      fx: { MAGNET: 0, SLOW: 0, X2: 0, BOOST: 0, SPREAD: 0, DRONE: 0 },
       shield: false,
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
@@ -564,6 +565,24 @@
       } else p.fireCd = 0.06;
     }
 
+    // ---------- companion drones (DRONE power-up) ----------
+    if (s.fx.DRONE <= 0 && s.drones.length) s.drones.length = 0; // expired
+    for (const dr of s.drones) {
+      dr.angle += dt * 2.4; // orbit
+      dr.x = p.x + Math.cos(dr.angle) * dr.orbitR;
+      dr.y = p.y + Math.sin(dr.angle) * dr.orbitR;
+      dr.fireCd -= dt;
+      if (dr.fireCd <= 0) {
+        const target = nearestTarget(s, dr.x, dr.y, 360 * 360);
+        if (target) {
+          dr.fireCd = 0.55;
+          const a = Math.atan2(target.y - dr.y, target.x - dr.x);
+          s.bullets.push({ x: dr.x, y: dr.y, vx: Math.cos(a) * 480, vy: Math.sin(a) * 480, life: 0.7 });
+          SY.audio.shoot();
+        } else dr.fireCd = 0.1;
+      }
+    }
+
     // ---------- spawning ----------
     s.spawnT.crystal -= dt;
     if (s.spawnT.crystal <= 0) { s.spawnT.crystal = 1.55; if (s.crystals.length < 36) spawnCrystalCluster(s); }
@@ -819,6 +838,27 @@
     // timed buffs: extend remaining time by the base duration, capped at 2x base
     const dur = POWER_DURATION[o.type];
     s.fx[o.type] = Math.min(2 * dur, s.fx[o.type] + dur);
+    if (o.type === 'DRONE' && s.drones.length === 0) spawnDrones(s);
+  }
+
+  // two companion wingman drones, evenly spaced (deterministic — no rng)
+  function spawnDrones(s) {
+    for (let i = 0; i < 2; i++) {
+      s.drones.push({ angle: i * Math.PI, orbitR: 40, fireCd: 0.3 + i * 0.2, x: s.player.x, y: s.player.y });
+    }
+  }
+
+  // nearest targetable enemy to (x,y) within maxD2 (squared), or null. Deterministic.
+  function nearestTarget(s, x, y, maxD2) {
+    let best = maxD2, target = null;
+    const probe = (e) => { const dx = e.x - x, dy = e.y - y, d = dx * dx + dy * dy; if (d < best) { best = d; target = e; } };
+    if (s.boss && s.boss.dying <= 0 && s.boss.y > 0) probe(s.boss);
+    for (const m of s.mines) probe(m);
+    for (const r of s.rocks) probe(r);
+    for (const t of s.turrets) probe(t);
+    for (const f of s.foes) probe(f);
+    for (const cr of s.crates) probe(cr);
+    return target;
   }
 
   function stepCosmeticsLight(s, dt) {

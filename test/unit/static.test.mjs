@@ -166,6 +166,16 @@ test('render.js draws new-archetype foes', () => {
   assert.ok(/drawFoe/.test(src), 'has a drawFoe routine');
 });
 
+test('companion drone (DRONE power-up) is wired', () => {
+  const game = read(`${NV}/game.js`);
+  assert.ok(/'DRONE'/.test(game) && /spawnDrones/.test(game), 'DRONE type + drone spawn');
+  assert.ok(/nearestTarget/.test(game), 'drones target the nearest enemy');
+  const render = read(`${NV}/render.js`);
+  assert.ok(/drawDrone/.test(render) && /s\.drones/.test(render), 'drones drawn');
+  const main = read(`${NV}/main.js`);
+  assert.ok(/'BOOST', 'SPREAD', 'DRONE'/.test(main), 'DRONE badge in the HUD loop');
+});
+
 test('loot crates and tokens are rendered from atlas art', () => {
   const render = read(`${NV}/render.js`);
   assert.ok(/drawCrate/.test(render) && /s\.crates/.test(render), 'crates drawn');
