@@ -4326,6 +4326,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     frameCorner: { x: 454,  y: 511, w: 54,  h: 54  }, // cockpit/targeting frame corner bracket (section 5)
     missile:     { x: 966,  y: 284, w: 44,  h: 105 }, // homing missile projectile (section 4)
     oneUp:       { x: 640,  y: 46,  w: 58,  h: 70  }, // 1UP heart — rare extra-life pickup (section 1)
+    plasmaOrb:   { x: 1057, y: 293, w: 60,  h: 66  }, // heavy plasma orb (boss enemy projectile, section 4)
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
@@ -5238,7 +5239,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     // (2.4/1.7) — a brief opening beat before the boss's first shots.
     s.boss = {
       x: W / 2, y: -90, ty: 128, r: 46, hp: bhp, maxHp: bhp,
-      t: 0, burstT: 1.8 * fm, aimT: 2.6 * fm, fireMul: fm, flash: 0, dying: 0, ringRot: 0,
+      t: 0, burstT: 1.8 * fm, aimT: 2.6 * fm, plasmaT: 4 * fm, fireMul: fm, flash: 0, dying: 0, ringRot: 0,
     };
     s.bossWarnT = 1.6;
     s.shake = Math.max(s.shake, 7);
@@ -5397,6 +5398,14 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         const a = base + k * 0.16;
         s.ebullets.push({ x: b.x, y: b.y, vx: Math.cos(a) * 235, vy: Math.sin(a) * 235, r: 5 });
       }
+    }
+    // heavy plasma orb: slow, large, telegraphed aimed shot (reactive aim, no rng)
+    b.plasmaT -= dt * slowMul;
+    if (b.plasmaT <= 0) {
+      b.plasmaT = 4.5 * b.fireMul;
+      const a = Math.atan2(s.player.y - b.y, s.player.x - b.x);
+      s.ebullets.push({ x: b.x, y: b.y, vx: Math.cos(a) * 120, vy: Math.sin(a) * 120, r: 15, plasma: true });
+      wave(s, b.x, b.y, 52, '#5ad1ff');
     }
     // contact damage
     if (dist2(b, s.player) < (b.r + s.player.r) * (b.r + s.player.r)) hurtPlayer(s, s.player.x, s.player.y);
@@ -6512,6 +6521,13 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     }
     // enemy bullets (pink)
     for (const b of s.ebullets) {
+      if (b.plasma) { // boss heavy plasma orb (atlas orb sprite)
+        if (!SP.draw(ctx, 'plasmaOrb', b.x, b.y, b.r * 2.6, b.x * 0.5 + b.y * 0.5)) {
+          ctx.save(); ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+          ctx.fillStyle = '#5ad1ff'; ctx.shadowColor = '#5ad1ff'; ctx.shadowBlur = 12; ctx.fill(); ctx.restore();
+        }
+        continue;
+      }
       if (!SP.draw(ctx, 'bulletPink', b.x, b.y, b.r * 3.2, Math.atan2(b.vy, b.vx) + Math.PI / 2)) {
         ctx.beginPath();
         ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
