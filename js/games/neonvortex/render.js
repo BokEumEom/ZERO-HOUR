@@ -301,7 +301,8 @@
   }
 
   function drawDrone(ctx, dr) {
-    if (!SP.draw(ctx, 'drone', dr.x, dr.y, 26, dr.angle * 0.5)) {
+    const key = dr.variant ? 'drone2' : 'drone'; // two companions use distinct atlas art
+    if (!SP.draw(ctx, key, dr.x, dr.y, dr.variant ? 30 : 26, dr.angle * 0.5)) {
       ctx.save();
       ctx.fillStyle = '#5ad1ff'; ctx.shadowColor = '#5ad1ff'; ctx.shadowBlur = 8;
       ctx.beginPath(); ctx.arc(dr.x, dr.y, 6, 0, Math.PI * 2); ctx.fill();

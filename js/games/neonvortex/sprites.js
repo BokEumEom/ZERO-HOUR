@@ -86,6 +86,7 @@
     missile:     { x: 966,  y: 284, w: 44,  h: 105 }, // homing missile projectile (section 4)
     oneUp:       { x: 640,  y: 46,  w: 58,  h: 70  }, // 1UP heart — rare extra-life pickup (section 1)
     plasmaOrb:   { x: 1057, y: 293, w: 60,  h: 66  }, // heavy plasma orb (boss enemy projectile, section 4)
+    drone2:      { x: 1326, y: 1023, w: 84, h: 44 }, // 2nd companion drone variant (winged core, section 8)
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
