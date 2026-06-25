@@ -267,19 +267,21 @@
       const s = g.state;
       const alive = () => { s.player.inv = 1; s.player.hp = Math.max(s.player.hp, 1); };
 
-      // elite Sentinel: spawn -> beam-firing state machine
+      // elite Sentinel: spawn -> beam-firing state machine. Suppress auto-fire
+      // (fireCd high) so the player doesn't shoot the elite down before it fires —
+      // the FREE-run seed is random, so spawn distance / kill timing would be flaky.
       w.SY.nvElite.spawn(s);
       check('atlas', 'elite spawned into the live game', !!s.elite);
       let sawFiring = false;
-      for (let i = 0; i < 140 && s.elite; i++) { alive(); g.update(0.05); if (s.elite && s.elite.state === 'firing') sawFiring = true; }
+      for (let i = 0; i < 160 && s.elite; i++) { alive(); s.player.fireCd = 99; g.update(0.05); if (s.elite && s.elite.state === 'firing') sawFiring = true; }
       check('atlas', 'elite cycles into its beam-firing state', sawFiring);
-      // force-kill an elite and verify the reward drop (power-up + jackpot loot + >=250)
+      // force-kill: pin the elite to a known firing state + position (bulletHit ignores
+      // the 'enter' state, and the hover/seeded spawn position made a single shot flaky).
       if (!s.elite) w.SY.nvElite.spawn(s);
-      for (let i = 0; i < 40 && s.elite && s.elite.state === 'enter'; i++) { alive(); g.update(0.05); }
-      s.elite.hp = 1; s.pows.length = 0; s.tokens.length = 0;
+      Object.assign(s.elite, { state: 'firing', hp: 1, x: 480, y: 200, hx: 480, hy: 200 });
+      s.pows.length = 0; s.tokens.length = 0;
       const scoreBefore = s.score;
-      s.bullets.push({ x: s.elite.x, y: s.elite.y, vx: 0, vy: 0, life: 0.5 });
-      g.update(0.05);
+      for (let i = 0; i < 6 && s.elite; i++) { s.bullets.push({ x: s.elite.x, y: s.elite.y, vx: 0, vy: 0, life: 0.5 }); g.update(0.05); }
       check('atlas', 'killing the elite clears it + drops power-up + jackpot loot + >=250 score',
         s.elite === null && s.pows.length >= 1 && s.tokens.length >= 1 && (s.score - scoreBefore) >= 250,
         'pows=' + s.pows.length + ' tokens=' + s.tokens.length + ' +score=' + (s.score - scoreBefore));
