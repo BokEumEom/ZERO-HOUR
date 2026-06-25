@@ -301,7 +301,7 @@
     // (2.4/1.7) — a brief opening beat before the boss's first shots.
     s.boss = {
       x: W / 2, y: -90, ty: 128, r: 46, hp: bhp, maxHp: bhp,
-      t: 0, burstT: 1.8 * fm, aimT: 2.6 * fm, fireMul: fm, flash: 0, dying: 0, ringRot: 0,
+      t: 0, burstT: 1.8 * fm, aimT: 2.6 * fm, plasmaT: 4 * fm, fireMul: fm, flash: 0, dying: 0, ringRot: 0,
     };
     s.bossWarnT = 1.6;
     s.shake = Math.max(s.shake, 7);
@@ -460,6 +460,14 @@
         const a = base + k * 0.16;
         s.ebullets.push({ x: b.x, y: b.y, vx: Math.cos(a) * 235, vy: Math.sin(a) * 235, r: 5 });
       }
+    }
+    // heavy plasma orb: slow, large, telegraphed aimed shot (reactive aim, no rng)
+    b.plasmaT -= dt * slowMul;
+    if (b.plasmaT <= 0) {
+      b.plasmaT = 4.5 * b.fireMul;
+      const a = Math.atan2(s.player.y - b.y, s.player.x - b.x);
+      s.ebullets.push({ x: b.x, y: b.y, vx: Math.cos(a) * 120, vy: Math.sin(a) * 120, r: 15, plasma: true });
+      wave(s, b.x, b.y, 52, '#5ad1ff');
     }
     // contact damage
     if (dist2(b, s.player) < (b.r + s.player.r) * (b.r + s.player.r)) hurtPlayer(s, s.player.x, s.player.y);

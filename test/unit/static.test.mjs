@@ -206,6 +206,15 @@ test('elite sentinel (E4a) is wired', () => {
   assert.ok(/eliteCore:\s*\{/.test(spr), 'eliteCore rect');
 });
 
+test('boss heavy plasma orb (atlas orb projectile) is wired', () => {
+  const game = read(`${NV}/game.js`);
+  assert.ok(/plasmaT/.test(game) && /plasma: true/.test(game), 'boss plasma attack + flagged ebullet');
+  const render = read(`${NV}/render.js`);
+  assert.ok(/b\.plasma/.test(render) && /'plasmaOrb'/.test(render), 'plasma ebullets drawn as the orb sprite');
+  const sprP = read(`${NV}/sprites.js`);
+  assert.ok(/plasmaOrb:\s*\{/.test(sprP), 'plasmaOrb rect');
+});
+
 test('ui-kit arena art (reticle + game-state banners) is wired, cosmetic', () => {
   const spr = read(`${NV}/sprites.js`);
   assert.ok(/ui-kit\.png/.test(spr) && /function drawUi/.test(spr), 'ui-kit sheet + drawUi helper');
