@@ -4327,6 +4327,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     missile:     { x: 966,  y: 284, w: 44,  h: 105 }, // homing missile projectile (section 4)
     oneUp:       { x: 640,  y: 46,  w: 58,  h: 70  }, // 1UP heart — rare extra-life pickup (section 1)
     plasmaOrb:   { x: 1057, y: 293, w: 60,  h: 66  }, // heavy plasma orb (boss enemy projectile, section 4)
+    drone2:      { x: 1326, y: 1023, w: 84, h: 44 }, // 2nd companion drone variant (winged core, section 8)
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
@@ -5885,7 +5886,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // two companion wingman drones, evenly spaced (deterministic — no rng)
   function spawnDrones(s) {
     for (let i = 0; i < 2; i++) {
-      s.drones.push({ angle: i * Math.PI, orbitR: 40, fireCd: 0.3 + i * 0.2, x: s.player.x, y: s.player.y });
+      s.drones.push({ angle: i * Math.PI, orbitR: 40, fireCd: 0.3 + i * 0.2, x: s.player.x, y: s.player.y, variant: i });
     }
   }
 
@@ -6267,7 +6268,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   }
 
   function drawDrone(ctx, dr) {
-    if (!SP.draw(ctx, 'drone', dr.x, dr.y, 26, dr.angle * 0.5)) {
+    const key = dr.variant ? 'drone2' : 'drone'; // two companions use distinct atlas art
+    if (!SP.draw(ctx, key, dr.x, dr.y, dr.variant ? 30 : 26, dr.angle * 0.5)) {
       ctx.save();
       ctx.fillStyle = '#5ad1ff'; ctx.shadowColor = '#5ad1ff'; ctx.shadowBlur = 8;
       ctx.beginPath(); ctx.arc(dr.x, dr.y, 6, 0, Math.PI * 2); ctx.fill();
