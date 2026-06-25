@@ -3410,6 +3410,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 
 </style>
 <link rel="preload" as="image" href="assets/sprite-atlas.png?v=3">
+<link rel="preload" as="image" href="assets/ui-kit.png">
 </head>
 <body>
   <template id="__bundler_thumbnail" data-bg-color="#04090f">
@@ -4256,6 +4257,34 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // relative path works both from index.html and the generated standalone.html
   sheet.src = 'assets/sprite-atlas.png?v=3';
 
+  // ---- ui-kit sheet: neon-on-black HUD art drawn over the canvas arena with an
+  // additive blend, so the black background keys out (no matte box). Reticle +
+  // game-state banners only — see drawUi(). RGB, no alpha; never tinted/cached.
+  const uiSheet = new Image();
+  let uiReady = false;
+  uiSheet.onload = () => { uiReady = true; };
+  const uiDecoded = () => uiReady || (uiSheet.complete && uiSheet.naturalWidth > 0);
+  uiSheet.src = 'assets/ui-kit.png';
+  const UI = {
+    reticle: { x: 1129, y: 632,  w: 67,  h: 63 },  // cyan circular target reticle
+    bWarning:{ x: 234,  y: 931,  w: 210, h: 70 },  // "WARNING" banner (surge telegraph)
+    bBoss:   { x: 460,  y: 931,  w: 190, h: 70 },  // "BOSS" banner (Core Warden inbound)
+    bClear:  { x: 236,  y: 1001, w: 208, h: 68 },  // "MISSION CLEAR" banner (boss downed)
+  };
+  // draw a ui-kit rect centred at (x,y), scaled so its longest edge spans `size`,
+  // additively (black background keys out). Returns false until the sheet decodes.
+  function drawUi(ctx, key, x, y, size, alpha) {
+    if (!uiDecoded()) return false;
+    const r = UI[key]; if (!r) return false;
+    const sc = size / Math.max(r.w, r.h), dw = r.w * sc, dh = r.h * sc;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    if (alpha !== undefined) ctx.globalAlpha = alpha;
+    ctx.drawImage(uiSheet, r.x, r.y, r.w, r.h, x - dw / 2, y - dh / 2, dw, dh);
+    ctx.restore();
+    return true;
+  }
+
   // { x, y, w, h } source rects in the 1448×1086 sheet.
   const A = {
     player:      { x: 24,   y: 832, w: 122, h: 126 }, // teal interceptor (DEFAULT)
@@ -4508,7 +4537,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     return 'player';
   }
 
-  SY.nvSprites = { draw, drawFit, drawPlayer, drawPowerIcon, setPaint, getPaint, setHull, getHull, activeHullKey, pickHullFrame, atlas: A, powerIcons: POWER_ICONS, isReady: () => ready, image: sheet };
+  SY.nvSprites = { draw, drawFit, drawPlayer, drawPowerIcon, drawUi, setPaint, getPaint, setHull, getHull, activeHullKey, pickHullFrame, atlas: A, ui: UI, powerIcons: POWER_ICONS, isReady: () => ready, image: sheet };
 })();
 
 </script>
@@ -5017,6 +5046,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       elite: null, eliteSpawned: false,
       eliteAt: (SURGE_WARMUP + (duration >= 40 ? duration - 20 : duration)) / 2,
       fx: { MAGNET: 0, SLOW: 0, X2: 0, BOOST: 0, SPREAD: 0, DRONE: 0, MISSILE: 0 },
+      aimTarget: null, // display-only: current auto-fire target (for the reticle)
+      clearT: 0,       // display-only: MISSION CLEAR banner timer (set on boss-down)
       shield: false,
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
@@ -5330,6 +5361,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         }
         addScore(s, 1500, b.x, b.y, 'CORE WARDEN', 'boss');
         s.bossDown = true;
+        s.clearT = 2.2; // MISSION CLEAR banner (display-only)
         s.boss = null;
         s.freeze = Math.max(s.freeze, 0.32);
         s.shake = Math.max(s.shake, 16);
@@ -5458,6 +5490,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     // effect timers
     for (const k in s.fx) if (s.fx[k] > 0) s.fx[k] -= dt;
     if (s.comboT > 0) { s.comboT -= dt; if (s.comboT <= 0) s.combo = 0; }
+    if (s.clearT > 0) s.clearT -= dt; // MISSION CLEAR banner countdown (display-only)
 
     // ---------- player ----------
     const p = s.player;
@@ -5496,6 +5529,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       for (const f of s.foes) cand.push(f);
       for (const cr of s.crates) cand.push(cr);
       for (const c of cand) { const d = dist2(c, p); if (d < best) { best = d; target = c; } }
+      s.aimTarget = target; // display-only: the reticle tracks this (deterministic nearest; never read by the sim)
       if (target) {
         p.fireCd = 0.19;
         const a = Math.atan2(target.y - p.y, target.x - p.x);
@@ -6498,6 +6532,12 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     drawPlayer(ctx, s);
     for (const dr of s.drones) drawDrone(ctx, dr);
 
+    // targeting reticle on the current auto-fire target (ui-kit, additive black-key)
+    if (s.aimTarget && s.aimTarget.x != null) {
+      const t = s.aimTarget;
+      SP.drawUi(ctx, 'reticle', t.x, t.y, (t.r || 16) * 2 + 26);
+    }
+
     for (const pa of s.parts) {
       ctx.globalAlpha = Math.max(0, pa.life / pa.maxLife);
       ctx.fillStyle = pa.color;
@@ -6520,12 +6560,11 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       ctx.save();
       ctx.translate(W / 2, H / 2);
       ctx.rotate(-rot);
-      ctx.fillStyle = 'rgba(255,154,90,0.12)';
-      ctx.fillRect(-W, -30, W * 2, 60);
-      ctx.fillStyle = '#ff9a5a';
-      ctx.font = 'bold 24px ' + MONO;
-      ctx.textAlign = 'center';
-      ctx.fillText('▲ SURGE INCOMING ▲', 0, 8);
+      if (!SP.drawUi(ctx, 'bWarning', 0, 0, 380)) { // ui-kit WARNING banner (falls back to text)
+        ctx.fillStyle = 'rgba(255,154,90,0.12)'; ctx.fillRect(-W, -30, W * 2, 60);
+        ctx.fillStyle = '#ff9a5a'; ctx.font = 'bold 24px ' + MONO; ctx.textAlign = 'center';
+        ctx.fillText('▲ SURGE INCOMING ▲', 0, 8);
+      }
       ctx.restore();
     }
 
@@ -6533,12 +6572,23 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       ctx.save();
       ctx.translate(W / 2, H / 2);
       ctx.rotate(-rot);
-      ctx.fillStyle = 'rgba(255,90,120,0.12)';
-      ctx.fillRect(-W, -34, W * 2, 68);
-      ctx.fillStyle = '#ff5a78';
-      ctx.font = 'bold 28px ' + MONO;
-      ctx.textAlign = 'center';
-      ctx.fillText('⚠ CORE WARDEN INBOUND ⚠', 0, 9);
+      if (!SP.drawUi(ctx, 'bBoss', 0, 0, 360)) { // ui-kit BOSS banner (falls back to text)
+        ctx.fillStyle = 'rgba(255,90,120,0.12)'; ctx.fillRect(-W, -34, W * 2, 68);
+        ctx.fillStyle = '#ff5a78'; ctx.font = 'bold 28px ' + MONO; ctx.textAlign = 'center';
+        ctx.fillText('⚠ CORE WARDEN INBOUND ⚠', 0, 9);
+      }
+      ctx.restore();
+    }
+
+    if (s.clearT > 0) { // MISSION CLEAR banner on boss-down (ui-kit, fades out)
+      ctx.save();
+      ctx.translate(W / 2, H / 2 - 40);
+      ctx.rotate(-rot);
+      if (!SP.drawUi(ctx, 'bClear', 0, 0, 420, Math.min(1, s.clearT))) {
+        ctx.globalAlpha = Math.min(1, s.clearT);
+        ctx.fillStyle = '#2de2c6'; ctx.font = 'bold 28px ' + MONO; ctx.textAlign = 'center';
+        ctx.fillText('MISSION CLEAR', 0, 9);
+      }
       ctx.restore();
     }
 
