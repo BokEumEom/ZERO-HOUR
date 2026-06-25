@@ -11,7 +11,7 @@ const read = (f) => readFileSync(path.join(root, f), 'utf8');
 
 const NV = 'js/games/neonvortex';
 const CORE = ['js/store.js', 'js/audio.js', 'js/shell.js',
-  `${NV}/sprites.js`, `${NV}/meta.js`, `${NV}/medals.js`, `${NV}/foes.js`, `${NV}/game.js`, `${NV}/render.js`, `${NV}/main.js`];
+  `${NV}/sprites.js`, `${NV}/meta.js`, `${NV}/medals.js`, `${NV}/foes.js`, `${NV}/elite.js`, `${NV}/game.js`, `${NV}/render.js`, `${NV}/main.js`];
 
 test('game core stays React-free', () => {
   for (const f of CORE) {
@@ -72,7 +72,7 @@ test('script load order in index.html is store -> audio -> shell -> game modules
   // match basenames regardless of folder (the game's modules live under js/games/neonvortex/)
   const order = [...html.matchAll(/<script src="js[^"]*\/([a-z-]+)\.js">/g)].map((m) => m[1]);
   // shell core, then the single game: sprites (atlas) -> meta -> medals -> game -> render -> main
-  assert.deepEqual(order, ['store', 'audio', 'shell', 'sprites', 'meta', 'medals', 'foes', 'game', 'render', 'main']);
+  assert.deepEqual(order, ['store', 'audio', 'shell', 'sprites', 'meta', 'medals', 'foes', 'elite', 'game', 'render', 'main']);
 });
 
 test('render.js reacts to surge state (telegraph + tint)', () => {
@@ -192,6 +192,18 @@ test('world objects (E3): spawn portal + console objective are wired', () => {
   assert.ok(/drawPortal/.test(render) && /s\.portals/.test(render), 'portals drawn');
   const spr = read(`${NV}/sprites.js`);
   for (const k of ['portal', 'lootConsole']) assert.ok(new RegExp(k + ':\\s*\\{').test(spr), k);
+});
+
+test('elite sentinel (E4a) is wired', () => {
+  const elite = read(`${NV}/elite.js`);
+  assert.ok(/SY\.nvElite/.test(elite) && /function spawn/.test(elite), 'nvElite module + spawn');
+  assert.ok(/beamA/.test(elite) && /hurtPlayer/.test(elite), 'beam sweep + player damage');
+  const game = read(`${NV}/game.js`);
+  assert.ok(/s\.elite/.test(game) && /nvElite\.update/.test(game), 'game drives the elite');
+  const render = read(`${NV}/render.js`);
+  assert.ok(/drawElite/.test(render), 'elite drawn');
+  const spr = read(`${NV}/sprites.js`);
+  assert.ok(/eliteCore:\s*\{/.test(spr), 'eliteCore rect');
 });
 
 test('big kills spawn an atlas burst-sprite explosion flash (FX polish)', () => {

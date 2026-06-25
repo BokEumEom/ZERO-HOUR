@@ -382,6 +382,47 @@
     }
   }
 
+  const BEAM_DASH = [10, 8]; // hoisted so the telegraph dash doesn't alloc per frame
+  function drawBeamRay(ctx, x, y, a, len, w) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a);
+    ctx.fillStyle = 'rgba(255,90,158,0.22)'; ctx.fillRect(0, -w, len, w * 2);
+    ctx.fillStyle = 'rgba(255,160,210,0.65)'; ctx.fillRect(0, -w * 0.4, len, w * 0.8);
+    ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.fillRect(0, -2, len, 4);
+    ctx.restore();
+  }
+
+  function drawElite(ctx, e) {
+    // telegraph warning ray (dashed, pulsing)
+    if (e.state === 'telegraph') {
+      ctx.save();
+      ctx.globalAlpha = 0.3 + 0.3 * Math.sin(e.phase * 8);
+      ctx.strokeStyle = '#ff5a9e'; ctx.lineWidth = 2; ctx.setLineDash(BEAM_DASH);
+      ctx.beginPath(); ctx.moveTo(e.x, e.y);
+      ctx.lineTo(e.x + Math.cos(e.beamFrom) * 760, e.y + Math.sin(e.beamFrom) * 760);
+      ctx.stroke(); ctx.restore();
+    }
+    // firing beam
+    if (e.state === 'firing') {
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      drawBeamRay(ctx, e.x, e.y, e.beamA, 760, 26);
+      SP.draw(ctx, 'beam', e.x + Math.cos(e.beamA) * 22, e.y + Math.sin(e.beamA) * 22, e.r * 1.6, e.beamA + Math.PI / 2); // emitter muzzle (beam sprite)
+      ctx.restore();
+    }
+    // core body
+    if (!SP.draw(ctx, 'eliteCore', e.x, e.y, (e.r + 8) * 2.2, e.phase * 0.05)) {
+      ctx.save(); ctx.fillStyle = e.flash > 0 ? '#fff' : '#ff5a9e';
+      ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    } else if (e.flash > 0) {
+      ctx.save(); ctx.globalAlpha = 0.5; ctx.globalCompositeOperation = 'lighter';
+      SP.draw(ctx, 'eliteCore', e.x, e.y, (e.r + 8) * 2.2, e.phase * 0.05); ctx.restore();
+    }
+    // thin HP arc
+    const f = Math.max(0, e.hp / e.maxHp);
+    ctx.save(); ctx.strokeStyle = '#ff7ad1'; ctx.lineWidth = 3; ctx.globalAlpha = 0.85;
+    ctx.beginPath(); ctx.arc(e.x, e.y, e.r + 12, -Math.PI / 2, -Math.PI / 2 + f * Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  }
+
   function drawBoss(ctx, s) {
     const b = s.boss;
     const dyingShake = b.dying > 0 ? (Math.random() - 0.5) * 6 : 0;
@@ -502,6 +543,7 @@
       }
     }
 
+    if (s.elite) drawElite(ctx, s.elite);
     if (s.boss) drawBoss(ctx, s);
     drawPlayer(ctx, s);
     for (const dr of s.drones) drawDrone(ctx, dr);

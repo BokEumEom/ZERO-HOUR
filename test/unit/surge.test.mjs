@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { loadModules, runToGameOver } from './helpers.mjs';
 
 function freshGame(nowIso = '2026-03-01T00:30:00Z') {
-  return loadModules(['js/store.js', 'js/games/neonvortex/foes.js', 'js/games/neonvortex/game.js'], { nowIso });
+  return loadModules(['js/store.js', 'js/games/neonvortex/foes.js', 'js/games/neonvortex/elite.js', 'js/games/neonvortex/game.js'], { nowIso });
 }
 function toPlaying(sb, mode = 'free') {
   const G = sb.SY.nvGame;

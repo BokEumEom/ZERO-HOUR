@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { loadModules } from './helpers.mjs';
 
 const boot = () => loadModules(
-  ['js/store.js', 'js/games/neonvortex/foes.js', 'js/games/neonvortex/game.js'],
+  ['js/store.js', 'js/games/neonvortex/foes.js', 'js/games/neonvortex/elite.js', 'js/games/neonvortex/game.js'],
   { nowIso: '2026-03-01T00:30:00Z' });
 function play(G, diff = 'normal') {
   G.start('free', diff);
