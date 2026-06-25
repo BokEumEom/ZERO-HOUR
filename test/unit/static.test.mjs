@@ -258,9 +258,10 @@ test('crystals use context gem variants (surge amber, boss-drop purple)', () => 
 
 test('alternate hull skins are wired (atlas rects + selector + render override)', () => {
   const spr = read(`${NV}/sprites.js`);
-  for (const key of ['hullUpg1', 'hullUpg2', 'hullUpg3']) {
+  for (const key of ['hullUpg1', 'hullUpg2', 'hullUpg3', 'hullUpg4']) {
     assert.ok(new RegExp(key + ':\\s*\\{').test(spr), `sprites atlas defines ${key}`);
   }
+  assert.ok(/upg4:\s*'hullUpg4'/.test(spr), 'HULL_SKINS maps the 4th hull');
   assert.ok(/activeHullKey/.test(spr), 'sprites exposes activeHullKey');
   const main = read(`${NV}/main.js`);
   assert.ok(/NV_HULLS/.test(main) && /setHull/.test(main) && /nvHull/.test(main), 'hangar wires hull selection + persistence');
