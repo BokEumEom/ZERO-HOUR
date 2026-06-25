@@ -44,6 +44,7 @@
     hullUpg1:    { x: 150,  y: 828, w: 120, h: 100 },
     hullUpg2:    { x: 292,  y: 828, w: 118, h: 100 },
     hullUpg3:    { x: 432,  y: 828, w: 122, h: 100 },
+    hullUpg4:    { x: 755,  y: 833, w: 100, h: 105 }, // 4th selectable hull (section 8 ship variant)
     // loot economy (E1): destructible containers + reward tokens
     lootCrate:   { x: 372,  y: 266, w: 98,  h: 78  }, // locked loot crate
     lootCanister:{ x: 498,  y: 278, w: 94,  h: 90  }, // canister/module crate
@@ -141,7 +142,7 @@
   // A hull skin replaces the player sprite with an atlas ship variant for ALL
   // states (the default hull keeps its baked shielded/boosted/damaged frames).
   // Display-only: never touches the sim, hitboxes, RNG, or the daily seed.
-  const HULL_SKINS = { upg1: 'hullUpg1', upg2: 'hullUpg2', upg3: 'hullUpg3' };
+  const HULL_SKINS = { upg1: 'hullUpg1', upg2: 'hullUpg2', upg3: 'hullUpg3', upg4: 'hullUpg4' };
   let hull = 'default';
   function setHull(id) { hull = HULL_SKINS[id] ? id : 'default'; }
   function getHull() { return hull; }

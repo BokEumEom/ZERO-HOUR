@@ -1306,6 +1306,7 @@
     { id: 'upg1',    nameEN: 'STRIKE MK-I', nameKR: '스트라이크 I', glyph: '◤' },
     { id: 'upg2',    nameEN: 'STRIKE MK-II', nameKR: '스트라이크 II', glyph: '◢' },
     { id: 'upg3',    nameEN: 'STRIKE MK-III', nameKR: '스트라이크 III', glyph: '✪' },
+    { id: 'upg4',    nameEN: 'STRIKE MK-IV', nameKR: '스트라이크 IV', glyph: '◥' },
   ];
   const hullValue = () => {
     const id = recs.settings && recs.settings.nvHull;
