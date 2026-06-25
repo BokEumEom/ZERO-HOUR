@@ -173,6 +173,29 @@ test('breakdown buckets always sum to the final score (3 seeded full runs)', () 
   }
 });
 
+// Rubric #3 coverage: the short property runs (d=20) never reach the boss/elite.
+// A full 60s run (player kept alive) exercises the boss-chip ('boss') and the
+// elite-kill (250 'destroy') scoring paths INSIDE the sum invariant.
+test('breakdown sum holds on a full 60s run reaching boss + elite', () => {
+  const sb = freshGame();
+  sb.SY.tweaks.duration = 60;
+  const res = runToGameOver(sb, 'daily', {
+    onFrame(G, i) {
+      G.state.player.inv = 1; G.state.player.hp = 3; // survive to boss(40s) + elite(24s)
+      sb.SY.input.ax = Math.sin(i / 23);
+      sb.SY.input.ay = Math.cos(i / 31);
+    },
+  });
+  assert.ok(res, 'run ended');
+  const bd = res.breakdown;
+  assert.equal(
+    bd.crystals + bd.combo + bd.destruction + bd.boss + bd.heat + bd.loot, res.score,
+    `bucket sum must equal score (${JSON.stringify(bd)} vs ${res.score})`,
+  );
+  assert.ok(bd.boss > 0, 'boss scoring path exercised (boss reached + hit)');
+  assert.ok(bd.destruction >= 250, 'elite kill (250) folded into the destruction bucket');
+});
+
 test('x2 powerup doubles into the correct buckets', () => {
   const sb = freshGame();
   const G = toPlaying(sb);
