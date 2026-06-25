@@ -15,6 +15,7 @@
     TIME:   { glyph: '+5', color: '#eaf6ff', label: '+5 SEC' },
     DRONE:  { glyph: 'D',  color: '#5ad1ff', label: 'WINGMAN' },
     MISSILE:{ glyph: '➤',  color: '#ff8a3a', label: 'MISSILES' },
+    '1UP':  { glyph: '♥',  color: '#ff5a78', label: 'EXTRA LIFE' }, // rare pickup — NOT in POWER_TYPES (out of the bag)
   };
 
   // power-up active durations (seconds). Single source of truth — main.js reads
@@ -112,7 +113,7 @@
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
       heat: 0, heatMul: 1,
-      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, portal: 14 },
+      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, portal: 14, oneup: 16 },
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
@@ -279,6 +280,14 @@
       x: x !== undefined ? x : 80 + s.rng() * (W - 160),
       y: y !== undefined ? y : 80 + s.rng() * (H - 160),
       type, r: 12, life: 9, phase: s.rng() * Math.PI * 2, vy: -30,
+    });
+  }
+
+  // rare extra-life pickup (NOT in the seeded bag; spawned by its own gated roll)
+  function spawnOneUp(s) {
+    s.pows.push({
+      x: 80 + s.rng() * (W - 160), y: 80 + s.rng() * (H - 160),
+      type: '1UP', r: 13, life: 11, phase: s.rng() * Math.PI * 2, vy: -20,
     });
   }
 
@@ -637,6 +646,13 @@
       s.spawnT.crate = 7 + s.rng() * 5;
       if (s.crates.length < 2) spawnCrate(s);
     }
+    // ---------- rare extra life (1UP, E6) ----------
+    s.spawnT.oneup -= dt;
+    if (s.spawnT.oneup <= 0) {
+      s.spawnT.oneup = 14 + s.rng() * 10;
+      // rare, capped at 1, never in the final 8s (a fresh hull is moot as the run ends)
+      if (s.rng() < 0.18 && s.timeLeft > 8 && !s.pows.some(o => o.type === '1UP')) spawnOneUp(s);
+    }
     // ---------- spawn portals (E3a) ----------
     s.spawnT.portal -= dt;
     if (s.spawnT.portal <= 0) {
@@ -904,6 +920,11 @@
     floatText(s, o.x, o.y - 18, meta.label, meta.color);
     if (o.type === 'SHIELD') { s.shield = true; return; }       // consumable
     if (o.type === 'TIME') { s.timeLeft = Math.min(s.duration + 20, s.timeLeft + 5); return; } // instant
+    if (o.type === '1UP') {
+      if (s.player.hp < 3) s.player.hp += 1;   // restore a hull (capped at 3)
+      else s.shield = true;                     // already full → convert to a shield (never wasted)
+      return;
+    }
     // timed buffs: extend remaining time by the base duration, capped at 2x base
     const dur = POWER_DURATION[o.type];
     s.fx[o.type] = Math.min(2 * dur, s.fx[o.type] + dur);

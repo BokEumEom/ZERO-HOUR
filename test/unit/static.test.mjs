@@ -206,6 +206,14 @@ test('elite sentinel (E4a) is wired', () => {
   assert.ok(/eliteCore:\s*\{/.test(spr), 'eliteCore rect');
 });
 
+test('1UP extra-life pickup (E6) is wired, rare + out of the bag', () => {
+  const game = read(`${NV}/game.js`);
+  assert.ok(/spawnOneUp/.test(game) && /'1UP'/.test(game), 'spawnOneUp + 1UP apply branch');
+  assert.ok(!/POWER_TYPES = \[[^\]]*'1UP'/.test(game), '1UP is NOT in POWER_TYPES (stays out of the bag)');
+  const spr = read(`${NV}/sprites.js`);
+  assert.ok(/oneUp:\s*\{/.test(spr) && /'1UP':/.test(spr), 'oneUp rect + POWER_ICONS entry');
+});
+
 test('homing missile weapon (E4b) is wired', () => {
   const game = read(`${NV}/game.js`);
   assert.ok(/'MISSILE'/.test(game) && /homing/.test(game), 'MISSILE type + homing logic');

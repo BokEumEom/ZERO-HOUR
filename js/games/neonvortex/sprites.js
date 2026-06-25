@@ -55,6 +55,7 @@
     eliteCore:   { x: 1097, y: 532, w: 89,  h: 101 }, // elite sentinel — hex armored core (beam emitter)
     frameCorner: { x: 454,  y: 511, w: 54,  h: 54  }, // cockpit/targeting frame corner bracket (section 5)
     missile:     { x: 966,  y: 284, w: 44,  h: 105 }, // homing missile projectile (section 4)
+    oneUp:       { x: 640,  y: 46,  w: 58,  h: 70  }, // 1UP heart — rare extra-life pickup (section 1)
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
@@ -69,6 +70,7 @@
     TIME:   { x: 19,  y: 16, w: 65, h: 94 }, // plus badge (+5 sec)
     DRONE:  { x: 1215, y: 1019, w: 44, h: 38 }, // companion drone (also the entity sprite)
     MISSILE:{ x: 966, y: 284, w: 44, h: 105 }, // homing missile (also the projectile sprite)
+    '1UP':  { x: 640, y: 46, w: 58, h: 70 }, // 1UP heart pickup badge
   };
 
   // ---- hull coatings (cosmetic paint) -------------------------------------
