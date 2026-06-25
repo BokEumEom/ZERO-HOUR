@@ -140,7 +140,7 @@
     let chips = '';
     const meta = G.POWER_META;
     if (s.shield) chips += chip(meta.SHIELD, 0, 0); // consumable: glyph only, no bar
-    for (const k of ['MAGNET', 'SLOW', 'X2', 'BOOST', 'SPREAD', 'DRONE']) {
+    for (const k of ['MAGNET', 'SLOW', 'X2', 'BOOST', 'SPREAD', 'DRONE', 'MISSILE']) {
       if (s.fx[k] > 0) chips += chip(meta[k], s.fx[k], G.POWER_DURATION[k]);
     }
     hudEls.fx.innerHTML = chips;

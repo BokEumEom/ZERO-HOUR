@@ -535,6 +535,13 @@
     // player bullets (teal laser sprite, oriented along travel)
     ctx.shadowBlur = 0;
     for (const b of s.bullets) {
+      if (b.homing) {
+        if (!SP.draw(ctx, 'missile', b.x, b.y, 26, Math.atan2(b.vy, b.vx) + Math.PI / 2)) {
+          ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(Math.atan2(b.vy, b.vx));
+          ctx.fillStyle = '#ff8a3a'; ctx.fillRect(-7, -2, 14, 4); ctx.restore();
+        }
+        continue;
+      }
       if (!SP.draw(ctx, 'bulletTeal', b.x, b.y, 18, Math.atan2(b.vy, b.vx) + Math.PI / 2)) {
         ctx.save();
         ctx.translate(b.x, b.y);
