@@ -118,6 +118,9 @@ test('neonvortex meta stays cosmetic (lifetime/crystalsCollected never drive the
   assert.ok(/crystalsCollected/.test(game), 'crystalsCollected counter present');
   assert.ok(!/crystalsCollected\s*[*/%<>]/.test(game), 'crystalsCollected not used in arithmetic/compare');
   assert.ok(!/(rng\(\)[^\n;]*crystalsCollected)|(crystalsCollected[^\n;]*rng\(\))/.test(game), 'crystalsCollected not tied to rng');
+  // creditsCollected (E1b cosmetic coin total) is output-only too
+  assert.ok(!/creditsCollected\s*[*/%<>]/.test(game), 'creditsCollected not used in arithmetic/compare');
+  assert.ok(!/(rng\(\)[^\n;]*creditsCollected)|(creditsCollected[^\n;]*rng\(\))/.test(game), 'creditsCollected not tied to rng');
   // game.js must NOT read the persisted lifetime at all (that lives only in main.js display)
   assert.ok(!/lifetime/i.test(game), 'game.js never references lifetime');
   const main = read(`${NV}/main.js`);
@@ -168,7 +171,7 @@ test('loot crates and tokens are rendered from atlas art', () => {
   assert.ok(/drawCrate/.test(render) && /s\.crates/.test(render), 'crates drawn');
   assert.ok(/drawToken/.test(render) && /s\.tokens/.test(render), 'tokens drawn');
   const spr = read(`${NV}/sprites.js`);
-  for (const k of ['lootCrate', 'lootCanister', 'coin']) assert.ok(new RegExp(k + ':\\s*\\{').test(spr), k);
+  for (const k of ['lootCrate', 'lootCanister', 'coin', 'lootChest']) assert.ok(new RegExp(k + ':\\s*\\{').test(spr), k);
 });
 
 test('big kills spawn an atlas burst-sprite explosion flash (FX polish)', () => {

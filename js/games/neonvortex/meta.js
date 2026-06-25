@@ -24,6 +24,7 @@
     return {
       score: (p.score || 0) + (Number(run.score) || 0),
       crystals: (p.crystals || 0) + (Number(run.crystals) || 0),
+      credits: (p.credits || 0) + (Number(run.credits) || 0),
       runs: (p.runs || 0) + 1,
     };
   }

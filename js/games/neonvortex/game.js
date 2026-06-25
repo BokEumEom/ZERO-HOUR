@@ -113,6 +113,7 @@
       lastWholeSec: duration,
       collected: 0,
       crystalsCollected: 0, // display-only (cosmetic meta); never read by the sim
+      creditsCollected: 0,  // display-only (cosmetic meta — coins banked); never read by the sim
       breakdown: { crystals: 0, combo: 0, destruction: 0, boss: 0, heat: 0, loot: 0 },
       tookDamage: false, // for the NO HIT medal (shield blocks don't count as damage)
     };
@@ -174,16 +175,23 @@
 
   // ---- loot economy (E1) ----
   const TOKEN_VALUE = { coin: 15, teal: 25, amber: 50, purple: 100 };
+  const CRATE_HP = { crate: 4, canister: 3, chest: 6 };
   function spawnCrate(s) {
-    const kind = s.rng() < 0.5 ? 'crate' : 'canister';
-    const hp = kind === 'crate' ? 4 : 3;
-    s.crates.push({ kind, x: 90 + s.rng() * (W - 180), y: 80 + s.rng() * (H - 200), r: 20, hp, maxHp: hp, flash: 0, phase: s.rng() * 6 });
+    // chest is a rare jackpot container; otherwise a crate/canister split
+    const r = s.rng();
+    const kind = r < 0.12 ? 'chest' : r < 0.56 ? 'crate' : 'canister';
+    const hp = CRATE_HP[kind];
+    s.crates.push({ kind, x: 90 + s.rng() * (W - 180), y: 80 + s.rng() * (H - 200), r: kind === 'chest' ? 24 : 20, hp, maxHp: hp, flash: 0, phase: s.rng() * 6 });
   }
-  function spawnLoot(s, x, y) {
-    const n = 3 + Math.floor(s.rng() * 3); // 3-5 tokens
+  function spawnLoot(s, x, y, kind) {
+    const jackpot = kind === 'chest';
+    const n = jackpot ? 7 + Math.floor(s.rng() * 4) : 3 + Math.floor(s.rng() * 3); // chest 7-10, else 3-5
     for (let i = 0; i < n; i++) {
       const roll = s.rng();
-      const tier = roll < 0.6 ? 'coin' : roll < 0.82 ? 'teal' : roll < 0.95 ? 'amber' : 'purple';
+      // chest skews toward higher-value gems; crates skew toward coins
+      const tier = jackpot
+        ? (roll < 0.25 ? 'coin' : roll < 0.55 ? 'teal' : roll < 0.85 ? 'amber' : 'purple')
+        : (roll < 0.6 ? 'coin' : roll < 0.82 ? 'teal' : roll < 0.95 ? 'amber' : 'purple');
       const a = s.rng() * Math.PI * 2, sp = 60 + s.rng() * 90;
       s.tokens.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: 8, phase: s.rng() * 6, tier });
     }
@@ -438,6 +446,7 @@
       bossDown: s.bossDown, reason, pace: s.pace.slice(),
       collected: s.collected, duration: s.duration,
       crystalsCollected: s.crystalsCollected, // display-only (cosmetic meta)
+      creditsCollected: s.creditsCollected,   // display-only (cosmetic meta — coins)
       breakdown: { ...s.breakdown },
       seedStr: s.seedStr, // daily runs record under their seed's date, not "now"
       noHit: !s.tookDamage,
@@ -622,6 +631,7 @@
       }
       if (d < p.r + t.r + 6) {
         s.tokens.splice(i, 1);
+        if (t.tier === 'coin') s.creditsCollected++; // display-only cosmetic counter
         addScore(s, TOKEN_VALUE[t.tier] || 15, t.x, t.y, undefined, 'loot');
         burst(s, t.x, t.y, '#ffd9a8', 6, 140, 2);
         SY.audio.collect(1);
@@ -757,9 +767,9 @@
           burst(s, b.x, b.y, '#ffd9a8', 4, 110, 2);
           if (cr.hp <= 0) {
             s.crates.splice(j, 1);
-            addScore(s, 20, cr.x, cr.y, undefined, 'destroy');
-            blast(s, cr.x, cr.y, 58);
-            spawnLoot(s, cr.x, cr.y);
+            addScore(s, cr.kind === 'chest' ? 40 : 20, cr.x, cr.y, undefined, 'destroy');
+            blast(s, cr.x, cr.y, cr.kind === 'chest' ? 120 : 58);
+            spawnLoot(s, cr.x, cr.y, cr.kind);
             SY.audio.explode();
           }
           break;

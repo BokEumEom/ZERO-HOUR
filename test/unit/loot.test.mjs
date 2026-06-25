@@ -39,6 +39,36 @@ test('collecting a token adds its tier value into the loot bucket', () => {
   assert.equal(s.score - before, 50);
 });
 
+test('treasure chests appear (rare) and drop a bigger jackpot than crates', () => {
+  const G = boot().SY.nvGame; const s = play(G);
+  // pump many seeded crate spawns (clear + force the timer each frame) so the rare
+  // chest deterministically appears within the run window
+  const kinds = new Set();
+  for (let i = 0; i < 300; i++) { s.crates = []; s.spawnT.crate = 0; G.update(1 / 60); for (const c of s.crates) kinds.add(c.kind); }
+  assert.ok(kinds.has('chest'), 'a chest appears across many seeded spawns (rare)');
+  assert.ok(kinds.has('crate') && kinds.has('canister'), 'crate + canister also appear');
+  // break a chest vs a crate and compare loot counts
+  const drop = (kind) => {
+    const G2 = boot().SY.nvGame; const s2 = play(G2);
+    s2.crates = [{ kind, x: 480, y: 300, r: kind === 'chest' ? 24 : 20, hp: 1, maxHp: 6, flash: 0, phase: 0 }];
+    s2.rocks = []; s2.mines = []; s2.boss = null; s2.turrets = []; s2.foes = []; s2.bullets = []; s2.tokens = [];
+    s2.bullets.push({ x: 480, y: 300, vx: 0, vy: 0, life: 0.5 }); G2.update(1 / 60);
+    return s2.tokens.length;
+  };
+  assert.ok(drop('chest') > drop('crate'), 'chest jackpot drops more than a crate');
+});
+
+test('collecting coins banks credits (output-only cosmetic counter)', () => {
+  const G = boot().SY.nvGame; const s = play(G);
+  s.crystals = []; s.tokens = [
+    { x: s.player.x, y: s.player.y, vx: 0, vy: 0, r: 8, phase: 0, tier: 'coin' },
+    { x: s.player.x, y: s.player.y, vx: 0, vy: 0, r: 8, phase: 0, tier: 'amber' },
+  ];
+  s.creditsCollected = 0;
+  G.update(1 / 60);
+  assert.equal(s.creditsCollected, 1, 'only coins bank credits (amber does not)');
+});
+
 test('same daily seed → identical crate layout (fairness)', () => {
   const run = () => {
     const G = boot().SY.nvGame; G.start('daily'); const st = G.state;
