@@ -258,6 +258,58 @@
     await sleep(150);
     check('records', 'Esc returns to menu', visible(d, 'neonvortex-screen-menu'));
 
+    // ---------- scenario 8: atlas systems — elite / missile / 1UP (sim + render) ----------
+    ({ w, d } = await freshGame());
+    {
+      const g = w.SY.nvGame;
+      g.start('free');
+      check('atlas', 'free run reaches playing', stepTo(w, 'playing', (gg) => { if (gg.state) gg.state.readyT = 0.01; }), 'phase=' + g.phase);
+      const s = g.state;
+      const alive = () => { s.player.inv = 1; s.player.hp = Math.max(s.player.hp, 1); };
+
+      // elite Sentinel: spawn -> beam-firing state machine
+      w.SY.nvElite.spawn(s);
+      check('atlas', 'elite spawned into the live game', !!s.elite);
+      let sawFiring = false;
+      for (let i = 0; i < 140 && s.elite; i++) { alive(); g.update(0.05); if (s.elite && s.elite.state === 'firing') sawFiring = true; }
+      check('atlas', 'elite cycles into its beam-firing state', sawFiring);
+      // force-kill an elite and verify the reward drop (power-up + jackpot loot + >=250)
+      if (!s.elite) w.SY.nvElite.spawn(s);
+      for (let i = 0; i < 40 && s.elite && s.elite.state === 'enter'; i++) { alive(); g.update(0.05); }
+      s.elite.hp = 1; s.pows.length = 0; s.tokens.length = 0;
+      const scoreBefore = s.score;
+      s.bullets.push({ x: s.elite.x, y: s.elite.y, vx: 0, vy: 0, life: 0.5 });
+      g.update(0.05);
+      check('atlas', 'killing the elite clears it + drops power-up + jackpot loot + >=250 score',
+        s.elite === null && s.pows.length >= 1 && s.tokens.length >= 1 && (s.score - scoreBefore) >= 250,
+        'pows=' + s.pows.length + ' tokens=' + s.tokens.length + ' +score=' + (s.score - scoreBefore));
+
+      // MISSILE power-up: auto-fire emits a homing projectile
+      s.freeze = 0; // clear the hitstop left by the elite death so update() runs auto-fire
+      s.bullets.length = 0; s.pows.length = 0; s.tokens.length = 0; s.elite = null; s.boss = null;
+      s.foes.length = 0; s.rocks.length = 0; s.turrets.length = 0; s.crates.length = 0;
+      s.fx.MISSILE = 8; s.player.fireCd = 0;
+      s.mines = [{ x: s.player.x + 220, y: s.player.y, r: 11, hp: 5, speed: 0, phase: 0, flash: 0, vx: 0, vy: 0, entryT: 0 }];
+      alive(); g.update(0.05);
+      check('atlas', 'MISSILE power-up fires a homing projectile', s.bullets.some((b) => b.homing),
+        'homing=' + s.bullets.some((b) => b.homing));
+
+      // 1UP: heals a lost hull
+      s.freeze = 0; s.player.hp = 1; s.player.inv = 0;
+      s.pows.push({ x: s.player.x, y: s.player.y, type: '1UP', r: 12, life: 9, phase: 0, vy: 0 });
+      g.update(0.05);
+      check('atlas', '1UP pickup restores a hull', s.player.hp === 2, 'hp=' + s.player.hp);
+
+      // render: paint a rich frame (elite beam + homing missile + cockpit frame) without throwing
+      s.elite = { x: 480, y: 160, hx: 480, hy: 160, r: 30, hp: 20, maxHp: 20, state: 'firing', t: 1, flash: 0, phase: 1, beamA: 1, beamFrom: 0.5, beamTo: 1.5, beamDir: 1 };
+      s.bullets.push({ x: 400, y: 300, vx: 0, vy: -430, life: 1, homing: true });
+      const cv = d.getElementById('game-canvas'); const cx = cv.getContext('2d');
+      let painted = true;
+      try { w.SY.nvRender(cx); } catch (e) { painted = false; check('atlas', 'render threw on new entities: ' + e.message, false, e.stack); }
+      const pdata = cx.getImageData(0, 0, cv.width, cv.height).data;
+      check('atlas', 'game canvas paints (elite beam + missile + frame) without error', painted && pdata.some((v) => v !== 0));
+    }
+
     await fetch('/report', { method: 'POST', body: JSON.stringify({ results }) });
     logEl.textContent += 'REPORT SENT';
   }
