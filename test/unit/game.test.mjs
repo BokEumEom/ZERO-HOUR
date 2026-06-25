@@ -7,7 +7,7 @@ import { loadModules, runToGameOver } from './helpers.mjs';
 function freshGame() {
   // store.js provides SY.makeRng / SY.todayUTC that game.js needs; foes.js
   // provides SY.nvFoes which freshState/update now depend on
-  return loadModules(['js/store.js', 'js/games/neonvortex/foes.js', 'js/games/neonvortex/game.js'], { nowIso: '2026-03-01T00:30:00Z' });
+  return loadModules(['js/store.js', 'js/games/neonvortex/foes.js', 'js/games/neonvortex/elite.js', 'js/games/neonvortex/game.js'], { nowIso: '2026-03-01T00:30:00Z' });
 }
 
 function toPlaying(sb, mode = 'free') {

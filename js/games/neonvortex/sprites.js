@@ -52,6 +52,7 @@
     drone:       { x: 1215, y: 1019, w: 44, h: 38 }, // companion wingman drone
     portal:      { x: 36,   y: 271, w: 75,  h: 103 }, // spawn portal ring (world object)
     lootConsole: { x: 206,  y: 286, w: 96,  h: 74  }, // console objective — drops a power-up
+    eliteCore:   { x: 1097, y: 532, w: 89,  h: 101 }, // elite sentinel — hex armored core (beam emitter)
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).

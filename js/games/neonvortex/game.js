@@ -104,6 +104,8 @@
       crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], portals: [],
       parts: [], waves: [], floats: [], blasts: [],
       boss: null, bossDown: false, bossWarnT: 0,
+      elite: null, eliteSpawned: false,
+      eliteAt: (SURGE_WARMUP + (duration >= 40 ? duration - 20 : duration)) / 2,
       fx: { MAGNET: 0, SLOW: 0, X2: 0, BOOST: 0, SPREAD: 0, DRONE: 0 },
       shield: false,
       freeze: 0, shake: 0,
@@ -280,6 +282,7 @@
   }
 
   function spawnBoss(s) {
+    if (s.elite) s.elite = null; // sentinel retreats when the Core Warden arrives
     const bhp = Math.round(72 * s.diff.bossHpMul);
     const fm = s.diff.bossFireMul;
     // initial burst/aim delays (1.8/2.6) are shorter than the steady-state resets
@@ -357,6 +360,7 @@
     }
   }
   const foeApi = { hurtPlayer, addScore, burst, wave, floatText, dropCrystals, blast };
+  const eliteApi = { hurtPlayer, addScore, spawnPow, spawnLoot, burst, wave, blast, floatText };
 
   // ---------- player damage ----------
   function hurtPlayer(s, x, y) {
@@ -507,6 +511,12 @@
     if (!s.boss && !s.bossDown && s.duration >= 40 && s.timeLeft <= 20) spawnBoss(s);
     if (s.bossWarnT > 0) s.bossWarnT -= dt;
 
+    // ---------- elite Sentinel (E4a): scripted mid-field beam mini-boss ----------
+    if (!s.elite && !s.eliteSpawned && s.duration >= 40 && s.t >= s.eliteAt && s.timeLeft > 20) {
+      s.eliteSpawned = true; SY.nvElite.spawn(s);
+    }
+    if (s.elite) SY.nvElite.update(s, dt, slowMul, eliteApi);
+
     // ---------- surge director ----------
     const sd = s.surges[s.surgeIdx];
     if (sd) {
@@ -561,6 +571,7 @@
       let target = null, best = 380 * 380;
       const cand = [];
       if (s.boss && s.boss.dying <= 0 && s.boss.y > 0) cand.push(s.boss);
+      if (s.elite && s.elite.state !== 'enter') cand.push(s.elite);
       for (const m of s.mines) cand.push(m);
       for (const r of s.rocks) cand.push(r);
       for (const t of s.turrets) cand.push(t);
@@ -744,6 +755,7 @@
         if (s.boss.hp <= 0) { s.boss.dying = 0.9; s.freeze = 0.12; s.shake = Math.max(s.shake, 8); }
         dead = true;
       }
+      if (!dead && SY.nvElite.bulletHit(s, b, eliteApi)) dead = true;
       if (!dead) for (let j = s.mines.length - 1; j >= 0; j--) {
         const m = s.mines[j];
         if (dist2(b, m) < (m.r + 4) * (m.r + 4)) {
@@ -891,6 +903,7 @@
     let best = maxD2, target = null;
     const probe = (e) => { const dx = e.x - x, dy = e.y - y, d = dx * dx + dy * dy; if (d < best) { best = d; target = e; } };
     if (s.boss && s.boss.dying <= 0 && s.boss.y > 0) probe(s.boss);
+    if (s.elite && s.elite.state !== 'enter') probe(s.elite);
     for (const m of s.mines) probe(m);
     for (const r of s.rocks) probe(r);
     for (const t of s.turrets) probe(t);
