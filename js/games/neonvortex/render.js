@@ -288,6 +288,15 @@
     }
   }
 
+  function drawDrone(ctx, dr) {
+    if (!SP.draw(ctx, 'drone', dr.x, dr.y, 26, dr.angle * 0.5)) {
+      ctx.save();
+      ctx.fillStyle = '#5ad1ff'; ctx.shadowColor = '#5ad1ff'; ctx.shadowBlur = 8;
+      ctx.beginPath(); ctx.arc(dr.x, dr.y, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+  }
+
   function drawToken(ctx, t) {
     const bob = Math.sin(t.phase) * 2;
     const key = t.tier === 'coin' ? 'coin' : t.tier === 'amber' ? 'crystalAmber' : t.tier === 'purple' ? 'crystalBoss' : 'crystalTeal';
@@ -482,6 +491,7 @@
 
     if (s.boss) drawBoss(ctx, s);
     drawPlayer(ctx, s);
+    for (const dr of s.drones) drawDrone(ctx, dr);
 
     for (const pa of s.parts) {
       ctx.globalAlpha = Math.max(0, pa.life / pa.maxLife);
