@@ -1,11 +1,11 @@
-// Rebuilds standalone.html from index.html by inlining the local js/ modules,
-// the local css/ stylesheets, and the CDN libraries (React, ReactDOM, Babel
-// Standalone) so the result runs as a single file. Google Fonts links stay
-// external (they pull separate font binaries either way).
+// Rebuilds standalone.html from index.html by inlining the local js/ modules and
+// the local css/ stylesheets so the result runs as a single file. The game is
+// vanilla JS with no framework/CDN dependencies, so the build is fully offline;
+// any https <script src> would still be fetched (index.html has none today).
+// Google Fonts links stay external (they pull separate font binaries either way).
 //
 // Usage: node .claude/skills/build-standalone/build.mjs [output.html]
-// Requires Node 18+ (uses global fetch). Network access is needed once per
-// build to download the CDN libraries.
+// Requires Node 18+ (uses global fetch only if an https script src is present).
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
