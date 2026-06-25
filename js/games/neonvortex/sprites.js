@@ -16,6 +16,34 @@
   // relative path works both from index.html and the generated standalone.html
   sheet.src = 'assets/sprite-atlas.png?v=3';
 
+  // ---- ui-kit sheet: neon-on-black HUD art drawn over the canvas arena with an
+  // additive blend, so the black background keys out (no matte box). Reticle +
+  // game-state banners only — see drawUi(). RGB, no alpha; never tinted/cached.
+  const uiSheet = new Image();
+  let uiReady = false;
+  uiSheet.onload = () => { uiReady = true; };
+  const uiDecoded = () => uiReady || (uiSheet.complete && uiSheet.naturalWidth > 0);
+  uiSheet.src = 'assets/ui-kit.png';
+  const UI = {
+    reticle: { x: 1129, y: 632,  w: 67,  h: 63 },  // cyan circular target reticle
+    bWarning:{ x: 234,  y: 931,  w: 210, h: 70 },  // "WARNING" banner (surge telegraph)
+    bBoss:   { x: 460,  y: 931,  w: 190, h: 70 },  // "BOSS" banner (Core Warden inbound)
+    bClear:  { x: 236,  y: 1001, w: 208, h: 68 },  // "MISSION CLEAR" banner (boss downed)
+  };
+  // draw a ui-kit rect centred at (x,y), scaled so its longest edge spans `size`,
+  // additively (black background keys out). Returns false until the sheet decodes.
+  function drawUi(ctx, key, x, y, size, alpha) {
+    if (!uiDecoded()) return false;
+    const r = UI[key]; if (!r) return false;
+    const sc = size / Math.max(r.w, r.h), dw = r.w * sc, dh = r.h * sc;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    if (alpha !== undefined) ctx.globalAlpha = alpha;
+    ctx.drawImage(uiSheet, r.x, r.y, r.w, r.h, x - dw / 2, y - dh / 2, dw, dh);
+    ctx.restore();
+    return true;
+  }
+
   // { x, y, w, h } source rects in the 1448×1086 sheet.
   const A = {
     player:      { x: 24,   y: 832, w: 122, h: 126 }, // teal interceptor (DEFAULT)
@@ -268,5 +296,5 @@
     return 'player';
   }
 
-  SY.nvSprites = { draw, drawFit, drawPlayer, drawPowerIcon, setPaint, getPaint, setHull, getHull, activeHullKey, pickHullFrame, atlas: A, powerIcons: POWER_ICONS, isReady: () => ready, image: sheet };
+  SY.nvSprites = { draw, drawFit, drawPlayer, drawPowerIcon, drawUi, setPaint, getPaint, setHull, getHull, activeHullKey, pickHullFrame, atlas: A, ui: UI, powerIcons: POWER_ICONS, isReady: () => ready, image: sheet };
 })();

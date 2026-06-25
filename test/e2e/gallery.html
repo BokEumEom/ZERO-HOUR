@@ -69,7 +69,21 @@ async function post(url, body) { try { await fetch(url, { method: 'POST', body: 
   s.crates = [{ kind: 'chest', x: 620, y: 420, r: 24, hp: 6, maxHp: 6, flash: 0, phase: 1 }];
   await shot('5-loot-1up');
 
-  // 6) hull skins: render the player under each selectable hull (incl. E7 upg4)
+  // 6) ui-kit arena art: reticle on target + WARNING banner (additive black-key)
+  clear();
+  s.foes = [foe('hunter', 480, 170, 14)];
+  s.aimTarget = s.foes[0];
+  s.surgeWarnT = 1; // forces the WARNING banner this frame
+  await shot('6-ui-reticle-warning');
+  // BOSS banner
+  clear(); s.surgeWarnT = 0; s.bossWarnT = 1.2; // floor(1.2*5)=6, even -> banner visible this frame
+  await shot('7-ui-boss-banner');
+  // MISSION CLEAR banner
+  clear(); s.bossWarnT = 0; s.clearT = 2;
+  await shot('8-ui-mission-clear');
+  s.surgeWarnT = 0; s.bossWarnT = 0; s.clearT = 0; s.aimTarget = null;
+
+  // 9) hull skins: render the player under each selectable hull (incl. E7 upg4)
   for (const id of ['default', 'upg1', 'upg2', 'upg3', 'upg4']) {
     clear(); SP.setHull(id); s.player.x = 480; s.player.y = 300; s.player.inv = 0; // inv>0 blinks the ship off
     await shot('6-hull-' + id);
