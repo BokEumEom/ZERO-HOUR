@@ -91,6 +91,7 @@
     decoPanel:   { x: 56,   y: 547, w: 75, h: 39 }, // section-5 dual-hex module panel (ambient decor)
     decoNode:    { x: 566,  y: 530, w: 56, h: 52 }, // section-5 glowing hex node (ambient decor)
     decoReadout: { x: 624,  y: 529, w: 40, h: 45 }, // section-5 readout lines panel (ambient decor)
+    bossCore:    { x: 1217, y: 538, w: 90, h: 87 }, // boss orbital support core (section 6)
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
