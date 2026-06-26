@@ -4370,6 +4370,38 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // hull-family frame keys: these get the cosmetic paint-coating treatment.
   const HULL_FRAMES = new Set(['player', 'boosted', 'damaged', 'shielded']);
 
+  // Foe sprites that reuse a player-like atlas ship are re-tinted to a hostile
+  // colour so they never read as the player. Build-once offscreen cache (same
+  // recipe as playerCanvas): base sprite -> source-atop tint -> multiply shade
+  // -> re-mask to the sprite's alpha. Cosmetic only.
+  const FOE_TINTS = {
+    foeCharger: { tint: 'rgba(255, 70, 90, 0.62)', shade: 'rgba(150, 20, 40, 0.4)' },
+  };
+  const foeCache = {}; // key -> { canvas, builtReady }
+
+  function foeTintCanvas(key) {
+    const def = FOE_TINTS[key];
+    if (!def) return null;
+    const cached = foeCache[key];
+    if (cached && cached.builtReady) return cached.canvas;
+    if (!decoded()) return null;
+    const r = A[key];
+    const c = (cached && cached.canvas) || document.createElement('canvas');
+    c.width = r.w; c.height = r.h;
+    const cx = c.getContext('2d');
+    cx.clearRect(0, 0, r.w, r.h);
+    cx.drawImage(sheet, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+    cx.globalCompositeOperation = 'source-atop';
+    cx.fillStyle = def.tint; cx.fillRect(0, 0, r.w, r.h);
+    cx.globalCompositeOperation = 'multiply';
+    cx.fillStyle = def.shade; cx.fillRect(0, 0, r.w, r.h);
+    cx.globalCompositeOperation = 'destination-in';
+    cx.drawImage(sheet, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+    cx.globalCompositeOperation = 'source-over';
+    foeCache[key] = { canvas: c, builtReady: true };
+    return c;
+  }
+
   // Build (once) a native-size offscreen canvas of frame `frameKey` re-tinted
   // for `id`. Returns the canvas, or null for `neon` / before the atlas decodes.
   // Cache is nested (playerCache[frameKey][id]) so hot-path hits allocate nothing.
@@ -4449,7 +4481,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     if (!r) return false;
     const sc = size / Math.max(r.w, r.h);
     const dw = r.w * sc, dh = r.h * sc;
-    const tinted = HULL_FRAMES.has(key) ? playerCanvas(key, paint) : null;
+    const tinted = HULL_FRAMES.has(key) ? playerCanvas(key, paint) : (FOE_TINTS[key] ? foeTintCanvas(key) : null);
     if (rot) {
       ctx.save();
       ctx.translate(x, y);
