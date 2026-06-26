@@ -178,7 +178,11 @@
     }
     if (screenId !== 'screen-over') stopCountdown();
     const focusId = PRIMARY_ACTION[screenId];
-    if (focusId) { const btn = $(focusId); if (btn) btn.focus(); }
+    // preventScroll: on a small (mobile) viewport the result/briefing card can be
+    // taller than the screen and overflow-scroll internally; focusing a CTA near the
+    // card's bottom would otherwise auto-scroll the card down and hide the headline
+    // (TIME UP / score / run modifier). Keep the card at its top; the CTA stays focused.
+    if (focusId) { const btn = $(focusId); if (btn) btn.focus({ preventScroll: true }); }
   }
 
   // screen-reader announcement sink (#a11y-live); used for one-shot moments like
