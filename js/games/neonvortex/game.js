@@ -135,9 +135,11 @@
     const rng = SY.makeRng(seedStr);
     const duration = Math.round(SY.tweaks.duration);
     const diffKey = DIFF[difficulty] ? difficulty : 'normal';
+    const modifier = modifierFor(seedStr); // { key, nameKo, nameEn } — score-neutral
     const st = {
       rng, seedStr, mode, duration,
-      difficulty: diffKey, diff: DIFF[diffKey],
+      difficulty: diffKey, diff: combineDiff(DIFF[diffKey], MODS[modifier.key]),
+      modifier,
       t: 0,                       // elapsed sim time
       timeLeft: duration,
       readyT: 1.4,
@@ -563,6 +565,7 @@
     const res = {
       mode: s.mode, score: s.score, maxCombo: s.maxCombo,
       difficulty: s.difficulty,
+      modifier: s.modifier,
       bossDown: s.bossDown, reason, pace: s.pace.slice(),
       collected: s.collected, duration: s.duration,
       crystalsCollected: s.crystalsCollected, // display-only (cosmetic meta)

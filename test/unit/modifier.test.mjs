@@ -71,3 +71,32 @@ test('modifier distribution covers all 5 keys across many seeds (uniform-ish)', 
   for (let i = 0; i < 200; i++) seen.add(G.previewModifier('free-seed-' + i).key);
   assert.equal(seen.size, 5, 'all five modifiers are reachable');
 });
+
+test("freshState composes s.diff and stores s.modifier matching the seed's preview", () => {
+  const G = boot().SY.nvGame;
+  G.start('free', 'normal');
+  const s = G.state;
+  assert.ok(s.modifier && G.MOD_KEYS.includes(s.modifier.key), 's.modifier set');
+  assert.equal(s.modifier.key, G.previewModifier(s.seedStr).key);
+  assert.deepEqual({ ...s.diff }, { ...G.combineDiff(G.DIFF.normal, G.MODS[s.modifier.key]) });
+});
+
+test('daily modifier is deterministic for the frozen date and survives into the result', () => {
+  const sb = boot();
+  const G = sb.SY.nvGame;
+  const expected = G.previewModifier('daily-' + sb.SY.todayUTC()).key;
+  G.start('daily');
+  assert.equal(G.state.modifier.key, expected);
+  let res = null;
+  G.events.onGameOver = (r) => { res = r; };
+  for (let i = 0; i < 60 * 80 && !res; i++) { G.state.player.hp = 0; G.update(1 / 60); }
+  assert.ok(res, 'run ended');
+  assert.equal(res.modifier.key, expected);
+});
+
+test('HARD + modifier stack: tier knobs and modifier knobs both apply', () => {
+  const G = boot().SY.nvGame;
+  G.start('free', 'hard');
+  const s = G.state;
+  assert.deepEqual({ ...s.diff }, { ...G.combineDiff(G.DIFF.hard, G.MODS[s.modifier.key]) });
+});
