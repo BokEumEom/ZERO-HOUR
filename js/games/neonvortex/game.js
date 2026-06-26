@@ -467,10 +467,10 @@
       b.coresDeployed = true;
       for (let i = 0; i < 2; i++) s.bossCores.push({ ang: i * Math.PI, orbitR: 96, hp: 6, maxHp: 6, fireT: 1.5 + i * 0.9, flash: 0, x: b.x, y: b.y, r: 16 });
     }
-    updateBossCores(s, dt, slowMul);
     // sway
     b.x = W / 2 + Math.sin(b.t * 0.55) * (W * 0.27);
     b.y = b.ty + Math.sin(b.t * 1.1) * 16;
+    updateBossCores(s, dt, slowMul); // after sway so cores track the boss's current position
 
     // radial burst
     b.burstT -= dt * slowMul;
