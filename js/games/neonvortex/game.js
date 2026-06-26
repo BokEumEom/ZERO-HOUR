@@ -342,7 +342,7 @@
     return 1;
   }
 
-  function addScore(s, base, x, y, label, bucket) {
+  function addScore(s, base, x, y, label, bucket, flatBase) {
     const x2 = s.fx.X2 > 0 ? 2 : 1;
     const mul = Math.min(HEAT_X2_CAP, x2 * heatTier(s));
     const v = Math.round(base * mul);
@@ -350,7 +350,10 @@
     const heatBonus = v - vBase;              // isolated HEAT contribution
     s.score += v;
     if (bucket === 'crystal') {
-      const combo = Math.round((base - 10) * x2); // combo part keeps integer split
+      // flatBase is the gem's flat value (10 normal, 40 large); the remainder of
+      // `base` is the player's combo increment. Splitting on flatBase keeps the
+      // large gem's value attributed to crystals (not folded into the combo bucket).
+      const combo = Math.round((base - (flatBase || 10)) * x2); // combo part keeps integer split
       s.breakdown.crystals += vBase - combo;
       s.breakdown.combo += combo;
     } else if (bucket === 'destroy') {
@@ -710,7 +713,7 @@
         s.collected += 1;
         s.crystalsCollected++; // display-only counter (cosmetic meta); output-only
         if (s.inSurge) s.heat += 1;
-        addScore(s, (c.big ? 40 : 10) + s.combo, c.x, c.y, undefined, 'crystal');
+        addScore(s, (c.big ? 40 : 10) + s.combo, c.x, c.y, undefined, 'crystal', c.big ? 40 : 10);
         burst(s, c.x, c.y, c.big ? '#7df9ff' : '#2de2c6', c.big ? 12 : 7, c.big ? 210 : 150, 2.2);
         SY.audio.collect(s.combo);
       }
