@@ -270,6 +270,17 @@ test('boss orbital support cores are wired (deterministic)', () => {
   assert.match(render, /function drawBossCore/, 'drawBossCore present');
 });
 
+test('difficulty surge scaling + free-play label are wired', () => {
+  const game = read(`${NV}/game.js`);
+  assert.match(game, /surgeMul: 0\.7/, 'easy surgeMul');
+  assert.match(game, /surgeMul: 1\.4/, 'hard surgeMul');
+  assert.match(game, /\(6 \+ 3 \* k\) \* s\.diff\.surgeMul/, 'buildSurges scales by surgeMul');
+  const main = read(`${NV}/main.js`);
+  assert.match(main, /free-sub/, 'FREE PLAY sub-label updated with difficulty');
+  const html = read('index.html');
+  assert.match(html, /id="neonvortex-free-sub"/, 'free-sub span id present');
+});
+
 test('ui-kit arena art (reticle + game-state banners) is wired, cosmetic', () => {
   const spr = read(`${NV}/sprites.js`);
   assert.ok(/ui-kit\.png/.test(spr) && /function drawUi/.test(spr), 'ui-kit sheet + drawUi helper');

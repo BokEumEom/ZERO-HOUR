@@ -87,6 +87,25 @@ test('turrets spawn on hard (capped) and never on easy', () => {
   assert.ok(maxSeen <= G.DIFF.hard.turretCap, 'never exceeds turretCap (3)');
 });
 
+test('surgeMul knob widens the gradient (normal stays 1.0)', () => {
+  const G = boot().SY.nvGame;
+  assert.equal(G.DIFF.normal.surgeMul, 1.0, 'normal unchanged (daily/leaderboard safe)');
+  assert.ok(G.DIFF.easy.surgeMul < 1.0, 'easy below normal');
+  assert.ok(G.DIFF.hard.surgeMul > 1.0, 'hard above normal');
+});
+
+test('surge formation size scales with difficulty', () => {
+  const G = boot().SY.nvGame;
+  const sizes = (d) => { G.start('free', d); return G.state.surges.map((x) => x.size); };
+  const e = sizes('easy'), n = sizes('normal'), h = sizes('hard');
+  assert.ok(n.length > 0, 'there are surges to compare');
+  assert.equal(e.length, n.length); assert.equal(h.length, n.length);
+  for (let i = 0; i < n.length; i++) {
+    assert.ok(e[i] < n[i], `easy surge ${i} smaller than normal (${e[i]} < ${n[i]})`);
+    assert.ok(h[i] > n[i], `hard surge ${i} larger than normal (${h[i]} > ${n[i]})`);
+  }
+});
+
 test('a turret is destroyed in 5 hits and scores 60', () => {
   const G = boot().SY.nvGame;
   G.start('free', 'hard');
