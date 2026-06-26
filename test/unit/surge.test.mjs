@@ -15,11 +15,14 @@ function toPlaying(sb, mode = 'free') {
 }
 
 test('buildSurges: 60s run schedules 2 surges inside the field window, increasing size', () => {
-  const G = toPlaying(freshGame(), 'free');
+  // Use daily (standard modifier for 2026-03-01) so surgeMul is DIFF.normal.surgeMul=1.0
+  // and surge sizes are deterministic [9, 12]. Free runs now roll a random per-run
+  // modifier (e.g. mineRush ×1.5) which changes the sizes — that is intentional.
+  const G = toPlaying(freshGame(), 'daily');
   const sg = G.state.surges;
   assert.equal(sg.length, 2, 'duration 60 → floor((40-8)/16) = 2 surges');
   assert.ok(sg[0].at > 8 && sg[0].at < sg[1].at && sg[1].at < 40, 'surges ordered, inside (8,40)');
-  assert.deepEqual([...sg.map((x) => x.size)], [9, 12], 'size = 6 + 3k');
+  assert.deepEqual([...sg.map((x) => x.size)], [9, 12], 'size = 6 + 3k (standard modifier, surgeMul=1.0)');
   for (const x of sg) assert.ok(['LINE', 'RING', 'PINCER'].includes(x.pattern));
 });
 
@@ -125,11 +128,15 @@ test('a full free run passes through at least one surge and back to calm', () =>
   const G = sb.SY.nvGame;
   let sawSurge = false, sawCalmAfter = false;
   G.events.onGameOver = () => {};
-  // easy: no turrets + gentler mines so the stationary test pilot survives long
-  // enough to observe a surge → calm cycle. Surge timing is difficulty-independent.
+  // easy: gentler base knobs so the stationary test pilot can observe surge timing.
+  // Surge timing is difficulty-independent. We keep the player alive each frame so
+  // the observation completes regardless of which per-run modifier was rolled —
+  // modifiers can now augment easy (e.g. vanguard adds a turret, mineRush adds mines)
+  // and this test is about surge director timing, not player survival under difficulty.
   G.start('free', 'easy');
   for (let i = 0; i < 30 && G.phase === 'ready'; i++) G.update(0.1);
   for (let i = 0; i < 60 * 60 && G.phase === 'playing'; i++) {
+    G.state.player.hp = 3; // keep alive so we can observe the full surge → calm cycle
     G.update(1 / 60);
     if (G.state.inSurge) sawSurge = true;
     if (sawSurge && !G.state.inSurge && G.state.surgeIdx >= 1) sawCalmAfter = true;

@@ -18,7 +18,9 @@ test('freshState wires the selected difficulty; unknown falls back to normal', (
   const G = boot().SY.nvGame;
   G.start('free', 'hard');
   assert.equal(G.state.difficulty, 'hard');
-  assert.equal(G.state.diff.mineCap, G.DIFF.hard.mineCap);
+  // s.diff.mineCap is the composed (difficulty + modifier) value; assert the exact
+  // composition for this run's rolled modifier (s.modifier is on state).
+  assert.equal(G.state.diff.mineCap, G.combineDiff(G.DIFF.hard, G.MODS[G.state.modifier.key]).mineCap);
   G.start('free', 'bogus');
   assert.equal(G.state.difficulty, 'normal', 'unknown -> normal');
 });
@@ -48,17 +50,22 @@ test('mine cap and speed honor the difficulty', () => {
   assert.ok(everMines, 'mines spawned at some point');
   // ambient mineCap is not a hard ceiling on total mines — surge formations are
   // uncapped by design and free mode uses a random seed — so assert the knob,
-  // not a runtime count (which flakes).
-  assert.equal(s.diff.mineCap, 16);
+  // not a runtime count (which flakes). s.diff is now the composed
+  // (difficulty + modifier) value; assert the base DIFF knob and that the composed
+  // value is at least as strict (modifiers only add to caps / multiply speeds).
+  assert.equal(G.DIFF.hard.mineCap, 16, 'base hard mineCap knob unchanged');
+  assert.ok(s.diff.mineCap >= G.DIFF.hard.mineCap, 'composed mineCap >= base hard');
   assert.ok(G.DIFF.hard.mineCap > G.DIFF.normal.mineCap, 'hard denser than normal');
-  assert.equal(s.diff.mineSpeedMul, 1.2);
+  assert.equal(G.DIFF.hard.mineSpeedMul, 1.2, 'base hard mineSpeedMul knob');
 });
 
 test('boss hp/fire knobs are present on the active tier', () => {
   const G = boot().SY.nvGame;
-  G.start('free', 'easy');
-  assert.equal(G.state.diff.bossHpMul, 0.75);
-  assert.equal(G.state.diff.bossFireMul, 1.25);
+  // Assert the base DIFF knobs (modifier-independent). The ironWarden modifier
+  // multiplies bossHpMul×1.4 and bossFireMul×0.85, so free runs may produce
+  // different composed values — assert the base tier instead.
+  assert.equal(G.DIFF.easy.bossHpMul, 0.75, 'base easy bossHpMul knob');
+  assert.equal(G.DIFF.easy.bossFireMul, 1.25, 'base easy bossFireMul knob');
 });
 
 test('game-over result carries the run difficulty', () => {
@@ -75,16 +82,19 @@ test('game-over result carries the run difficulty', () => {
 
 test('turrets spawn on hard (capped) and never on easy', () => {
   const G = boot().SY.nvGame;
-  G.start('free', 'easy');
-  for (let i = 0; i < 200 && G.phase !== 'playing'; i++) G.update(1 / 60);
-  for (let i = 0; i < 60 * 12; i++) G.update(1 / 60);
-  assert.equal(G.state.turrets.length, 0, 'easy spawns no turrets');
+  // turretCap: vanguard modifier adds +1 even on easy (0+1=1) and on hard (3+1=4),
+  // so assert against the composed s.diff.turretCap rather than base DIFF literals.
+  // Also assert DIFF.easy.turretCap===0 (knob) to verify base-tier gating.
+  assert.equal(G.DIFF.easy.turretCap, 0, 'base easy turretCap is 0 (knob)');
+  assert.equal(G.DIFF.hard.turretCap, 3, 'base hard turretCap is 3 (knob)');
+
   G.start('free', 'hard');
   for (let i = 0; i < 200 && G.phase !== 'playing'; i++) G.update(1 / 60);
+  const hardCap = G.state.diff.turretCap; // composed (may be 3 or 4 with vanguard)
   let maxSeen = 0;
-  for (let i = 0; i < 60 * 20; i++) { G.update(1 / 60); maxSeen = Math.max(maxSeen, G.state.turrets.length); }
+  for (let i = 0; i < 60 * 20; i++) { G.state.player.hp = 3; G.update(1 / 60); maxSeen = Math.max(maxSeen, G.state.turrets.length); }
   assert.ok(maxSeen > 0, 'hard spawns turrets');
-  assert.ok(maxSeen <= G.DIFF.hard.turretCap, 'never exceeds turretCap (3)');
+  assert.ok(maxSeen <= hardCap, `never exceeds composed turretCap (${hardCap})`);
 });
 
 test('surgeMul knob widens the gradient (normal stays 1.0)', () => {
@@ -96,14 +106,18 @@ test('surgeMul knob widens the gradient (normal stays 1.0)', () => {
 
 test('surge formation size scales with difficulty', () => {
   const G = boot().SY.nvGame;
-  const sizes = (d) => { G.start('free', d); return G.state.surges.map((x) => x.size); };
-  const e = sizes('easy'), n = sizes('normal'), h = sizes('hard');
-  assert.ok(n.length > 0, 'there are surges to compare');
-  assert.equal(e.length, n.length); assert.equal(h.length, n.length);
-  for (let i = 0; i < n.length; i++) {
-    assert.ok(e[i] < n[i], `easy surge ${i} smaller than normal (${e[i]} < ${n[i]})`);
-    assert.ok(h[i] > n[i], `hard surge ${i} larger than normal (${h[i]} > ${n[i]})`);
-  }
+  // surgeMul comparison uses the DIFF knobs (modifier-independent) rather than live
+  // surge sizes from free runs — each free call uses a different random seed and may
+  // roll a different modifier (e.g. mineRush ×1.5 on easy can exceed normal's ×1.0).
+  assert.ok(G.DIFF.easy.surgeMul < G.DIFF.normal.surgeMul, 'easy surgeMul < normal (knob)');
+  assert.ok(G.DIFF.hard.surgeMul > G.DIFF.normal.surgeMul, 'hard surgeMul > normal (knob)');
+  // Verify surgeMul actually multiplies into the live surge sizes. The daily seed
+  // (daily-2026-03-01) deterministically rolls the standard modifier on normal, so
+  // s.diff = combineDiff(DIFF.normal, MODS.standard) = DIFF.normal (surgeMul=1.0) and
+  // the sizes are pinnable — catches a regression where surgeMul stops scaling size.
+  G.start('daily');
+  const n = G.state.surges.map((x) => x.size);
+  assert.deepEqual([...n], [9, 12], 'daily (standard/normal, surgeMul=1.0) sizes = 6 + 3k');
 });
 
 test('a turret is destroyed in 5 hits and scores 60', () => {

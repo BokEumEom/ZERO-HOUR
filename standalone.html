@@ -282,6 +282,16 @@ body.portrait #neonvortex-hud {
 .fx-bar { width: 100%; height: 3px; background: rgba(255,255,255,0.12); overflow: hidden; }
 .fx-bar > i { display: block; height: 100%; background: var(--c); box-shadow: 0 0 6px var(--c); }
 #neonvortex-hud-mode { font-size: 10px; letter-spacing: 0.12em; color: color-mix(in srgb, var(--nv-primary) 55%, transparent); }
+.nv-hud-mod {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border: 1px solid var(--nv-primary);
+  border-radius: 4px;
+  color: var(--nv-primary);
+  font-size: 0.72em;
+  letter-spacing: 0.08em;
+}
+.nv-hud-mod:empty { display: none; }
 
 /* ---------- boss HP (DOM so it stays upright in portrait) ---------- */
 /* Stitch: thin magenta bar, ~80% width, glowing fill + % readout, subtle flicker */
@@ -3442,6 +3452,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         <span id="neonvortex-hud-pace" style="display: none;"></span>
         <div id="neonvortex-hud-fx"></div>
         <span id="neonvortex-hud-mode"></span>
+        <span id="neonvortex-hud-modifier" class="nv-hud-mod"></span>
       </div>
       <div id="neonvortex-boss-hp">
         <span id="neonvortex-boss-hp-label">CORE WARDEN</span>
@@ -3528,6 +3539,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         <div class="panel nv-result-card">
           <span id="neonvortex-over-reason">TIME UP</span>
           <span id="neonvortex-over-mode" class="kicker">DAILY</span>
+          <span id="neonvortex-over-modifier" class="kicker"></span>
           <div class="nv-score-block">
             <p class="hud-label nv-score-label">TOTAL_SCORE</p>
             <p id="neonvortex-over-score">0</p>
@@ -3724,6 +3736,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
               <span class="nv-chal-row-val" id="neonvortex-chal-seed">—</span>
             </div>
             <p class="nv-chal-note" id="neonvortex-chal-seed-note">모든 파일럿이 동일한 시드로 플레이합니다 · All pilots fly the same seed</p>
+            <div class="nv-chal-row">
+              <span class="nv-chal-row-label">MODIFIER</span>
+              <span class="nv-chal-row-val nv-chal-row-val-cyan" id="neonvortex-chal-modifier">—</span>
+            </div>
 
             <div class="nv-chal-row nv-chal-row-divider">
               <span class="nv-chal-row-label">TODAY’S BEST</span>
@@ -5017,10 +5033,48 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // *Mul knobs multiply onto base constants. bossFireMul multiplies the boss
   // fire-interval (burstT/aimT), so <1 = faster fire, >1 = slower.
   const DIFF = Object.freeze({
-    easy:   Object.freeze({ turretCap: 0, turretFire: 2.6, spawnMul: 0.75, mineSpeedMul: 0.85, mineCap: 9,  surgeMul: 0.7, bossHpMul: 0.75, bossFireMul: 1.25, foes: Object.freeze({}) }),
-    normal: Object.freeze({ turretCap: 2, turretFire: 2.6, spawnMul: 1.0,  mineSpeedMul: 1.0,  mineCap: 12, surgeMul: 1.0, bossHpMul: 1.0,  bossFireMul: 1.0,  foes: Object.freeze({ hunter: 2, charger: 1 }) }),
-    hard:   Object.freeze({ turretCap: 3, turretFire: 1.9, spawnMul: 1.3,  mineSpeedMul: 1.2,  mineCap: 16, surgeMul: 1.4, bossHpMul: 1.33, bossFireMul: 0.8,  foes: Object.freeze({ hunter: 2, charger: 2, shield: 1, laser: 1 }) }),
+    easy:   Object.freeze({ turretCap: 0, turretFire: 2.6, spawnMul: 0.75, mineSpeedMul: 0.85, mineCap: 9,  surgeMul: 0.7, lootMul: 1.0, bossHpMul: 0.75, bossFireMul: 1.25, foes: Object.freeze({}) }),
+    normal: Object.freeze({ turretCap: 2, turretFire: 2.6, spawnMul: 1.0,  mineSpeedMul: 1.0,  mineCap: 12, surgeMul: 1.0, lootMul: 1.0, bossHpMul: 1.0,  bossFireMul: 1.0,  foes: Object.freeze({ hunter: 2, charger: 1 }) }),
+    hard:   Object.freeze({ turretCap: 3, turretFire: 1.9, spawnMul: 1.3,  mineSpeedMul: 1.2,  mineCap: 16, surgeMul: 1.4, lootMul: 1.0, bossHpMul: 1.33, bossFireMul: 0.8,  foes: Object.freeze({ hunter: 2, charger: 2, shield: 1, laser: 1 }) }),
   });
+
+  // ---- per-run modifiers (layer on top of DIFF; score-neutral) ----
+  // *Mul fields multiply the base knob; *Add fields add to a cap; foes replaces.
+  const MOD_KEYS = ['standard', 'mineRush', 'ironWarden', 'treasure', 'vanguard'];
+  const MODS = Object.freeze({
+    standard:   Object.freeze({ nameKo: '기본', nameEn: 'STANDARD' }),
+    mineRush:   Object.freeze({ nameKo: '기뢰 폭주', nameEn: 'MINE RUSH', surgeMul: 1.5, mineCapAdd: 6, mineSpeedMul: 1.1 }),
+    ironWarden: Object.freeze({ nameKo: '강철 워든', nameEn: 'IRON WARDEN', bossHpMul: 1.4, bossFireMul: 0.85, lootMul: 1.4 }),
+    treasure:   Object.freeze({ nameKo: '보물 항로', nameEn: 'TREASURE', lootMul: 1.8, spawnMul: 0.8 }),
+    vanguard:   Object.freeze({ nameKo: '정예 전선', nameEn: 'VANGUARD', foes: Object.freeze({ hunter: 2, charger: 2, shield: 1, laser: 1 }), turretCapAdd: 1 }),
+  });
+
+  // Compose a base DIFF tier with a modifier → a new frozen DIFF-shaped object.
+  function combineDiff(base, mod) {
+    return Object.freeze({
+      turretCap:    base.turretCap + (mod.turretCapAdd || 0),
+      turretFire:   base.turretFire * (mod.turretFireMul || 1),
+      spawnMul:     base.spawnMul * (mod.spawnMul || 1),
+      mineSpeedMul: base.mineSpeedMul * (mod.mineSpeedMul || 1),
+      mineCap:      base.mineCap + (mod.mineCapAdd || 0),
+      surgeMul:     base.surgeMul * (mod.surgeMul || 1),
+      lootMul:      base.lootMul * (mod.lootMul || 1),
+      bossHpMul:    base.bossHpMul * (mod.bossHpMul || 1),
+      bossFireMul:  base.bossFireMul * (mod.bossFireMul || 1),
+      foes:         mod.foes || base.foes,
+    });
+  }
+
+  // Pick a modifier key from a seeded RNG (uniform over MOD_KEYS).
+  function pickModifier(rng) { return MOD_KEYS[Math.floor(rng() * MOD_KEYS.length)]; }
+
+  // Resolve the modifier for a seed without starting a run (daily briefing preview).
+  // Dedicated ':mod' sub-RNG: does NOT consume the gameplay stream → deterministic
+  // worldwide and independent of spawn/drop randomness.
+  function modifierFor(seedStr) {
+    const key = pickModifier(SY.makeRng(seedStr + ':mod'));
+    return { key, nameKo: MODS[key].nameKo, nameEn: MODS[key].nameEn };
+  }
 
   function buildSurges(s) {
     const fieldEnd = s.duration >= 40 ? s.duration - 20 : s.duration; // boss owns the last 20s
@@ -5060,21 +5114,25 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   function dist2(a, b) { const dx = a.x - b.x, dy = a.y - b.y; return dx * dx + dy * dy; }
 
   const G = {
-    W, H, POWER_META, POWER_DURATION, DIFF,
+    W, H, POWER_META, POWER_DURATION, DIFF, MODS, MOD_KEYS,
     phase: 'menu', // menu | ready | playing | paused | over
     mode: 'daily',
     state: null,
     events: {}, // onGameOver(res), onReadySound...
   };
   SY.nvGame = G;
+  G.combineDiff = combineDiff;
+  G.previewModifier = modifierFor;
 
   function freshState(mode, seedStr, difficulty) {
     const rng = SY.makeRng(seedStr);
     const duration = Math.round(SY.tweaks.duration);
     const diffKey = DIFF[difficulty] ? difficulty : 'normal';
+    const modifier = modifierFor(seedStr); // { key, nameKo, nameEn } — score-neutral
     const st = {
       rng, seedStr, mode, duration,
-      difficulty: diffKey, diff: DIFF[diffKey],
+      difficulty: diffKey, diff: combineDiff(DIFF[diffKey], MODS[modifier.key]),
+      modifier,
       t: 0,                       // elapsed sim time
       timeLeft: duration,
       readyT: 1.4,
@@ -5500,6 +5558,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     const res = {
       mode: s.mode, score: s.score, maxCombo: s.maxCombo,
       difficulty: s.difficulty,
+      modifier: s.modifier,
       bossDown: s.bossDown, reason, pace: s.pace.slice(),
       collected: s.collected, duration: s.duration,
       crystalsCollected: s.crystalsCollected, // display-only (cosmetic meta)
@@ -5666,7 +5725,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       if (s.mines.length < s.diff.mineCap) spawnMine(s); // cap is ambient-only; surge formations are uncapped spikes by design
     }
     s.spawnT.pow -= dt;
-    if (s.spawnT.pow <= 0) { s.spawnT.pow = 9.5; if (s.pows.length < 3) spawnPow(s); }
+    if (s.spawnT.pow <= 0) { s.spawnT.pow = 9.5 / s.diff.lootMul; if (s.pows.length < 3) spawnPow(s); }
     s.spawnT.turret -= dt;
     if (s.spawnT.turret <= 0) {
       s.spawnT.turret = 6 / s.diff.spawnMul; // density-scaled cadence
@@ -5674,7 +5733,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     }
     s.spawnT.crate -= dt;
     if (s.spawnT.crate <= 0) {
-      s.spawnT.crate = 7 + s.rng() * 5;
+      s.spawnT.crate = (7 + s.rng() * 5) / s.diff.lootMul;
       if (s.crates.length < 2) spawnCrate(s);
     }
     // ---------- rare extra life (1UP, E6) ----------
@@ -6885,6 +6944,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   const hudEls = {
     time: $('hud-time'), score: $('hud-score'), combo: $('hud-combo'), heat: $('hud-heat'),
     hearts: $('hud-hearts'), pace: $('hud-pace'), fx: $('hud-fx'), mode: $('hud-mode'),
+    modifier: $('hud-modifier'),
     pauseBtn: $('btn-pause'), muteBtn: $('btn-mute'), fsBtn: $('btn-fullscreen'),
     bossHp: $('boss-hp'), bossHpFill: $('boss-hp-fill'),
     vignette: $('danger-vignette'), hitFlash: $('hit-flash'),
@@ -6934,6 +6994,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     hudEls.heat.textContent = heatOn ? 'HEAT ×' + s.heatMul : '';
     hudEls.heat.classList.toggle('on', heatOn);
     hudEls.mode.textContent = s.mode === 'daily' ? 'DAILY ' + recs.today : 'FREE PLAY';
+    hudEls.modifier.textContent = s.modifier && s.modifier.key !== 'standard' ? s.modifier.nameEn : '';
 
     // hearts
     let hearts = '';
@@ -7221,6 +7282,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // existing records — nothing here re-seeds, rerolls, or multiplies the run.
   async function renderChallenge() {
     $('chal-seed').textContent = 'daily-' + recs.today + ' (UTC)';
+    const todayMod = G.previewModifier('daily-' + recs.today);
+    $('chal-modifier').textContent = todayMod.nameKo + ' (' + todayMod.nameEn + ')';
     $('chal-daily-best').textContent = recs.dailyBest ? fmt(recs.dailyBest.score) : '아직 기록 없음';
     $('chal-all-best').textContent = (recs.bestByDiff && recs.bestByDiff.normal) ? fmt(recs.bestByDiff.normal.score) : '—';
 
@@ -7935,6 +7998,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     $('btn-share').style.display = res.mode === 'daily' ? '' : 'none';
     $('btn-share').textContent = 'COPY RESULT';
     $('over-mode').textContent = res.mode === 'daily' ? 'DAILY \u00b7 ' + recs.today : 'FREE PLAY';
+    $('over-modifier').textContent = res.modifier && res.modifier.key !== 'standard'
+      ? res.modifier.nameKo + ' \u00b7 ' + res.modifier.nameEn : '';
 
     // rank is synchronous (deterministic); medals persist asynchronously so the
     // IndexedDB round-trip never delays the result screen / countdown
@@ -8024,7 +8089,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     const filled = Math.max(0, Math.min(cells, Math.round(res.score / 1500)));
     const bar = '\ud83d\udfe9'.repeat(filled) + '\u2b1b'.repeat(cells - filled);
     return [
-      'NEON VORTEX \u00b7 Daily ' + recs.today,
+      'NEON VORTEX \u00b7 Daily ' + recs.today + (res.modifier && res.modifier.key !== 'standard' ? ' \u00b7 ' + res.modifier.nameEn : ''),
       'SCORE ' + fmt(res.score) + ' \u00b7 MAX COMBO \u00d7' + res.maxCombo,
       (res.bossDown ? '\ud83d\udc8e CORE WARDEN CLEARED' : '\u2b21 core survived\u2026'),
       bar,
