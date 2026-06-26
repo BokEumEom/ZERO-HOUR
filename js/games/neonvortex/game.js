@@ -945,10 +945,34 @@
       else s.shield = true;                     // already full → convert to a shield (never wasted)
       return;
     }
+    if (o.type === 'BOMB') { bombDetonate(s, o.x, o.y); return; } // instant screen clear
     // timed buffs: extend remaining time by the base duration, capped at 2x base
     const dur = POWER_DURATION[o.type];
     s.fx[o.type] = Math.min(2 * dur, s.fx[o.type] + dur);
     if (o.type === 'DRONE' && s.drones.length === 0) spawnDrones(s);
+  }
+
+  // BOMB power-up: instant screen clear. Destroys all combat enemies (score only,
+  // no loot drops -> no crystal flood), wipes enemy fire, and chips the boss/elite
+  // without ever killing them (clamped to >=1 hp -> they must be finished by shooting).
+  // Deterministic: no s.rng(); the clear acts on already-seeded enemies. Cosmetic
+  // burst/wave use Math.random only.
+  function bombDetonate(s, x, y) {
+    for (const m of s.mines) { addScore(s, 25, m.x, m.y, undefined, 'destroy'); burst(s, m.x, m.y, '#ff8a4a', 5, 150, 2.2); }
+    for (const r of s.rocks) { addScore(s, 40, r.x, r.y, undefined, 'destroy'); burst(s, r.x, r.y, '#ff8a4a', 6, 160, 2.4); }
+    for (const t of s.turrets) { addScore(s, 60, t.x, t.y, undefined, 'destroy'); burst(s, t.x, t.y, '#ff8a4a', 6, 160, 2.4); }
+    for (const f of s.foes) { addScore(s, (SY.nvFoes.FOE_SCORE && SY.nvFoes.FOE_SCORE[f.kind]) || 30, f.x, f.y, undefined, 'destroy'); burst(s, f.x, f.y, '#ff8a4a', 5, 150, 2.2); }
+    s.mines = []; s.rocks = []; s.turrets = []; s.foes = [];
+    s.ebullets = []; // wipe all enemy fire (incl. boss plasma orbs)
+    // non-lethal chip to boss/elite (boss-bucket score for the boss, like normal hits)
+    if (s.boss && s.boss.dying <= 0) {
+      const dmg = Math.min(8, s.boss.hp - 1);
+      if (dmg > 0) { s.boss.hp -= dmg; s.boss.flash = 0.1; addScore(s, dmg * 5, undefined, undefined, undefined, 'boss'); }
+    }
+    if (s.elite && s.elite.state !== 'enter') { s.elite.hp = Math.max(1, s.elite.hp - 5); s.elite.flash = 0.1; }
+    wave(s, x, y, 240, '#ff8a4a');
+    s.shake = Math.max(s.shake, 11);
+    SY.audio.explode();
   }
 
   // two companion wingman drones, evenly spaced (deterministic — no rng)
