@@ -68,6 +68,7 @@
   const hudEls = {
     time: $('hud-time'), score: $('hud-score'), combo: $('hud-combo'), heat: $('hud-heat'),
     hearts: $('hud-hearts'), pace: $('hud-pace'), fx: $('hud-fx'), mode: $('hud-mode'),
+    modifier: $('hud-modifier'),
     pauseBtn: $('btn-pause'), muteBtn: $('btn-mute'), fsBtn: $('btn-fullscreen'),
     bossHp: $('boss-hp'), bossHpFill: $('boss-hp-fill'),
     vignette: $('danger-vignette'), hitFlash: $('hit-flash'),
@@ -117,6 +118,7 @@
     hudEls.heat.textContent = heatOn ? 'HEAT ×' + s.heatMul : '';
     hudEls.heat.classList.toggle('on', heatOn);
     hudEls.mode.textContent = s.mode === 'daily' ? 'DAILY ' + recs.today : 'FREE PLAY';
+    hudEls.modifier.textContent = s.modifier && s.modifier.key !== 'standard' ? s.modifier.nameEn : '';
 
     // hearts
     let hearts = '';
@@ -404,6 +406,8 @@
   // existing records — nothing here re-seeds, rerolls, or multiplies the run.
   async function renderChallenge() {
     $('chal-seed').textContent = 'daily-' + recs.today + ' (UTC)';
+    const todayMod = G.previewModifier('daily-' + recs.today);
+    $('chal-modifier').textContent = todayMod.nameKo + ' (' + todayMod.nameEn + ')';
     $('chal-daily-best').textContent = recs.dailyBest ? fmt(recs.dailyBest.score) : '아직 기록 없음';
     $('chal-all-best').textContent = (recs.bestByDiff && recs.bestByDiff.normal) ? fmt(recs.bestByDiff.normal.score) : '—';
 
@@ -1118,6 +1122,8 @@
     $('btn-share').style.display = res.mode === 'daily' ? '' : 'none';
     $('btn-share').textContent = 'COPY RESULT';
     $('over-mode').textContent = res.mode === 'daily' ? 'DAILY \u00b7 ' + recs.today : 'FREE PLAY';
+    $('over-modifier').textContent = res.modifier && res.modifier.key !== 'standard'
+      ? res.modifier.nameKo + ' \u00b7 ' + res.modifier.nameEn : '';
 
     // rank is synchronous (deterministic); medals persist asynchronously so the
     // IndexedDB round-trip never delays the result screen / countdown
@@ -1207,7 +1213,7 @@
     const filled = Math.max(0, Math.min(cells, Math.round(res.score / 1500)));
     const bar = '\ud83d\udfe9'.repeat(filled) + '\u2b1b'.repeat(cells - filled);
     return [
-      'NEON VORTEX \u00b7 Daily ' + recs.today,
+      'NEON VORTEX \u00b7 Daily ' + recs.today + (res.modifier && res.modifier.key !== 'standard' ? ' \u00b7 ' + res.modifier.nameEn : ''),
       'SCORE ' + fmt(res.score) + ' \u00b7 MAX COMBO \u00d7' + res.maxCombo,
       (res.bossDown ? '\ud83d\udc8e CORE WARDEN CLEARED' : '\u2b21 core survived\u2026'),
       bar,
