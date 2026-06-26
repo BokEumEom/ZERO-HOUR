@@ -17,6 +17,18 @@
   const HULL_SIZE = 42;
   const HULL_SIZE_SHIELDED = 64;
 
+  // Ambient section-5 modular decor — fixed, deterministic edge/corner layout drawn
+  // faintly behind gameplay. Cosmetic only (no rng, no sim). Built once at load.
+  const DECOR = [
+    { key: 'decoPanel',   x: 96,  y: 92,  size: 98, rot: 0,       alpha: 0.16 },
+    { key: 'decoReadout', x: 872, y: 84,  size: 78, rot: 0,       alpha: 0.14 },
+    { key: 'decoNode',    x: 70,  y: 512, size: 64, rot: 0,       alpha: 0.15 },
+    { key: 'decoPanel',   x: 884, y: 520, size: 94, rot: Math.PI, alpha: 0.15 },
+    { key: 'decoNode',    x: 480, y: 40,  size: 52, rot: 0,       alpha: 0.12 },
+    { key: 'decoReadout', x: 480, y: 562, size: 70, rot: Math.PI, alpha: 0.12 },
+    { key: 'decoNode',    x: 922, y: 300, size: 50, rot: 0,       alpha: 0.12 },
+  ];
+
   function poly(ctx, x, y, r, n, rot) {
     ctx.beginPath();
     for (let i = 0; i < n; i++) {
@@ -36,6 +48,18 @@
     ctx.closePath();
   }
 
+  // ambient facility decor (section-5). Additive low-alpha so only the neon edges
+  // glow; skips entirely until the atlas decodes (no vector fallback for ambience).
+  function drawDecor(ctx) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (const d of DECOR) {
+      ctx.globalAlpha = d.alpha;
+      SP.draw(ctx, d.key, d.x, d.y, d.size, d.rot);
+    }
+    ctx.restore();
+  }
+
   function drawBackground(ctx, s) {
     ctx.fillStyle = '#04090f';
     ctx.fillRect(-20, -20, W + 40, H + 40);
@@ -45,6 +69,7 @@
     for (let x = 0; x <= W; x += 48) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
     for (let y = 0; y <= H; y += 48) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
     ctx.stroke();
+    drawDecor(ctx); // ambient section-5 facility decor (cosmetic, behind gameplay)
     if (s && s.fx.SLOW > 0) {
       ctx.fillStyle = 'rgba(120,80,255,0.07)';
       ctx.fillRect(-20, -20, W + 40, H + 40);
