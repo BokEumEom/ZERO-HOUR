@@ -222,6 +222,17 @@ test('boss heavy plasma orb (atlas orb projectile) is wired', () => {
   assert.ok(/plasmaOrb:\s*\{/.test(sprP), 'plasmaOrb rect');
 });
 
+test('crystal large-gem value tier (section-7 gem) is wired', () => {
+  const sprC = read(`${NV}/sprites.js`);
+  assert.ok(/crystalLarge:\s*\{/.test(sprC), 'crystalLarge rect defined');
+  const game = read(`${NV}/game.js`);
+  assert.ok(/s\.rng\(\)\s*<\s*0\.22/.test(game), 'seeded ~22% big-gem roll');
+  assert.ok(/c\.big \? 40 : 10/.test(game), 'big-gem flat value 40 vs 10');
+  assert.ok(/flatBase \|\| 10/.test(game), 'crystal bucket splits on flatBase (correct attribution)');
+  const render = read(`${NV}/render.js`);
+  assert.ok(/c\.big \? 'crystalLarge'/.test(render), 'large gem renders the crystalLarge sprite');
+});
+
 test('ui-kit arena art (reticle + game-state banners) is wired, cosmetic', () => {
   const spr = read(`${NV}/sprites.js`);
   assert.ok(/ui-kit\.png/.test(spr) && /function drawUi/.test(spr), 'ui-kit sheet + drawUi helper');
