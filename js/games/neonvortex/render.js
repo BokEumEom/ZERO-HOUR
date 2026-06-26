@@ -449,6 +449,33 @@
     ctx.restore();
   }
 
+  function drawBossCore(ctx, c, boss) {
+    if (boss) { // faint tether from the boss to the core
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,90,120,0.22)';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(boss.x, boss.y); ctx.lineTo(c.x, c.y); ctx.stroke();
+      ctx.restore();
+    }
+    const size = (c.r + 6) * 2.4;
+    if (SP.draw(ctx, 'bossCore', c.x, c.y, size, c.ang)) {
+      if (c.flash > 0) {
+        ctx.save();
+        ctx.globalAlpha = 0.5;
+        ctx.globalCompositeOperation = 'lighter';
+        SP.draw(ctx, 'bossCore', c.x, c.y, size, c.ang);
+        ctx.restore();
+      }
+      return;
+    }
+    ctx.save(); // vector fallback
+    ctx.translate(c.x, c.y);
+    ctx.shadowColor = '#ff5a78'; ctx.shadowBlur = 8;
+    ctx.fillStyle = c.flash > 0 ? '#ffd9e1' : '#ff5a78';
+    ctx.beginPath(); ctx.arc(0, 0, c.r, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
   function drawBoss(ctx, s) {
     const b = s.boss;
     const dyingShake = b.dying > 0 ? (Math.random() - 0.5) * 6 : 0;
@@ -605,6 +632,7 @@
 
     if (s.elite) drawElite(ctx, s.elite);
     if (s.boss) drawBoss(ctx, s);
+    for (const c of s.bossCores) drawBossCore(ctx, c, s.boss);
     drawPlayer(ctx, s);
     for (const dr of s.drones) drawDrone(ctx, dr);
 

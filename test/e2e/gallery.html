@@ -32,7 +32,7 @@ async function post(url, body) { try { await fetch(url, { method: 'POST', body: 
   for (let i = 0; i < 200 && g.phase !== 'playing'; i++) { if (g.state) g.state.readyT = 0.01; g.update(0.05); }
   const s = g.state;
   s.player.x = 480; s.player.y = 380; s.player.inv = 1; s.player.hp = 3;
-  const clear = () => { for (const k of ['crystals', 'mines', 'bullets', 'ebullets', 'foes', 'rocks', 'turrets', 'crates', 'tokens', 'drones', 'pows', 'parts', 'waves', 'floats', 'blasts']) s[k] = []; s.boss = null; s.elite = null; };
+  const clear = () => { for (const k of ['crystals', 'mines', 'bullets', 'ebullets', 'foes', 'rocks', 'turrets', 'crates', 'tokens', 'drones', 'pows', 'parts', 'waves', 'floats', 'blasts', 'bossCores']) s[k] = []; s.boss = null; s.elite = null; };
   const foe = (kind, x, y, r) => ({ kind, x, y, vx: 0, vy: 0, r, hp: 2, maxHp: 2, flash: 0, phase: 1, aimA: 0, state: 'idle', warnT: 0, fireT: 1, t: 0 });
   async function shot(name) { w.SY.nvRender(cv.getContext('2d')); await post('/shot', { name, dataUrl: cv.toDataURL('image/png') }); await sleep(60); }
 
@@ -46,8 +46,9 @@ async function post(url, body) { try { await fetch(url, { method: 'POST', body: 
 
   // 2) boss (must render as a round Core Warden, not a square)
   clear();
-  s.boss = { x: 480, y: 150, ty: 150, r: 46, hp: 60, maxHp: 72, t: 1, burstT: 1, aimT: 1, fireMul: 1, flash: 0, dying: 0, ringRot: 0.5 };
+  s.boss = { x: 480, y: 150, ty: 150, r: 46, hp: 60, maxHp: 72, t: 1, burstT: 1, aimT: 1, fireMul: 1, flash: 0, dying: 0, ringRot: 0.5, coresDeployed: true };
   for (let i = 0; i < 6; i++) s.ebullets.push({ x: 480 + Math.cos(i) * 80, y: 150 + Math.sin(i) * 80, vx: 0, vy: 0, r: 6 });
+  s.bossCores = [0.6, 0.6 + Math.PI].map((a) => ({ ang: a, orbitR: 96, hp: 6, maxHp: 6, fireT: 1, flash: 0, x: 480 + Math.cos(a) * 96, y: 150 + Math.sin(a) * 96, r: 16 }));
   await shot('2-boss');
 
   // 3) elite Sentinel mid beam-sweep
