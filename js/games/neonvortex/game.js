@@ -837,6 +837,19 @@
         dead = true;
       }
       if (!dead && SY.nvElite.bulletHit(s, b, eliteApi)) dead = true;
+      if (!dead && s.bossCores.length) for (let j = s.bossCores.length - 1; j >= 0; j--) {
+        const c = s.bossCores[j];
+        if (dist2(b, c) < (c.r + 4) * (c.r + 4)) {
+          c.hp -= 1; c.flash = 0.08; burst(s, b.x, b.y, '#ff8fb0', 4, 120, 2); dead = true;
+          if (c.hp <= 0) {
+            s.bossCores.splice(j, 1);
+            addScore(s, 120, c.x, c.y, 'CORE', 'destroy');
+            for (let k = 0; k < 3; k++) { const a = c.ang + k * 2.094; s.crystals.push({ x: c.x, y: c.y, vx: Math.cos(a) * 120, vy: Math.sin(a) * 120, r: 7, phase: k * 2, tier: 'boss' }); }
+            blast(s, c.x, c.y, 90); SY.audio.explode();
+          }
+          break;
+        }
+      }
       if (!dead) for (let j = s.mines.length - 1; j >= 0; j--) {
         const m = s.mines[j];
         if (dist2(b, m) < (m.r + 4) * (m.r + 4)) {
@@ -1014,6 +1027,7 @@
     const probe = (e) => { const dx = e.x - x, dy = e.y - y, d = dx * dx + dy * dy; if (d < best) { best = d; target = e; } };
     if (s.boss && s.boss.dying <= 0 && s.boss.y > 0) probe(s.boss);
     if (s.elite && s.elite.state !== 'enter') probe(s.elite);
+    for (const c of s.bossCores) probe(c);
     for (const m of s.mines) probe(m);
     for (const r of s.rocks) probe(r);
     for (const t of s.turrets) probe(t);
