@@ -233,6 +233,18 @@ test('crystal large-gem value tier (section-7 gem) is wired', () => {
   assert.ok(/c\.big \? 'crystalLarge'/.test(render), 'large gem renders the crystalLarge sprite');
 });
 
+test('BOMB screen-clear power is wired (section-1 bomb badge)', () => {
+  const game = read(`${NV}/game.js`);
+  assert.match(game, /POWER_TYPES = \[[^\]]*'BOMB'/, 'BOMB joins the seeded bag');
+  assert.match(game, /BOMB:\s*\{[^}]*label: 'BOMB'/, 'BOMB meta present');
+  assert.match(game, /function bombDetonate/, 'bombDetonate helper present');
+  assert.match(game, /o\.type === 'BOMB'/, 'applyPow BOMB branch present');
+  const durLine = game.match(/POWER_DURATION = \{[^}]*\}/)[0];
+  assert.ok(!/BOMB/.test(durLine), 'BOMB absent from POWER_DURATION (instant)');
+  const spr = read(`${NV}/sprites.js`);
+  assert.match(spr, /BOMB:\s*\{ x: 437/, 'BOMB badge icon rect present');
+});
+
 test('ui-kit arena art (reticle + game-state banners) is wired, cosmetic', () => {
   const spr = read(`${NV}/sprites.js`);
   assert.ok(/ui-kit\.png/.test(spr) && /function drawUi/.test(spr), 'ui-kit sheet + drawUi helper');

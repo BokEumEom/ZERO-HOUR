@@ -195,5 +195,5 @@
     return true;
   }
 
-  SY.nvFoes = { initTimers, update, bulletHit, damage };
+  SY.nvFoes = { initTimers, update, bulletHit, damage, FOE_SCORE };
 })();
