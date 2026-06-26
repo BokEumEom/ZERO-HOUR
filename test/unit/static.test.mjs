@@ -281,6 +281,14 @@ test('difficulty surge scaling + free-play label are wired', () => {
   assert.match(html, /id="neonvortex-free-sub"/, 'free-sub span id present');
 });
 
+test('foeCharger is re-tinted (not player-coloured) via cached canvas', () => {
+  const spr = read(`${NV}/sprites.js`);
+  assert.match(spr, /FOE_TINTS\s*=/, 'FOE_TINTS map present');
+  assert.match(spr, /foeCharger:\s*\{\s*tint:/, 'foeCharger has a tint def');
+  assert.match(spr, /function foeTintCanvas/, 'foeTintCanvas builder present');
+  assert.match(spr, /FOE_TINTS\[key\] \? foeTintCanvas\(key\)/, 'draw() applies the foe tint');
+});
+
 test('ui-kit arena art (reticle + game-state banners) is wired, cosmetic', () => {
   const spr = read(`${NV}/sprites.js`);
   assert.ok(/ui-kit\.png/.test(spr) && /function drawUi/.test(spr), 'ui-kit sheet + drawUi helper');
