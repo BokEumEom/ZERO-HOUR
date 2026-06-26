@@ -4328,6 +4328,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     oneUp:       { x: 640,  y: 46,  w: 58,  h: 70  }, // 1UP heart — rare extra-life pickup (section 1)
     plasmaOrb:   { x: 1057, y: 293, w: 60,  h: 66  }, // heavy plasma orb (boss enemy projectile, section 4)
     drone2:      { x: 1326, y: 1023, w: 84, h: 44 }, // 2nd companion drone variant (winged core, section 8)
+    crystalLarge:{ x: 36,   y: 706, w: 44, h: 95 }, // rare large value gem (section 7 — largest teal crystal)
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
@@ -5085,12 +5086,15 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     const cx = 70 + s.rng() * (W - 140);
     const cy = 70 + s.rng() * (H - 140);
     const n = 4 + Math.floor(s.rng() * 3);
+    // rare seeded large gem: ~22% of clusters contain one oversized high-value gem.
+    const bigIdx = s.rng() < 0.22 ? Math.floor(s.rng() * n) : -1;
     for (let i = 0; i < n; i++) {
       const a = s.rng() * Math.PI * 2, d = s.rng() * 52;
+      const big = i === bigIdx;
       s.crystals.push({
         x: Math.min(W - 20, Math.max(20, cx + Math.cos(a) * d)),
         y: Math.min(H - 20, Math.max(20, cy + Math.sin(a) * d)),
-        vx: 0, vy: 0, r: 7, phase: s.rng() * Math.PI * 2,
+        vx: 0, vy: 0, r: big ? 12 : 7, phase: s.rng() * Math.PI * 2, big,
       });
     }
   }
@@ -5278,7 +5282,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     return 1;
   }
 
-  function addScore(s, base, x, y, label, bucket) {
+  function addScore(s, base, x, y, label, bucket, flatBase) {
     const x2 = s.fx.X2 > 0 ? 2 : 1;
     const mul = Math.min(HEAT_X2_CAP, x2 * heatTier(s));
     const v = Math.round(base * mul);
@@ -5286,7 +5290,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     const heatBonus = v - vBase;              // isolated HEAT contribution
     s.score += v;
     if (bucket === 'crystal') {
-      const combo = Math.round((base - 10) * x2); // combo part keeps integer split
+      // flatBase is the gem's flat value (10 normal, 40 large); the remainder of
+      // `base` is the player's combo increment. Splitting on flatBase keeps the
+      // large gem's value attributed to crystals (not folded into the combo bucket).
+      const combo = Math.round((base - (flatBase || 10)) * x2); // combo part keeps integer split
       s.breakdown.crystals += vBase - combo;
       s.breakdown.combo += combo;
     } else if (bucket === 'destroy') {
@@ -5646,8 +5653,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         s.collected += 1;
         s.crystalsCollected++; // display-only counter (cosmetic meta); output-only
         if (s.inSurge) s.heat += 1;
-        addScore(s, 10 + s.combo, c.x, c.y, undefined, 'crystal');
-        burst(s, c.x, c.y, '#2de2c6', 7, 150, 2.2);
+        addScore(s, (c.big ? 40 : 10) + s.combo, c.x, c.y, undefined, 'crystal', c.big ? 40 : 10);
+        burst(s, c.x, c.y, c.big ? '#7df9ff' : '#2de2c6', c.big ? 12 : 7, c.big ? 210 : 150, 2.2);
         SY.audio.collect(s.combo);
       }
     }
@@ -6029,10 +6036,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // during a surge = amber (HEAT window), otherwise the default teal.
   function drawCrystal(ctx, c, inSurge) {
     const bob = Math.sin(c.phase) * 2;
-    const key = c.tier === 'boss' ? 'crystalBoss' : (inSurge ? 'crystalAmber' : 'crystalTeal');
+    const key = c.big ? 'crystalLarge' : (c.tier === 'boss' ? 'crystalBoss' : (inSurge ? 'crystalAmber' : 'crystalTeal'));
     if (SP.draw(ctx, key, c.x, c.y + bob, (c.r + 2) * 2.9, Math.sin(c.phase * 0.7) * 0.16)) return;
-    const glow = c.tier === 'boss' ? '#9c43e1' : (inSurge ? '#ffb028' : '#2de2c6');
-    const core = c.tier === 'boss' ? '#e3b6ff' : (inSurge ? '#ffe6a8' : '#9ff5e8');
+    const glow = c.big ? '#39d8ff' : (c.tier === 'boss' ? '#9c43e1' : (inSurge ? '#ffb028' : '#2de2c6'));
+    const core = c.big ? '#cdfaff' : (c.tier === 'boss' ? '#e3b6ff' : (inSurge ? '#ffe6a8' : '#9ff5e8'));
     const squish = 0.62 + Math.sin(c.phase * 0.7) * 0.1;
     ctx.save();
     ctx.translate(c.x, c.y + bob);
