@@ -257,6 +257,19 @@ test('section-5 arena decor is wired (cosmetic, rng-free)', () => {
   assert.ok(!/DECOR[\s\S]{0,400}Math\.random/.test(render), 'decor layout uses no Math.random (deterministic)');
 });
 
+test('boss orbital support cores are wired (deterministic)', () => {
+  const spr = read(`${NV}/sprites.js`);
+  assert.match(spr, /bossCore:\s*\{/, 'bossCore rect');
+  const game = read(`${NV}/game.js`);
+  assert.match(game, /function updateBossCores/, 'updateBossCores helper present');
+  assert.match(game, /bossCores: \[\]/, 'bossCores state array initialised');
+  assert.match(game, /coresDeployed/, 'deploy guard present');
+  const fn = game.match(/function updateBossCores[\s\S]*?\n  \}/)[0];
+  assert.ok(!/s\.rng\(|Math\.random\(/.test(fn), 'updateBossCores uses no rng (deterministic)');
+  const render = read(`${NV}/render.js`);
+  assert.match(render, /function drawBossCore/, 'drawBossCore present');
+});
+
 test('ui-kit arena art (reticle + game-state banners) is wired, cosmetic', () => {
   const spr = read(`${NV}/sprites.js`);
   assert.ok(/ui-kit\.png/.test(spr) && /function drawUi/.test(spr), 'ui-kit sheet + drawUi helper');
