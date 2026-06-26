@@ -3,7 +3,7 @@
   const SY = (window.SY = window.SY || {});
 
   const W = 960, H = 600;
-  const POWER_TYPES = ['MAGNET', 'SHIELD', 'SLOW', 'X2', 'BOOST', 'SPREAD', 'TIME', 'DRONE', 'MISSILE'];
+  const POWER_TYPES = ['MAGNET', 'SHIELD', 'SLOW', 'X2', 'BOOST', 'SPREAD', 'TIME', 'DRONE', 'MISSILE', 'BOMB'];
 
   const POWER_META = {
     MAGNET: { glyph: 'M',  color: '#2de2c6', label: 'MAGNET' },
@@ -15,6 +15,7 @@
     TIME:   { glyph: '+5', color: '#eaf6ff', label: '+5 SEC' },
     DRONE:  { glyph: 'D',  color: '#5ad1ff', label: 'WINGMAN' },
     MISSILE:{ glyph: '➤',  color: '#ff8a3a', label: 'MISSILES' },
+    BOMB:   { glyph: '✸',  color: '#ff5a3a', label: 'BOMB' },     // instant screen-clear (no duration)
     '1UP':  { glyph: '♥',  color: '#ff5a78', label: 'EXTRA LIFE' }, // rare pickup — NOT in POWER_TYPES (out of the bag)
   };
 
