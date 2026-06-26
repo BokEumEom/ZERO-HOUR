@@ -1279,6 +1279,8 @@
         el.setAttribute('aria-pressed', d === sel ? 'true' : 'false');
       }
     }
+    const sub = $('free-sub');
+    if (sub) sub.textContent = '무작위 시드 아레나 · ' + sel.toUpperCase();
   }
 
   // ---------- hull coating (cosmetic ship paint) ----------
