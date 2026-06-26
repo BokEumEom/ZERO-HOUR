@@ -146,12 +146,15 @@
     const cx = 70 + s.rng() * (W - 140);
     const cy = 70 + s.rng() * (H - 140);
     const n = 4 + Math.floor(s.rng() * 3);
+    // rare seeded large gem: ~22% of clusters contain one oversized high-value gem.
+    const bigIdx = s.rng() < 0.22 ? Math.floor(s.rng() * n) : -1;
     for (let i = 0; i < n; i++) {
       const a = s.rng() * Math.PI * 2, d = s.rng() * 52;
+      const big = i === bigIdx;
       s.crystals.push({
         x: Math.min(W - 20, Math.max(20, cx + Math.cos(a) * d)),
         y: Math.min(H - 20, Math.max(20, cy + Math.sin(a) * d)),
-        vx: 0, vy: 0, r: 7, phase: s.rng() * Math.PI * 2,
+        vx: 0, vy: 0, r: big ? 12 : 7, phase: s.rng() * Math.PI * 2, big,
       });
     }
   }
@@ -707,8 +710,8 @@
         s.collected += 1;
         s.crystalsCollected++; // display-only counter (cosmetic meta); output-only
         if (s.inSurge) s.heat += 1;
-        addScore(s, 10 + s.combo, c.x, c.y, undefined, 'crystal');
-        burst(s, c.x, c.y, '#2de2c6', 7, 150, 2.2);
+        addScore(s, (c.big ? 40 : 10) + s.combo, c.x, c.y, undefined, 'crystal');
+        burst(s, c.x, c.y, c.big ? '#7df9ff' : '#2de2c6', c.big ? 12 : 7, c.big ? 210 : 150, 2.2);
         SY.audio.collect(s.combo);
       }
     }
