@@ -103,6 +103,7 @@
     DRONE:  { x: 1215, y: 1019, w: 44, h: 38 }, // companion drone (also the entity sprite)
     MISSILE:{ x: 966, y: 284, w: 44, h: 105 }, // homing missile (also the projectile sprite)
     '1UP':  { x: 640, y: 46, w: 58, h: 70 }, // 1UP heart pickup badge
+    BOMB:   { x: 437, y: 45, w: 54, h: 75 }, // fused bomb badge — screen-clear power (section 1)
   };
 
   // ---- hull coatings (cosmetic paint) -------------------------------------
