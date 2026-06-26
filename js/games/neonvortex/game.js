@@ -3,7 +3,7 @@
   const SY = (window.SY = window.SY || {});
 
   const W = 960, H = 600;
-  const POWER_TYPES = ['MAGNET', 'SHIELD', 'SLOW', 'X2', 'BOOST', 'SPREAD', 'TIME', 'DRONE', 'MISSILE', 'BOMB'];
+  const POWER_TYPES = ['MAGNET', 'SHIELD', 'SLOW', 'X2', 'BOOST', 'SPREAD', 'TIME', 'DRONE', 'MISSILE'];
 
   const POWER_META = {
     MAGNET: { glyph: 'M',  color: '#2de2c6', label: 'MAGNET' },
@@ -116,7 +116,7 @@
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
       heat: 0, heatMul: 1,
-      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, portal: 14, oneup: 16 },
+      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, portal: 14, oneup: 16, bomb: 18 },
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
@@ -294,6 +294,14 @@
     s.pows.push({
       x: 80 + s.rng() * (W - 160), y: 80 + s.rng() * (H - 160),
       type: '1UP', r: 13, life: 11, phase: s.rng() * Math.PI * 2, vy: -20,
+    });
+  }
+
+  // rare screen-clear pickup (NOT in the seeded bag; spawned by its own gated roll)
+  function spawnBomb(s) {
+    s.pows.push({
+      x: 80 + s.rng() * (W - 160), y: 80 + s.rng() * (H - 160),
+      type: 'BOMB', r: 13, life: 11, phase: s.rng() * Math.PI * 2, vy: -20,
     });
   }
 
@@ -698,6 +706,13 @@
       s.spawnT.oneup = 14 + s.rng() * 10;
       // rare, capped at 1, never in the final 8s (a fresh hull is moot as the run ends)
       if (s.rng() < 0.18 && s.timeLeft > 8 && !s.pows.some(o => o.type === '1UP')) spawnOneUp(s);
+    }
+    // ---------- rare screen-clear BOMB (rarer than 1UP — strong) ----------
+    s.spawnT.bomb -= dt;
+    if (s.spawnT.bomb <= 0) {
+      s.spawnT.bomb = 20 + s.rng() * 12;
+      // rare, capped at 1, never in the final 8s
+      if (s.rng() < 0.13 && s.timeLeft > 8 && !s.pows.some(o => o.type === 'BOMB')) spawnBomb(s);
     }
     // ---------- spawn portals (E3a) ----------
     s.spawnT.portal -= dt;
