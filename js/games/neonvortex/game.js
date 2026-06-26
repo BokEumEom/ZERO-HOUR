@@ -40,9 +40,9 @@
   // *Mul knobs multiply onto base constants. bossFireMul multiplies the boss
   // fire-interval (burstT/aimT), so <1 = faster fire, >1 = slower.
   const DIFF = Object.freeze({
-    easy:   Object.freeze({ turretCap: 0, turretFire: 2.6, spawnMul: 0.75, mineSpeedMul: 0.85, mineCap: 9,  bossHpMul: 0.75, bossFireMul: 1.25, foes: Object.freeze({}) }),
-    normal: Object.freeze({ turretCap: 2, turretFire: 2.6, spawnMul: 1.0,  mineSpeedMul: 1.0,  mineCap: 12, bossHpMul: 1.0,  bossFireMul: 1.0,  foes: Object.freeze({ hunter: 2, charger: 1 }) }),
-    hard:   Object.freeze({ turretCap: 3, turretFire: 1.9, spawnMul: 1.3,  mineSpeedMul: 1.2,  mineCap: 16, bossHpMul: 1.33, bossFireMul: 0.8,  foes: Object.freeze({ hunter: 2, charger: 2, shield: 1, laser: 1 }) }),
+    easy:   Object.freeze({ turretCap: 0, turretFire: 2.6, spawnMul: 0.75, mineSpeedMul: 0.85, mineCap: 9,  surgeMul: 0.7, bossHpMul: 0.75, bossFireMul: 1.25, foes: Object.freeze({}) }),
+    normal: Object.freeze({ turretCap: 2, turretFire: 2.6, spawnMul: 1.0,  mineSpeedMul: 1.0,  mineCap: 12, surgeMul: 1.0, bossHpMul: 1.0,  bossFireMul: 1.0,  foes: Object.freeze({ hunter: 2, charger: 1 }) }),
+    hard:   Object.freeze({ turretCap: 3, turretFire: 1.9, spawnMul: 1.3,  mineSpeedMul: 1.2,  mineCap: 16, surgeMul: 1.4, bossHpMul: 1.33, bossFireMul: 0.8,  foes: Object.freeze({ hunter: 2, charger: 2, shield: 1, laser: 1 }) }),
   });
 
   function buildSurges(s) {
@@ -61,7 +61,7 @@
     for (let k = 1; k <= n; k++) {
       surges.push({
         at: fieldStart + fieldLen * (k / (n + 1)), // even spacing, margins both ends
-        size: 6 + 3 * k,
+        size: Math.max(1, Math.round((6 + 3 * k) * s.diff.surgeMul)),
         pattern: bag[(k - 1) % bag.length],
       });
     }
