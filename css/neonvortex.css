@@ -240,8 +240,10 @@ body.portrait #neonvortex-hud {
   border: 1px solid var(--nv-primary);
   border-radius: 4px;
   color: var(--nv-primary);
-  font-size: 0.72em;
-  letter-spacing: 0.08em;
+  font-size: 0.66em;
+  letter-spacing: 0.06em;
+  white-space: nowrap; /* keep the longest name (IRON WARDEN) on one line at narrow widths */
+  flex-shrink: 0;
 }
 .nv-hud-mod:empty { display: none; }
 
