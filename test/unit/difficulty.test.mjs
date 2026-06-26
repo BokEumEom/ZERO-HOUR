@@ -18,9 +18,9 @@ test('freshState wires the selected difficulty; unknown falls back to normal', (
   const G = boot().SY.nvGame;
   G.start('free', 'hard');
   assert.equal(G.state.difficulty, 'hard');
-  // s.diff.mineCap is now the composed (difficulty + modifier) value; assert it is
-  // >= the base tier's mineCap (modifier can only add to the cap, never subtract).
-  assert.ok(G.state.diff.mineCap >= G.DIFF.hard.mineCap, 'composed mineCap >= base hard mineCap');
+  // s.diff.mineCap is the composed (difficulty + modifier) value; assert the exact
+  // composition for this run's rolled modifier (s.modifier is on state).
+  assert.equal(G.state.diff.mineCap, G.combineDiff(G.DIFF.hard, G.MODS[G.state.modifier.key]).mineCap);
   G.start('free', 'bogus');
   assert.equal(G.state.difficulty, 'normal', 'unknown -> normal');
 });
@@ -56,7 +56,7 @@ test('mine cap and speed honor the difficulty', () => {
   assert.equal(G.DIFF.hard.mineCap, 16, 'base hard mineCap knob unchanged');
   assert.ok(s.diff.mineCap >= G.DIFF.hard.mineCap, 'composed mineCap >= base hard');
   assert.ok(G.DIFF.hard.mineCap > G.DIFF.normal.mineCap, 'hard denser than normal');
-  assert.ok(s.diff.mineSpeedMul >= G.DIFF.hard.mineSpeedMul, 'composed mineSpeedMul >= base hard');
+  assert.equal(G.DIFF.hard.mineSpeedMul, 1.2, 'base hard mineSpeedMul knob');
 });
 
 test('boss hp/fire knobs are present on the active tier', () => {
@@ -111,10 +111,13 @@ test('surge formation size scales with difficulty', () => {
   // roll a different modifier (e.g. mineRush ×1.5 on easy can exceed normal's ×1.0).
   assert.ok(G.DIFF.easy.surgeMul < G.DIFF.normal.surgeMul, 'easy surgeMul < normal (knob)');
   assert.ok(G.DIFF.hard.surgeMul > G.DIFF.normal.surgeMul, 'hard surgeMul > normal (knob)');
-  // Verify the daily seed (standard modifier, same fixed seed) orders correctly live.
-  G.start('daily'); // standard modifier: s.diff = combineDiff(DIFF.normal, MODS.standard) = DIFF.normal
+  // Verify surgeMul actually multiplies into the live surge sizes. The daily seed
+  // (daily-2026-03-01) deterministically rolls the standard modifier on normal, so
+  // s.diff = combineDiff(DIFF.normal, MODS.standard) = DIFF.normal (surgeMul=1.0) and
+  // the sizes are pinnable — catches a regression where surgeMul stops scaling size.
+  G.start('daily');
   const n = G.state.surges.map((x) => x.size);
-  assert.ok(n.length > 0, 'there are surges to compare');
+  assert.deepEqual([...n], [9, 12], 'daily (standard/normal, surgeMul=1.0) sizes = 6 + 3k');
 });
 
 test('a turret is destroyed in 5 hits and scores 60', () => {
