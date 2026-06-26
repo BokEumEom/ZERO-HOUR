@@ -233,9 +233,11 @@ test('crystal large-gem value tier (section-7 gem) is wired', () => {
   assert.ok(/c\.big \? 'crystalLarge'/.test(render), 'large gem renders the crystalLarge sprite');
 });
 
-test('BOMB screen-clear power is wired (section-1 bomb badge)', () => {
+test('BOMB screen-clear power is wired (rare gated drop)', () => {
   const game = read(`${NV}/game.js`);
-  assert.match(game, /POWER_TYPES = \[[^\]]*'BOMB'/, 'BOMB joins the seeded bag');
+  assert.ok(!/POWER_TYPES = \[[^\]]*'BOMB'/.test(game), 'BOMB is NOT in the seeded bag');
+  assert.match(game, /function spawnBomb/, 'spawnBomb helper present');
+  assert.match(game, /s\.spawnT\.bomb/, 'BOMB rare timer present');
   assert.match(game, /BOMB:\s*\{[^}]*label: 'BOMB'/, 'BOMB meta present');
   assert.match(game, /function bombDetonate/, 'bombDetonate helper present');
   assert.match(game, /o\.type === 'BOMB'/, 'applyPow BOMB branch present');
