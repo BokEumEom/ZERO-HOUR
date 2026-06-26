@@ -78,9 +78,29 @@
       await sleep(50);
     }
 
+    // ---------- scenario 0b: headline follows difficulty ----------
+    ({ w, d } = await freshPage());
+    d.getElementById('neonvortex-diff-hard').click();
+    check('difficulty', 'HARD relabels the headline to PLAY · HARD',
+      /PLAY\s*·\s*HARD/.test(d.getElementById('neonvortex-menu-start-label').textContent),
+      d.getElementById('neonvortex-menu-start-label').textContent);
+    d.getElementById('neonvortex-btn-start').click();
+    check('difficulty', 'headline starts a FREE-PLAY HARD run when HARD selected',
+      w.SY.nvGame.mode === 'free' && w.SY.nvGame.state && w.SY.nvGame.state.difficulty === 'hard',
+      'mode=' + w.SY.nvGame.mode + ' diff=' + (w.SY.nvGame.state && w.SY.nvGame.state.difficulty));
+    ({ w, d } = await freshPage());
+    d.getElementById('neonvortex-diff-normal').click();
+    check('difficulty', 'NORMAL relabels the headline to START DAILY',
+      /START DAILY/.test(d.getElementById('neonvortex-menu-start-label').textContent),
+      d.getElementById('neonvortex-menu-start-label').textContent);
+    d.getElementById('neonvortex-btn-start').click();
+    check('difficulty', 'headline starts the DAILY run when NORMAL selected',
+      w.SY.nvGame.mode === 'daily', 'mode=' + w.SY.nvGame.mode);
+
     // ---------- scenario 2: pause + quit discards the run ----------
     ({ w, d } = await freshGame());
-    d.getElementById('neonvortex-btn-free').click(); // seenHowto persisted -> G.start sets phase synchronously
+    d.getElementById('neonvortex-diff-hard').click();   // headline now starts FREE PLAY · HARD
+    d.getElementById('neonvortex-btn-start').click();
     check('quit', 'second visit skips the how-to gate', w.SY.nvGame.phase === 'ready');
     stepTo(w, 'playing', (g) => { if (g.state) g.state.readyT = 0.01; });
     w.SY.nvGame.state.score = 777; // pretend we earned something
@@ -102,7 +122,8 @@
 
     // ---------- scenario 3: pause via button, resume via key ----------
     ({ w, d } = await freshGame());
-    d.getElementById('neonvortex-btn-free').click();
+    d.getElementById('neonvortex-diff-hard').click();   // headline now starts FREE PLAY · HARD
+    d.getElementById('neonvortex-btn-start').click();
     await sleep(100);
     stepTo(w, 'playing', (g) => { if (g.state) g.state.readyT = 0.01; });
     w.SY.input.ax = 1;
@@ -119,6 +140,7 @@
     let overRes = null;
     const orig = w.SY.nvGame.events.onGameOver;
     w.SY.nvGame.events.onGameOver = (res) => { overRes = res; if (orig) orig(res); };
+    d.getElementById('neonvortex-diff-normal').click(); // ensure headline routes to daily
     d.getElementById('neonvortex-btn-start').click();
     await sleep(100);
     check('over', 'daily run started (playing)', stepTo(w, 'playing', (g) => { if (g.state) g.state.readyT = 0.01; }),
@@ -181,6 +203,7 @@
     w.SY.todayUTC = () => '2099-01-01';
     let rollRes = null;
     w.SY.nvGame.events.onGameOver = (res) => { rollRes = res; if (orig) orig(res); };
+    d.getElementById('neonvortex-diff-normal').click(); // ensure headline routes to daily
     d.getElementById('neonvortex-btn-start').click();
     await sleep(100);
     check('rollover', 'new run seeds with the new UTC date', w.SY.nvGame.state.seedStr === 'daily-2099-01-01');
@@ -211,12 +234,13 @@
       'arena.w=' + Math.round(ar.width) + ' vw=' + w.innerWidth);
     check('layout', 'rotated arena is much taller than width-fit (>2x)', Math.round(ar.height) > 500,
       'arena.h=' + Math.round(ar.height));
+    const diffR = d.getElementById('neonvortex-menu-difficulty').getBoundingClientRect();
     const startR = d.getElementById('neonvortex-btn-start').getBoundingClientRect();
-    const freeR = d.getElementById('neonvortex-btn-free').getBoundingClientRect();
-    check('layout', 'play actions stack vertically on narrow screens', freeR.top >= startR.bottom - 1,
-      'start.bottom=' + Math.round(startR.bottom) + ' free.top=' + Math.round(freeR.top));
+    check('layout', 'difficulty chips lead the headline button', diffR.bottom <= startR.top + 1,
+      'diff.bottom=' + Math.round(diffR.bottom) + ' start.top=' + Math.round(startR.top));
     // drag input is remapped for the 90° rotation: screen drag-down moves the drone down on screen
-    d.getElementById('neonvortex-btn-free').click();
+    d.getElementById('neonvortex-diff-hard').click();
+    d.getElementById('neonvortex-btn-start').click();
     await sleep(120);
     stepTo(w, 'playing', (g) => { if (g.state) g.state.readyT = 0.01; });
     // arena is rotated 90° CW, so on-screen "down" is arena +x → player.x should grow.

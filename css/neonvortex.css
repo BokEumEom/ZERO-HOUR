@@ -3349,8 +3349,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 }
 #neonvortex-screen-pilotlog .nv-plg-entry-yield { color: var(--nv-primary-bright); }
 
-/* ── difficulty selector chips (menu, free-play only; mirrors .nv-coat-chip) ── */
-.nv-diff-row { display: flex; gap: 8px; margin: 6px 0 2px; }
+/* ── difficulty selector chips (menu; drives the headline, daily always Normal) ── */
+.nv-diff-row { display: flex; gap: 8px; margin: 6px 0 clamp(6px, 1.4vh, 12px); }
 .nv-diff-chip {
   flex: 1; padding: 8px 4px;
   font-family: var(--nv-font-mono); font-size: 12px; font-weight: 600; line-height: 1;

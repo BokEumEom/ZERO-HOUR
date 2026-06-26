@@ -110,7 +110,7 @@ test('crate cadence divides by lootMul (STANDARD keeps base 7..12s window)', () 
   s.spawnT.crate = 0.0001;
   s.crates.length = 0;
   G.update(1 / 60);
-  assert.ok(s.spawnT.crate >= 7 && s.spawnT.crate <= 12, 'base window with lootMul=1: ' + s.spawnT.crate);
+  assert.ok(s.spawnT.crate >= 5 && s.spawnT.crate <= 8, 'base crate window [5,8] with lootMul=1: ' + s.spawnT.crate);
 });
 
 test('higher lootMul shortens crate cadence (treasure < standard reset)', () => {
@@ -122,5 +122,54 @@ test('higher lootMul shortens crate cadence (treasure < standard reset)', () => 
   s.spawnT.crate = 0.0001;
   s.crates.length = 0;
   G.update(1 / 60);
-  assert.ok(s.spawnT.crate >= 7 / 1.8 && s.spawnT.crate <= 12 / 1.8, 'treasure window: ' + s.spawnT.crate);
+  assert.ok(s.spawnT.crate >= 5 / 1.8 && s.spawnT.crate <= 8 / 1.8, 'treasure crate window: ' + s.spawnT.crate);
+});
+
+test('power-up cadence is 7s (÷lootMul) — generous baseline', () => {
+  const G = boot().SY.nvGame;
+  G.start('free', 'normal');
+  const s = G.state;
+  for (let i = 0; i < 30 && G.phase === 'ready'; i++) G.update(0.1); // skip countdown
+  s.diff = G.combineDiff(G.DIFF.normal, G.MODS.standard);
+  s.spawnT.pow = 0.0001;
+  s.pows.length = 0;
+  G.update(1 / 60);
+  assert.ok(Math.abs(s.spawnT.pow - 7) < 1e-6, 'pow cadence 7s with lootMul=1: ' + s.spawnT.pow);
+});
+
+test('power-up cadence shortens under lootMul (treasure 7/1.8)', () => {
+  const G = boot().SY.nvGame;
+  G.start('free', 'normal');
+  const s = G.state;
+  for (let i = 0; i < 30 && G.phase === 'ready'; i++) G.update(0.1);
+  s.diff = G.combineDiff(G.DIFF.normal, G.MODS.treasure); // lootMul 1.8
+  s.spawnT.pow = 0.0001;
+  s.pows.length = 0;
+  G.update(1 / 60);
+  assert.ok(Math.abs(s.spawnT.pow - 7 / 1.8) < 1e-6, 'pow cadence 7/1.8: ' + s.spawnT.pow);
+});
+
+test('power-up on-screen cap raised to 4', () => {
+  const G = boot().SY.nvGame;
+  G.start('free', 'normal');
+  const s = G.state;
+  for (let i = 0; i < 30 && G.phase === 'ready'; i++) G.update(0.1);
+  s.diff = G.combineDiff(G.DIFF.normal, G.MODS.standard);
+  s.player.x = G.W - 20; s.player.y = 20; // park the pilot in a corner so it doesn't collect pickups
+  s.pows.length = 0;
+  let maxPows = 0;
+  for (let i = 0; i < 30; i++) { s.spawnT.pow = 0; G.update(1 / 60); maxPows = Math.max(maxPows, s.pows.length); }
+  assert.equal(maxPows, 4, 'pow cap is 4 (was 3): ' + maxPows);
+});
+
+test('crate on-screen cap raised to 3', () => {
+  const G = boot().SY.nvGame;
+  G.start('free', 'normal');
+  const s = G.state;
+  for (let i = 0; i < 30 && G.phase === 'ready'; i++) G.update(0.1);
+  s.diff = G.combineDiff(G.DIFF.normal, G.MODS.standard);
+  s.crates.length = 0;
+  let maxCrates = 0;
+  for (let i = 0; i < 30; i++) { s.spawnT.crate = 0; G.update(1 / 60); maxCrates = Math.max(maxCrates, s.crates.length); }
+  assert.equal(maxCrates, 3, 'crate cap is 3 (was 2): ' + maxCrates);
 });

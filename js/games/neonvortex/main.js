@@ -16,7 +16,7 @@
 
   const gameStore = SY.store.forGame('neonvortex'); // namespaced records
 
-  // difficulty (free-play only; daily is always Normal — engine-enforced)
+  // difficulty (drives the headline; daily is always Normal — engine-enforced)
   const NV_DIFFICULTIES = ['easy', 'normal', 'hard'];
   const difficultyValue = () => {
     const d = recs.settings && recs.settings.nvDifficulty;
@@ -1270,7 +1270,7 @@
   }
   function applyVolume(v0to100) { SY.audio.setVolume(v0to100 / 100); }
 
-  // ---------- difficulty selector (free-play only; daily is always Normal) ----------
+  // ---------- difficulty selector (drives the headline; daily is always Normal) ----------
   // NV_DIFFICULTIES / difficultyValue are declared at the top of the IIFE (used by
   // loadRecords + renderMenuStats); setDifficulty lives here with the other settings setters.
   function setDifficulty(id) {
@@ -1289,8 +1289,19 @@
         el.setAttribute('aria-pressed', d === sel ? 'true' : 'false');
       }
     }
-    const sub = $('free-sub');
-    if (sub) sub.textContent = '무작위 시드 아레나 · ' + sel.toUpperCase();
+    // headline follows the selected difficulty: NORMAL -> daily, EASY/HARD -> free-play
+    const label = $('menu-start-label');
+    const dailySub = $('menu-daily-sub');
+    const freeSub = $('free-sub');
+    if (sel === 'normal') {
+      if (label) label.textContent = 'START DAILY';
+      if (dailySub) dailySub.style.display = '';
+      if (freeSub) freeSub.style.display = 'none';
+    } else {
+      if (label) label.textContent = 'PLAY · ' + sel.toUpperCase();
+      if (dailySub) dailySub.style.display = 'none';
+      if (freeSub) { freeSub.style.display = ''; freeSub.textContent = '무작위 아레나 · ' + sel.toUpperCase(); }
+    }
   }
 
   // ---------- hull coating (cosmetic ship paint) ----------
@@ -1366,9 +1377,9 @@
     renderDailyHistory();
     show('screen-menu');
   }
-  $('btn-start').addEventListener('click', () => startGame('daily')); // headline action → today's daily
+  // headline follows difficulty: NORMAL → today's daily; EASY/HARD → free-play at that difficulty
+  $('btn-start').addEventListener('click', () => startGame(difficultyValue() === 'normal' ? 'daily' : 'free'));
   $('btn-daily').addEventListener('click', () => { renderChallenge(); show('screen-challenge'); });
-  $('btn-free').addEventListener('click', () => startGame('free'));
   for (const d of NV_DIFFICULTIES) {
     $('diff-' + d).addEventListener('click', () => setDifficulty(d));
   }
