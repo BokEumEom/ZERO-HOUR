@@ -288,8 +288,10 @@ body.portrait #neonvortex-hud {
   border: 1px solid var(--nv-primary);
   border-radius: 4px;
   color: var(--nv-primary);
-  font-size: 0.72em;
-  letter-spacing: 0.08em;
+  font-size: 0.66em;
+  letter-spacing: 0.06em;
+  white-space: nowrap; /* keep the longest name (IRON WARDEN) on one line at narrow widths */
+  flex-shrink: 0;
 }
 .nv-hud-mod:empty { display: none; }
 
@@ -7054,7 +7056,11 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     }
     if (screenId !== 'screen-over') stopCountdown();
     const focusId = PRIMARY_ACTION[screenId];
-    if (focusId) { const btn = $(focusId); if (btn) btn.focus(); }
+    // preventScroll: on a small (mobile) viewport the result/briefing card can be
+    // taller than the screen and overflow-scroll internally; focusing a CTA near the
+    // card's bottom would otherwise auto-scroll the card down and hide the headline
+    // (TIME UP / score / run modifier). Keep the card at its top; the CTA stays focused.
+    if (focusId) { const btn = $(focusId); if (btn) btn.focus({ preventScroll: true }); }
   }
 
   // screen-reader announcement sink (#a11y-live); used for one-shot moments like
