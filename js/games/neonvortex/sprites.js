@@ -88,6 +88,9 @@
     plasmaOrb:   { x: 1057, y: 293, w: 60,  h: 66  }, // heavy plasma orb (boss enemy projectile, section 4)
     drone2:      { x: 1326, y: 1023, w: 84, h: 44 }, // 2nd companion drone variant (winged core, section 8)
     crystalLarge:{ x: 36,   y: 706, w: 44, h: 95 }, // rare large value gem (section 7 — largest teal crystal)
+    decoPanel:   { x: 56,   y: 547, w: 75, h: 39 }, // section-5 dual-hex module panel (ambient decor)
+    decoNode:    { x: 566,  y: 530, w: 56, h: 52 }, // section-5 glowing hex node (ambient decor)
+    decoReadout: { x: 624,  y: 529, w: 40, h: 45 }, // section-5 readout lines panel (ambient decor)
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
