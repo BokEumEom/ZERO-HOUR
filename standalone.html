@@ -3398,7 +3398,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 #neonvortex-screen-pilotlog .nv-plg-entry-yield { color: var(--nv-primary-bright); }
 
 /* ── difficulty selector chips (menu, free-play only; mirrors .nv-coat-chip) ── */
-.nv-diff-row { display: flex; gap: 8px; margin: 6px 0 2px; }
+.nv-diff-row { display: flex; gap: 8px; margin: 6px 0 clamp(6px, 1.4vh, 12px); }
 .nv-diff-chip {
   flex: 1; padding: 8px 4px;
   font-family: var(--nv-font-mono); font-size: 12px; font-weight: 600; line-height: 1;
@@ -3484,21 +3484,17 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
             <div class="nv-career-track"><div id="neonvortex-menu-career" class="nv-career-fill"></div></div>
           </div>
           <div class="nv-menu-list">
-            <button id="neonvortex-btn-start" class="nv-menu-item nv-mi-primary" type="button">
-              <span class="nv-mi-label">START DAILY</span>
-              <svg class="nv-mi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
-              <span class="nv-mi-sub"><span id="neonvortex-menu-date">—</span> · BEST <span id="neonvortex-menu-daily-best">—</span><span id="neonvortex-menu-streak"></span></span>
-            </button>
-            <button id="neonvortex-btn-free" class="nv-menu-item" type="button">
-              <span class="nv-mi-label">FREE PLAY</span>
-              <svg class="nv-mi-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="9" rx="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7 12.5h3M8.5 11v3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="15.5" cy="11.5" r="1.1" fill="currentColor"/><circle cx="17.6" cy="13.6" r="1.1" fill="currentColor"/></svg>
-              <span id="neonvortex-free-sub" class="nv-mi-sub">무작위 시드 아레나</span>
-            </button>
-            <div id="neonvortex-menu-difficulty" class="nv-diff-row" role="group" aria-label="Free-play difficulty">
+            <div id="neonvortex-menu-difficulty" class="nv-diff-row" role="group" aria-label="Difficulty">
               <button id="neonvortex-diff-easy" class="nv-diff-chip" type="button" aria-pressed="false">EASY</button>
               <button id="neonvortex-diff-normal" class="nv-diff-chip" type="button" aria-pressed="false">NORMAL</button>
               <button id="neonvortex-diff-hard" class="nv-diff-chip" type="button" aria-pressed="false">HARD</button>
             </div>
+            <button id="neonvortex-btn-start" class="nv-menu-item nv-mi-primary" type="button">
+              <span id="neonvortex-menu-start-label" class="nv-mi-label">START DAILY</span>
+              <svg class="nv-mi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+              <span id="neonvortex-menu-daily-sub" class="nv-mi-sub"><span id="neonvortex-menu-date">—</span> · BEST <span id="neonvortex-menu-daily-best">—</span><span id="neonvortex-menu-streak"></span></span>
+              <span id="neonvortex-free-sub" class="nv-mi-sub" style="display:none">무작위 아레나 · NORMAL</span>
+            </button>
             <button id="neonvortex-btn-daily" class="nv-mi-brief" type="button">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4.5 13H11l-1 9 8.5-11H12l1-9z" fill="currentColor"/></svg>
               <span>오늘의 챌린지 브리핑</span>
@@ -5727,7 +5723,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       if (s.mines.length < s.diff.mineCap) spawnMine(s); // cap is ambient-only; surge formations are uncapped spikes by design
     }
     s.spawnT.pow -= dt;
-    if (s.spawnT.pow <= 0) { s.spawnT.pow = 9.5 / s.diff.lootMul; if (s.pows.length < 3) spawnPow(s); }
+    if (s.spawnT.pow <= 0) { s.spawnT.pow = 7 / s.diff.lootMul; if (s.pows.length < 4) spawnPow(s); }
     s.spawnT.turret -= dt;
     if (s.spawnT.turret <= 0) {
       s.spawnT.turret = 6 / s.diff.spawnMul; // density-scaled cadence
@@ -5735,8 +5731,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     }
     s.spawnT.crate -= dt;
     if (s.spawnT.crate <= 0) {
-      s.spawnT.crate = (7 + s.rng() * 5) / s.diff.lootMul;
-      if (s.crates.length < 2) spawnCrate(s);
+      s.spawnT.crate = (5 + s.rng() * 3) / s.diff.lootMul;
+      if (s.crates.length < 3) spawnCrate(s);
     }
     // ---------- rare extra life (1UP, E6) ----------
     s.spawnT.oneup -= dt;
@@ -8167,8 +8163,19 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         el.setAttribute('aria-pressed', d === sel ? 'true' : 'false');
       }
     }
-    const sub = $('free-sub');
-    if (sub) sub.textContent = '무작위 시드 아레나 · ' + sel.toUpperCase();
+    // headline follows the selected difficulty: NORMAL -> daily, EASY/HARD -> free-play
+    const label = $('menu-start-label');
+    const dailySub = $('menu-daily-sub');
+    const freeSub = $('free-sub');
+    if (sel === 'normal') {
+      if (label) label.textContent = 'START DAILY';
+      if (dailySub) dailySub.style.display = '';
+      if (freeSub) freeSub.style.display = 'none';
+    } else {
+      if (label) label.textContent = 'PLAY · ' + sel.toUpperCase();
+      if (dailySub) dailySub.style.display = 'none';
+      if (freeSub) { freeSub.style.display = ''; freeSub.textContent = '무작위 아레나 · ' + sel.toUpperCase(); }
+    }
   }
 
   // ---------- hull coating (cosmetic ship paint) ----------
@@ -8244,9 +8251,9 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     renderDailyHistory();
     show('screen-menu');
   }
-  $('btn-start').addEventListener('click', () => startGame('daily')); // headline action → today's daily
+  // headline follows difficulty: NORMAL → today's daily; EASY/HARD → free-play at that difficulty
+  $('btn-start').addEventListener('click', () => startGame(difficultyValue() === 'normal' ? 'daily' : 'free'));
   $('btn-daily').addEventListener('click', () => { renderChallenge(); show('screen-challenge'); });
-  $('btn-free').addEventListener('click', () => startGame('free'));
   for (const d of NV_DIFFICULTIES) {
     $('diff-' + d).addEventListener('click', () => setDifficulty(d));
   }
