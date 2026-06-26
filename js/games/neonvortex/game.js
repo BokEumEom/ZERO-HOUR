@@ -72,6 +72,17 @@
     });
   }
 
+  // Pick a modifier key from a seeded RNG (uniform over MOD_KEYS).
+  function pickModifier(rng) { return MOD_KEYS[Math.floor(rng() * MOD_KEYS.length)]; }
+
+  // Resolve the modifier for a seed without starting a run (daily briefing preview).
+  // Dedicated ':mod' sub-RNG: does NOT consume the gameplay stream → deterministic
+  // worldwide and independent of spawn/drop randomness.
+  function modifierFor(seedStr) {
+    const key = pickModifier(SY.makeRng(seedStr + ':mod'));
+    return { key, nameKo: MODS[key].nameKo, nameEn: MODS[key].nameEn };
+  }
+
   function buildSurges(s) {
     const fieldEnd = s.duration >= 40 ? s.duration - 20 : s.duration; // boss owns the last 20s
     const fieldStart = SURGE_WARMUP;
@@ -118,6 +129,7 @@
   };
   SY.nvGame = G;
   G.combineDiff = combineDiff;
+  G.previewModifier = modifierFor;
 
   function freshState(mode, seedStr, difficulty) {
     const rng = SY.makeRng(seedStr);
