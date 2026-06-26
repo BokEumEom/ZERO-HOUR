@@ -245,6 +245,18 @@ test('BOMB screen-clear power is wired (section-1 bomb badge)', () => {
   assert.match(spr, /BOMB:\s*\{ x: 437/, 'BOMB badge icon rect present');
 });
 
+test('section-5 arena decor is wired (cosmetic, rng-free)', () => {
+  const spr = read(`${NV}/sprites.js`);
+  assert.match(spr, /decoPanel:\s*\{/, 'decoPanel rect');
+  assert.match(spr, /decoNode:\s*\{/, 'decoNode rect');
+  assert.match(spr, /decoReadout:\s*\{/, 'decoReadout rect');
+  const render = read(`${NV}/render.js`);
+  assert.match(render, /const DECOR = \[/, 'DECOR layout const present');
+  assert.match(render, /function drawDecor/, 'drawDecor function present');
+  assert.match(render, /drawDecor\(ctx\)/, 'drawDecor called in the background pass');
+  assert.ok(!/DECOR[\s\S]{0,400}Math\.random/.test(render), 'decor layout uses no Math.random (deterministic)');
+});
+
 test('ui-kit arena art (reticle + game-state banners) is wired, cosmetic', () => {
   const spr = read(`${NV}/sprites.js`);
   assert.ok(/ui-kit\.png/.test(spr) && /function drawUi/.test(spr), 'ui-kit sheet + drawUi helper');
