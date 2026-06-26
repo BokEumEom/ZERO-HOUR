@@ -106,7 +106,7 @@
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
       crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], portals: [],
       parts: [], waves: [], floats: [], blasts: [],
-      boss: null, bossDown: false, bossWarnT: 0,
+      boss: null, bossDown: false, bossWarnT: 0, bossCores: [],
       elite: null, eliteSpawned: false,
       eliteAt: (SURGE_WARMUP + (duration >= 40 ? duration - 20 : duration)) / 2,
       fx: { MAGNET: 0, SLOW: 0, X2: 0, BOOST: 0, SPREAD: 0, DRONE: 0, MISSILE: 0 },
@@ -305,7 +305,7 @@
     // (2.4/1.7) — a brief opening beat before the boss's first shots.
     s.boss = {
       x: W / 2, y: -90, ty: 128, r: 46, hp: bhp, maxHp: bhp,
-      t: 0, burstT: 1.8 * fm, aimT: 2.6 * fm, plasmaT: 4 * fm, fireMul: fm, flash: 0, dying: 0, ringRot: 0,
+      t: 0, burstT: 1.8 * fm, aimT: 2.6 * fm, plasmaT: 4 * fm, fireMul: fm, flash: 0, dying: 0, ringRot: 0, coresDeployed: false,
     };
     s.bossWarnT = 1.6;
     s.shake = Math.max(s.shake, 7);
@@ -409,6 +409,25 @@
   }
 
   // ---------- boss ----------
+  // Boss orbital support cores (section 6): deterministic orbit + slow reactive-aimed
+  // fire + contact damage. No rng (mirrors spawnDrones) -> does not touch the seeded stream.
+  function updateBossCores(s, dt, slowMul) {
+    const b = s.boss;
+    for (const c of s.bossCores) {
+      if (c.flash > 0) c.flash -= dt;
+      c.ang += dt * 1.1 * slowMul;
+      c.x = b.x + Math.cos(c.ang) * c.orbitR;
+      c.y = b.y + Math.sin(c.ang) * c.orbitR;
+      c.fireT -= dt * slowMul;
+      if (c.fireT <= 0) {
+        c.fireT = 2.6;
+        const a = Math.atan2(s.player.y - c.y, s.player.x - c.x);
+        s.ebullets.push({ x: c.x, y: c.y, vx: Math.cos(a) * 200, vy: Math.sin(a) * 200, r: 5 });
+      }
+      if (dist2(c, s.player) < (c.r + s.player.r) * (c.r + s.player.r)) hurtPlayer(s, s.player.x, s.player.y);
+    }
+  }
+
   function updateBoss(s, dt, slowMul) {
     const b = s.boss;
     b.t += dt;
@@ -433,6 +452,7 @@
         s.bossDown = true;
         s.clearT = 2.2; // MISSION CLEAR banner (display-only)
         s.boss = null;
+        s.bossCores = []; // support cores die with the boss
         s.freeze = Math.max(s.freeze, 0.32);
         s.shake = Math.max(s.shake, 16);
         SY.audio.bossDown();
@@ -442,6 +462,12 @@
 
     // entrance
     if (b.y < b.ty) { b.y += dt * 90; if (b.y > b.ty) b.y = b.ty; return; }
+    // deploy 2 orbiting support cores once the boss is in position (deterministic)
+    if (!b.coresDeployed) {
+      b.coresDeployed = true;
+      for (let i = 0; i < 2; i++) s.bossCores.push({ ang: i * Math.PI, orbitR: 96, hp: 6, maxHp: 6, fireT: 1.5 + i * 0.9, flash: 0, x: b.x, y: b.y, r: 16 });
+    }
+    updateBossCores(s, dt, slowMul);
     // sway
     b.x = W / 2 + Math.sin(b.t * 0.55) * (W * 0.27);
     b.y = b.ty + Math.sin(b.t * 1.1) * 16;
