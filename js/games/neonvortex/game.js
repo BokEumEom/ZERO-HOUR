@@ -40,10 +40,37 @@
   // *Mul knobs multiply onto base constants. bossFireMul multiplies the boss
   // fire-interval (burstT/aimT), so <1 = faster fire, >1 = slower.
   const DIFF = Object.freeze({
-    easy:   Object.freeze({ turretCap: 0, turretFire: 2.6, spawnMul: 0.75, mineSpeedMul: 0.85, mineCap: 9,  surgeMul: 0.7, bossHpMul: 0.75, bossFireMul: 1.25, foes: Object.freeze({}) }),
-    normal: Object.freeze({ turretCap: 2, turretFire: 2.6, spawnMul: 1.0,  mineSpeedMul: 1.0,  mineCap: 12, surgeMul: 1.0, bossHpMul: 1.0,  bossFireMul: 1.0,  foes: Object.freeze({ hunter: 2, charger: 1 }) }),
-    hard:   Object.freeze({ turretCap: 3, turretFire: 1.9, spawnMul: 1.3,  mineSpeedMul: 1.2,  mineCap: 16, surgeMul: 1.4, bossHpMul: 1.33, bossFireMul: 0.8,  foes: Object.freeze({ hunter: 2, charger: 2, shield: 1, laser: 1 }) }),
+    easy:   Object.freeze({ turretCap: 0, turretFire: 2.6, spawnMul: 0.75, mineSpeedMul: 0.85, mineCap: 9,  surgeMul: 0.7, lootMul: 1.0, bossHpMul: 0.75, bossFireMul: 1.25, foes: Object.freeze({}) }),
+    normal: Object.freeze({ turretCap: 2, turretFire: 2.6, spawnMul: 1.0,  mineSpeedMul: 1.0,  mineCap: 12, surgeMul: 1.0, lootMul: 1.0, bossHpMul: 1.0,  bossFireMul: 1.0,  foes: Object.freeze({ hunter: 2, charger: 1 }) }),
+    hard:   Object.freeze({ turretCap: 3, turretFire: 1.9, spawnMul: 1.3,  mineSpeedMul: 1.2,  mineCap: 16, surgeMul: 1.4, lootMul: 1.0, bossHpMul: 1.33, bossFireMul: 0.8,  foes: Object.freeze({ hunter: 2, charger: 2, shield: 1, laser: 1 }) }),
   });
+
+  // ---- per-run modifiers (layer on top of DIFF; score-neutral) ----
+  // *Mul fields multiply the base knob; *Add fields add to a cap; foes replaces.
+  const MOD_KEYS = ['standard', 'mineRush', 'ironWarden', 'treasure', 'vanguard'];
+  const MODS = Object.freeze({
+    standard:   Object.freeze({ nameKo: '기본', nameEn: 'STANDARD' }),
+    mineRush:   Object.freeze({ nameKo: '기뢰 폭주', nameEn: 'MINE RUSH', surgeMul: 1.5, mineCapAdd: 6, mineSpeedMul: 1.1 }),
+    ironWarden: Object.freeze({ nameKo: '강철 워든', nameEn: 'IRON WARDEN', bossHpMul: 1.4, bossFireMul: 0.85, lootMul: 1.4 }),
+    treasure:   Object.freeze({ nameKo: '보물 항로', nameEn: 'TREASURE', lootMul: 1.8, spawnMul: 0.8 }),
+    vanguard:   Object.freeze({ nameKo: '정예 전선', nameEn: 'VANGUARD', foes: Object.freeze({ hunter: 2, charger: 2, shield: 1, laser: 1 }), turretCapAdd: 1 }),
+  });
+
+  // Compose a base DIFF tier with a modifier → a new frozen DIFF-shaped object.
+  function combineDiff(base, mod) {
+    return Object.freeze({
+      turretCap:    base.turretCap + (mod.turretCapAdd || 0),
+      turretFire:   base.turretFire * (mod.turretFireMul || 1),
+      spawnMul:     base.spawnMul * (mod.spawnMul || 1),
+      mineSpeedMul: base.mineSpeedMul * (mod.mineSpeedMul || 1),
+      mineCap:      base.mineCap + (mod.mineCapAdd || 0),
+      surgeMul:     base.surgeMul * (mod.surgeMul || 1),
+      lootMul:      base.lootMul * (mod.lootMul || 1),
+      bossHpMul:    base.bossHpMul * (mod.bossHpMul || 1),
+      bossFireMul:  base.bossFireMul * (mod.bossFireMul || 1),
+      foes:         mod.foes || base.foes,
+    });
+  }
 
   function buildSurges(s) {
     const fieldEnd = s.duration >= 40 ? s.duration - 20 : s.duration; // boss owns the last 20s
@@ -83,13 +110,14 @@
   function dist2(a, b) { const dx = a.x - b.x, dy = a.y - b.y; return dx * dx + dy * dy; }
 
   const G = {
-    W, H, POWER_META, POWER_DURATION, DIFF,
+    W, H, POWER_META, POWER_DURATION, DIFF, MODS, MOD_KEYS,
     phase: 'menu', // menu | ready | playing | paused | over
     mode: 'daily',
     state: null,
     events: {}, // onGameOver(res), onReadySound...
   };
   SY.nvGame = G;
+  G.combineDiff = combineDiff;
 
   function freshState(mode, seedStr, difficulty) {
     const rng = SY.makeRng(seedStr);
