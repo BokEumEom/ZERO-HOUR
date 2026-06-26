@@ -15,7 +15,7 @@ function grabBomb(G, s) {
   G.update(1 / 60);
 }
 
-test('BOMB is a seeded-bag member with meta but no duration', () => {
+test('BOMB has meta but is NOT in the seeded bag (rare special, instant)', () => {
   const G = boot().SY.nvGame;
   assert.ok(G.POWER_META['BOMB'], 'BOMB meta exists');
   assert.equal(G.POWER_DURATION['BOMB'], undefined, 'BOMB is instant — no duration');
@@ -55,12 +55,13 @@ test('BOMB chips the boss but never kills it (clamped to >=1 hp)', () => {
   assert.equal(s.boss.dying, 0, 'boss is still alive');
 });
 
-test('BOMB is reachable from the seeded bag (appears across draws)', () => {
+test('BOMB spawns from its own rare gated timer', () => {
   const G = boot().SY.nvGame; const s = play(G);
   let saw = false;
-  for (let i = 0; i < 300 && !saw; i++) {
-    s.pows = []; s.spawnT.pow = 0; G.update(1 / 60);
+  for (let i = 0; i < 60 * 40 && !saw; i++) {
+    s.spawnT.bomb = 0; // force the seeded roll every frame -> reachable for any seed
+    G.update(1 / 60);
     if (s.pows.some((o) => o.type === 'BOMB')) saw = true;
   }
-  assert.equal(saw, true, 'BOMB drops from the seeded bag within many draws');
+  assert.equal(saw, true, 'a BOMB appears from the rare timer');
 });
