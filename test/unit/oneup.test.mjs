@@ -53,7 +53,11 @@ test('same daily seed -> identical 1UP spawn schedule (fairness)', () => {
     for (let i = 0; i < 200 && G.phase !== 'playing'; i++) G.update(1 / 60);
     s.player.hp = 99; let firstAt = -1;
     for (let i = 0; i < 60 * 45; i++) {
-      s.player.inv = 1; G.update(1 / 60);
+      // Force the seeded spawn timer to fire every frame so the rare 18% roll is
+      // reachable for ANY seed (mirrors the chest-fairness test). The point of this
+      // test is determinism (same seed -> same firstAt), not the natural cadence;
+      // forcing keeps it robust to daily-stream shifts from new seeded features.
+      s.player.inv = 1; s.spawnT.oneup = 0; G.update(1 / 60);
       if (firstAt < 0 && s.pows.some(o => o.type === '1UP')) firstAt = i;
     }
     return firstAt;
