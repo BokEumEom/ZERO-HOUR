@@ -62,10 +62,10 @@
   // during a surge = amber (HEAT window), otherwise the default teal.
   function drawCrystal(ctx, c, inSurge) {
     const bob = Math.sin(c.phase) * 2;
-    const key = c.tier === 'boss' ? 'crystalBoss' : (inSurge ? 'crystalAmber' : 'crystalTeal');
+    const key = c.big ? 'crystalLarge' : (c.tier === 'boss' ? 'crystalBoss' : (inSurge ? 'crystalAmber' : 'crystalTeal'));
     if (SP.draw(ctx, key, c.x, c.y + bob, (c.r + 2) * 2.9, Math.sin(c.phase * 0.7) * 0.16)) return;
-    const glow = c.tier === 'boss' ? '#9c43e1' : (inSurge ? '#ffb028' : '#2de2c6');
-    const core = c.tier === 'boss' ? '#e3b6ff' : (inSurge ? '#ffe6a8' : '#9ff5e8');
+    const glow = c.big ? '#39d8ff' : (c.tier === 'boss' ? '#9c43e1' : (inSurge ? '#ffb028' : '#2de2c6'));
+    const core = c.big ? '#cdfaff' : (c.tier === 'boss' ? '#e3b6ff' : (inSurge ? '#ffe6a8' : '#9ff5e8'));
     const squish = 0.62 + Math.sin(c.phase * 0.7) * 0.1;
     ctx.save();
     ctx.translate(c.x, c.y + bob);
