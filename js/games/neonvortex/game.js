@@ -732,7 +732,7 @@
       if (s.mines.length < s.diff.mineCap) spawnMine(s); // cap is ambient-only; surge formations are uncapped spikes by design
     }
     s.spawnT.pow -= dt;
-    if (s.spawnT.pow <= 0) { s.spawnT.pow = 9.5; if (s.pows.length < 3) spawnPow(s); }
+    if (s.spawnT.pow <= 0) { s.spawnT.pow = 9.5 / s.diff.lootMul; if (s.pows.length < 3) spawnPow(s); }
     s.spawnT.turret -= dt;
     if (s.spawnT.turret <= 0) {
       s.spawnT.turret = 6 / s.diff.spawnMul; // density-scaled cadence
@@ -740,7 +740,7 @@
     }
     s.spawnT.crate -= dt;
     if (s.spawnT.crate <= 0) {
-      s.spawnT.crate = 7 + s.rng() * 5;
+      s.spawnT.crate = (7 + s.rng() * 5) / s.diff.lootMul;
       if (s.crates.length < 2) spawnCrate(s);
     }
     // ---------- rare extra life (1UP, E6) ----------

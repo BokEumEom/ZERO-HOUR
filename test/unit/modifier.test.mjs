@@ -100,3 +100,27 @@ test('HARD + modifier stack: tier knobs and modifier knobs both apply', () => {
   const s = G.state;
   assert.deepEqual({ ...s.diff }, { ...G.combineDiff(G.DIFF.hard, G.MODS[s.modifier.key]) });
 });
+
+test('crate cadence divides by lootMul (STANDARD keeps base 7..12s window)', () => {
+  const G = boot().SY.nvGame;
+  G.start('free', 'normal');
+  const s = G.state;
+  for (let i = 0; i < 30 && G.phase === 'ready'; i++) G.update(0.1); // skip countdown
+  s.diff = G.combineDiff(G.DIFF.normal, G.MODS.standard);
+  s.spawnT.crate = 0.0001;
+  s.crates.length = 0;
+  G.update(1 / 60);
+  assert.ok(s.spawnT.crate >= 7 && s.spawnT.crate <= 12, 'base window with lootMul=1: ' + s.spawnT.crate);
+});
+
+test('higher lootMul shortens crate cadence (treasure < standard reset)', () => {
+  const G = boot().SY.nvGame;
+  G.start('free', 'normal');
+  const s = G.state;
+  for (let i = 0; i < 30 && G.phase === 'ready'; i++) G.update(0.1); // skip countdown
+  s.diff = G.combineDiff(G.DIFF.normal, G.MODS.treasure); // lootMul 1.8
+  s.spawnT.crate = 0.0001;
+  s.crates.length = 0;
+  G.update(1 / 60);
+  assert.ok(s.spawnT.crate >= 7 / 1.8 && s.spawnT.crate <= 12 / 1.8, 'treasure window: ' + s.spawnT.crate);
+});
