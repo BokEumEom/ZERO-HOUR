@@ -16,7 +16,7 @@
 
   const gameStore = SY.store.forGame('neonvortex'); // namespaced records
 
-  // difficulty (free-play only; daily is always Normal — engine-enforced)
+  // difficulty (drives the headline; daily is always Normal — engine-enforced)
   const NV_DIFFICULTIES = ['easy', 'normal', 'hard'];
   const difficultyValue = () => {
     const d = recs.settings && recs.settings.nvDifficulty;
@@ -1270,7 +1270,7 @@
   }
   function applyVolume(v0to100) { SY.audio.setVolume(v0to100 / 100); }
 
-  // ---------- difficulty selector (free-play only; daily is always Normal) ----------
+  // ---------- difficulty selector (drives the headline; daily is always Normal) ----------
   // NV_DIFFICULTIES / difficultyValue are declared at the top of the IIFE (used by
   // loadRecords + renderMenuStats); setDifficulty lives here with the other settings setters.
   function setDifficulty(id) {

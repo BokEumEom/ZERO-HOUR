@@ -272,13 +272,13 @@ test('boss orbital support cores are wired (deterministic)', () => {
   assert.match(render, /function drawBossCore/, 'drawBossCore present');
 });
 
-test('difficulty surge scaling + free-play label are wired', () => {
+test('difficulty surge scaling + headline difficulty label are wired', () => {
   const game = read(`${NV}/game.js`);
   assert.match(game, /surgeMul: 0\.7/, 'easy surgeMul');
   assert.match(game, /surgeMul: 1\.4/, 'hard surgeMul');
   assert.match(game, /\(6 \+ 3 \* k\) \* s\.diff\.surgeMul/, 'buildSurges scales by surgeMul');
   const main = read(`${NV}/main.js`);
-  assert.match(main, /free-sub/, 'FREE PLAY sub-label updated with difficulty');
+  assert.match(main, /free-sub/, 'headline free sub-label wired to difficulty');
   const html = read('index.html');
   assert.match(html, /id="neonvortex-free-sub"/, 'free-sub span id present');
 });
