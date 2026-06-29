@@ -86,8 +86,8 @@ Both live on `sprite-atlas.png` (NOT the elements sheet) — untagged `A` entrie
 
 ## Risks
 
-- **Rect tighten:** `tokenDisc` sits next to the chest sprite on the sheet — verify the
-  final crop excludes chest pixels (current tighten 1145,708,73,84 is chest-excluded).
+- **Rect tighten:** `tokenCore` (data disc) sits next to the chest sprite on the sheet —
+  verify the final crop excludes chest pixels (current tighten 1145,708,73,84 is chest-excluded).
 - **Re-pin churn:** the stream shift may break a few seed-pinned tests; budget a re-pin step.
 - **Token legibility:** the data card is detailed; confirm at `r:10` draw size it still
   reads (gallery check). If noisy, bump to `r:11` or simplify via the premium glow.
