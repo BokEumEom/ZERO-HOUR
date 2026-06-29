@@ -71,7 +71,7 @@ partial reflection, not "all 9").
 
 ## Verification
 
-- **Unit** (`test/unit/drone-squadron.test.mjs`, new): after applying a DRONE power-up,
+- **Unit** (extend `test/unit/drone.test.mjs`): after applying a DRONE power-up,
   `s.drones.length === 6`; the six carry `variant` 0..5 (all distinct); each fire resets to
   `1.65` (assert by driving a frame with a target in range and checking the post-fire `fireCd`);
   re-picking DRONE does not exceed 6 (single squad).

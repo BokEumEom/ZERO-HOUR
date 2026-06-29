@@ -326,6 +326,7 @@
   }
 
   // companion wingmen: each squadron slot uses a distinct atlas sprite by variant index.
+  // One entry per SQUADRON_SIZE slot (game.js) — extend both together if the squadron grows.
   const DRONE_VARIANT_KEYS = ['drone', 'drone2', 'droneV3', 'droneV4', 'droneV5', 'droneV6'];
   function drawDrone(ctx, dr) {
     const key = DRONE_VARIANT_KEYS[dr.variant] || 'drone'; // squadron slot → distinct sprite
