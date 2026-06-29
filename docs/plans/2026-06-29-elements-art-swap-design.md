@@ -87,10 +87,12 @@ the single `sheet` (atlas). Add a second gameplay sheet and route per key:
 
 ## Risks
 
-- **Standalone bundle size.** `/build-standalone` inlines `assets/*.png` as data-URIs.
-  Adding `sprite-elements.png` grows `standalone.html` by ~1.6 MB. The plan MUST verify
-  the build picks up the new sheet (it is user-run; a PreToolUse hook blocks hand-edits)
-  and that the bundle-hash-sync test still passes after regeneration.
+- **Standalone regeneration (NOT bundle bloat).** `build.mjs` inlines only `<script>`/
+  `<style>` — images are referenced relatively (`assets/sprite-elements.png?v=1`), shipped
+  alongside as files. So `standalone.html` does NOT grow ~1.6 MB; it only changes by the
+  inlined `sprites.js` diff. But that diff DOES change the bundle hash → `/build-standalone`
+  MUST be re-run (user-run; a PreToolUse hook blocks hand-edits) so the bundle-hash-sync
+  test passes. `assets/sprite-elements.png` already exists in the repo, so no new asset ship.
 - **Rect drift.** The connected-component extraction split some spiky/ringed sprites
   (boss, large mines) — those are out of scope, but it is a reminder that the in-scope
   rects (crystals, small mine, bolts, burst) must each be crop-verified, not trusted raw.
