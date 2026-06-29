@@ -184,14 +184,12 @@ test('loot crates and tokens are rendered from atlas art', () => {
   for (const k of ['lootCrate', 'lootCanister', 'coin', 'lootChest']) assert.ok(new RegExp(k + ':\\s*\\{').test(spr), k);
 });
 
-test('world objects (E3): spawn portal + console objective are wired', () => {
+test('world objects (E3): console objective wired; spawn portal fully removed', () => {
   const game = read(`${NV}/game.js`);
-  assert.ok(/spawnPortal/.test(game) && /s\.portals/.test(game), 'portal spawn + state array');
   assert.ok(/'console'/.test(game), 'console crate kind');
-  const render = read(`${NV}/render.js`);
-  assert.ok(/drawPortal/.test(render) && /s\.portals/.test(render), 'portals drawn');
-  const spr = read(`${NV}/sprites.js`);
-  for (const k of ['portal', 'lootConsole']) assert.ok(new RegExp(k + ':\\s*\\{').test(spr), k);
+  assert.ok(!/spawnPortal/.test(game) && !/s\.portals/.test(game), 'portal sim removed');
+  assert.ok(!/drawPortal/.test(read(`${NV}/render.js`)), 'portal render removed');
+  assert.ok(/lootConsole:\s*\{/.test(read(`${NV}/sprites.js`)), 'lootConsole rect present');
 });
 
 test('elite sentinel (E4a) is wired', () => {

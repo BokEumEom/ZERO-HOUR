@@ -4347,7 +4347,6 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     coin:        { x: 884,  y: 709, w: 60,  h: 56  }, // gold reward coin
     lootChest:   { x: 1258, y: 697, w: 94,  h: 64  }, // rare treasure chest (jackpot)
     drone:       { x: 1215, y: 1019, w: 44, h: 38 }, // companion wingman drone
-    portal:      { x: 36,   y: 271, w: 75,  h: 103 }, // spawn portal ring (world object)
     lootConsole: { x: 206,  y: 286, w: 96,  h: 74  }, // console objective — drops a power-up
     hazardNode:  { x: 335,  y: 412, w: 60,  h: 66  }, // laser-fence emitter — power bolt (section 3)
     laserColumn: { x: 989,  y: 150, w: 26,  h: 87  }, // laser-fence beam column (section 2)
@@ -5168,7 +5167,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       score: 0, combo: 0, maxCombo: 0, comboT: 0,
       pace: [0], paceSec: 0,
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
-      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], portals: [], fences: [],
+      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [],
       parts: [], waves: [], floats: [], blasts: [],
       boss: null, bossDown: false, bossWarnT: 0, bossCores: [],
       elite: null, eliteSpawned: false,
@@ -5180,7 +5179,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
       heat: 0, heatMul: 1,
-      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, portal: 14, fence: 11, oneup: 16, bomb: 18, intel: 17 },
+      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, fence: 11, oneup: 16, bomb: 18, intel: 17 },
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
@@ -5280,13 +5279,6 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     }
   }
 
-  // ---- world objects (E3): spawn portal — telegraphs, opens, emits mines, closes ----
-  function spawnPortal(s) {
-    s.portals.push({
-      x: 120 + s.rng() * (W - 240), y: 110 + s.rng() * (H - 240),
-      state: 'warn', t: 1.0, spawnT: 0, spawnsLeft: 4 + Math.floor(s.rng() * 3), phase: s.rng() * 6,
-    });
-  }
   // ---- F5 laser fence: telegraphed cross-arena beam (reflect sec3 node + sec2 laser) ----
   function spawnFence(s) {
     const orient = s.rng() < 0.5 ? 'h' : 'v';
@@ -5805,26 +5797,6 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       s.spawnT.intel = 17 + s.rng() * 11;
       if (s.rng() < 0.14 && s.timeLeft > 8 && !s.pows.some(o => o.type === 'INTEL')) spawnIntel(s);
     }
-    // ---------- spawn portals (E3a) ----------
-    s.spawnT.portal -= dt;
-    if (s.spawnT.portal <= 0) {
-      s.spawnT.portal = 16 + s.rng() * 8;
-      if (s.portals.length < 1 && s.diff.spawnMul >= 1) spawnPortal(s); // normal/hard only (easy spawnMul 0.75)
-    }
-    for (let i = s.portals.length - 1; i >= 0; i--) {
-      const pt = s.portals[i];
-      pt.phase += dt * 3; pt.t -= dt;
-      if (pt.state === 'warn') {
-        if (pt.t <= 0) { pt.state = 'open'; pt.t = 3.2; pt.spawnT = 0.2; }
-      } else if (pt.state === 'open') {
-        pt.spawnT -= dt;
-        if (pt.spawnT <= 0 && pt.spawnsLeft > 0) { pt.spawnT = 0.55; pt.spawnsLeft--; spawnMineAt(s, pt.x, pt.y); }
-        if (pt.t <= 0 || pt.spawnsLeft <= 0) { pt.state = 'closing'; pt.t = 0.6; }
-      } else { // closing
-        if (pt.t <= 0) s.portals.splice(i, 1);
-      }
-    }
-
     // ---------- spawn + update laser fences (F5) ----------
     s.spawnT.fence -= dt;
     if (s.spawnT.fence <= 0) {
@@ -6574,17 +6546,6 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     ctx.restore();
   }
 
-  function drawPortal(ctx, pt) {
-    const open = pt.state === 'open';
-    // warn: pulsing telegraph; open: bright; closing: fading
-    const a = pt.state === 'warn' ? 0.35 + 0.25 * Math.sin(pt.phase * 6) : open ? 0.95 : 0.5;
-    ctx.save(); ctx.globalAlpha = a;
-    if (!SP.draw(ctx, 'portal', pt.x, pt.y, (open ? 78 : 60) + Math.sin(pt.phase) * 4, 0)) {
-      ctx.strokeStyle = '#5ad1ff'; ctx.lineWidth = 4;
-      ctx.beginPath(); ctx.arc(pt.x, pt.y, 30, 0, Math.PI * 2); ctx.stroke();
-    }
-    ctx.restore();
-  }
 
   function drawCrate(ctx, c) {
     const key = c.kind === 'chest' ? 'lootChest' : c.kind === 'console' ? 'lootConsole' : c.kind === 'pod' ? 'capsulePod' : c.kind === 'mimic' ? 'xContainer' : c.kind === 'canister' ? 'lootCanister' : 'lootCrate';
@@ -6841,7 +6802,6 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 
     for (const c of s.crystals) drawCrystal(ctx, c, s.inSurge);
     for (const t of s.tokens) drawToken(ctx, t);
-    for (const pt of s.portals) drawPortal(ctx, pt);
     for (const r of s.rocks) drawRock(ctx, r);
     for (const c of s.crates) drawCrate(ctx, c);
     for (const o of s.pows) drawPow(ctx, o);

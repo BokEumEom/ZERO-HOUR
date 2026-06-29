@@ -11,31 +11,6 @@ function play(G, diff = 'normal') {
   return G.state;
 }
 
-test('portals cycle warn->open->closing and emit mines from the mouth', () => {
-  const G = boot().SY.nvGame; const s = play(G);
-  s.portals = [{ x: 480, y: 300, state: 'warn', t: 1.0, spawnT: 0, spawnsLeft: 4, phase: 0 }];
-  s.mines = [];
-  const seen = new Set();
-  for (let i = 0; i < 60 * 6 && s.portals.length; i++) { G.update(1 / 60); if (s.portals[0]) seen.add(s.portals[0].state); }
-  assert.ok(seen.has('open'), 'portal opened');
-  assert.ok(s.mines.length > 0, 'portal emitted mines');
-});
-
-test('easy difficulty never opens a portal', () => {
-  const G = boot().SY.nvGame; const s = play(G, 'easy');
-  for (let i = 0; i < 60 * 30; i++) G.update(1 / 60);
-  assert.equal(s.portals.length, 0, 'no portals on easy');
-});
-
-test('same daily seed -> identical portal layout (fairness)', () => {
-  const run = () => {
-    const G = boot().SY.nvGame; G.start('daily'); const st = G.state;
-    for (let i = 0; i < 60 * 30; i++) G.update(1 / 60);
-    return JSON.stringify(st.portals.map(p => [Math.round(p.x), Math.round(p.y), p.state]));
-  };
-  assert.equal(run(), run());
-});
-
 test('a console drops a power-up + exactly one guaranteed data token when destroyed', () => {
   const G = boot().SY.nvGame; const s = play(G);
   s.crates = [{ kind: 'console', x: 480, y: 300, r: 20, hp: 1, maxHp: 5, flash: 0, phase: 0 }];
