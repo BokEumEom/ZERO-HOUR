@@ -39,3 +39,10 @@ test('INTEL spawns gated to one at a time', () => {
   G.update(1 / 60);
   assert.equal(s.pows.filter((o) => o.type === 'INTEL').length, 1, 'no second INTEL while one exists');
 });
+
+test('INTEL pickup icon maps to the section-1 card sprite', () => {
+  const SP = loadModules(['js/games/neonvortex/sprites.js']).SY.nvSprites;
+  const r = SP.powerIcons.INTEL;
+  assert.ok(r, 'INTEL power icon present');
+  assert.deepEqual({ x: r.x, y: r.y, w: r.w, h: r.h }, { x: 556, y: 44, w: 62, h: 72 }, 'INTEL icon rect');
+});
