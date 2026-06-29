@@ -16,7 +16,7 @@ test('crates spawn (seeded, capped) and carry hp', () => {
   let max = 0;
   for (let i = 0; i < 60 * 30; i++) { G.update(1 / 60); max = Math.max(max, s.crates.length); }
   assert.ok(max > 0, 'crates spawned');
-  assert.ok(max <= 2, 'crate cap 2');
+  assert.ok(max <= 3, 'crate cap 3'); // spawn gate is `crates.length < 3` → hard cap 3 (deterministic invariant; free-mode seed is random)
   for (const c of s.crates) assert.ok(c.hp > 0 && c.r > 0);
 });
 
