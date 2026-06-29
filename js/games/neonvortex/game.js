@@ -17,6 +17,7 @@
     MISSILE:{ glyph: '➤',  color: '#ff8a3a', label: 'MISSILES' },
     BOMB:   { glyph: '✸',  color: '#ff5a3a', label: 'BOMB' },     // instant screen-clear (no duration)
     '1UP':  { glyph: '♥',  color: '#ff5a78', label: 'EXTRA LIFE' }, // rare pickup — NOT in POWER_TYPES (out of the bag)
+    INTEL:  { glyph: 'ⓘ',  color: '#5ad1ff', label: 'INTEL' },     // rare data-cache pickup — instant score (out of the bag)
   };
 
   // power-up active durations (seconds). Single source of truth — main.js reads
@@ -159,7 +160,7 @@
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
       heat: 0, heatMul: 1,
-      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, portal: 14, fence: 11, oneup: 16, bomb: 18 },
+      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, portal: 14, fence: 11, oneup: 16, bomb: 18, intel: 17 },
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
@@ -358,6 +359,13 @@
     s.pows.push({
       x: 80 + s.rng() * (W - 160), y: 80 + s.rng() * (H - 160),
       type: 'BOMB', r: 13, life: 11, phase: s.rng() * Math.PI * 2, vy: -20,
+    });
+  }
+  // rare INTEL data-cache pickup (NOT in the seeded bag; its own gated roll) — instant score
+  function spawnIntel(s) {
+    s.pows.push({
+      x: 80 + s.rng() * (W - 160), y: 80 + s.rng() * (H - 160),
+      type: 'INTEL', r: 13, life: 11, phase: s.rng() * Math.PI * 2, vy: -20,
     });
   }
 
@@ -771,6 +779,12 @@
       // rare, capped at 1, never in the final 8s
       if (s.rng() < 0.13 && s.timeLeft > 8 && !s.pows.some(o => o.type === 'BOMB')) spawnBomb(s);
     }
+    // ---------- rare INTEL data-cache pickup (instant score bonus) ----------
+    s.spawnT.intel -= dt;
+    if (s.spawnT.intel <= 0) {
+      s.spawnT.intel = 17 + s.rng() * 11;
+      if (s.rng() < 0.14 && s.timeLeft > 8 && !s.pows.some(o => o.type === 'INTEL')) spawnIntel(s);
+    }
     // ---------- spawn portals (E3a) ----------
     s.spawnT.portal -= dt;
     if (s.spawnT.portal <= 0) {
@@ -1095,6 +1109,7 @@
       return;
     }
     if (o.type === 'BOMB') { bombDetonate(s, o.x, o.y); return; } // instant screen clear
+    if (o.type === 'INTEL') { addScore(s, 250, o.x, o.y, undefined, 'loot'); return; } // instant data-cache bonus
     // timed buffs: extend remaining time by the base duration, capped at 2x base
     const dur = POWER_DURATION[o.type];
     s.fx[o.type] = Math.min(2 * dur, s.fx[o.type] + dur);
