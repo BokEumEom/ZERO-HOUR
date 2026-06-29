@@ -72,3 +72,13 @@ test('a hazard mimic releases homing mines plus consolation loot', () => {
   assert.ok(s.mines.length >= 2 && s.mines.length <= 3, 'released 2-3 homing mines');
   assert.ok(s.tokens.length >= 1, 'dropped consolation loot tokens');
 });
+
+test('section-3 container sprites exist on the atlas (capsulePod/xContainer)', () => {
+  const A = loadModules(['js/games/neonvortex/sprites.js']).SY.nvSprites.atlas;
+  const want = { capsulePod: { x: 195, y: 390, w: 76, h: 82 }, xContainer: { x: 563, y: 390, w: 87, h: 82 } };
+  for (const [k, r] of Object.entries(want)) {
+    assert.ok(A[k], `${k} rect exists`);
+    assert.equal(A[k].sheet, undefined, `${k} stays on the atlas (no sheet tag)`);
+    assert.deepEqual({ x: A[k].x, y: A[k].y, w: A[k].w, h: A[k].h }, r, `${k} rect`);
+  }
+});
