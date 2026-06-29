@@ -311,7 +311,7 @@
   }
 
   function drawCrate(ctx, c) {
-    const key = c.kind === 'chest' ? 'lootChest' : c.kind === 'console' ? 'lootConsole' : c.kind === 'canister' ? 'lootCanister' : 'lootCrate';
+    const key = c.kind === 'chest' ? 'lootChest' : c.kind === 'console' ? 'lootConsole' : c.kind === 'pod' ? 'capsulePod' : c.kind === 'mimic' ? 'xContainer' : c.kind === 'canister' ? 'lootCanister' : 'lootCrate';
     if (!SP.draw(ctx, key, c.x, c.y, (c.r + 6) * 2.2, 0)) {
       ctx.save();
       ctx.fillStyle = c.flash > 0 ? '#fff' : '#caa46a';
