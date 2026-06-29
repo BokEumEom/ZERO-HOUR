@@ -56,7 +56,7 @@ test('a crystal pod bursts a crystal cache (no mines) when destroyed', () => {
   s.bullets.push({ x: 480, y: 300, vx: 0, vy: 0, life: 0.5 });
   G.update(1 / 60);
   assert.equal(s.crates.length, 0, 'pod destroyed');
-  assert.ok(s.crystals.length >= 6, 'crystal cache burst out');
+  assert.ok(s.crystals.length >= 6 && s.crystals.length <= 8, 'crystal cache is 6-8 crystals');
   assert.ok(s.crystals.every((c) => typeof c.vx === 'number' && typeof c.r === 'number' && typeof c.phase === 'number'), 'crystals carry the required fields');
   assert.equal(s.mines.length, 0, 'pod releases no mines');
 });

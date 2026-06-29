@@ -47,15 +47,17 @@ Extends the crate system (`s.crates`, kinds `crate`/`canister`/`chest`/`console`
 - **`CRATE_HP`:** `pod: 3`, `mimic: 3`.
 - **Spawn roll** (`spawnCrate`, seeded `r = s.rng()`): carve shares for the two new kinds —
   ```
-  kind = r < 0.08 ? 'chest'
-       : r < 0.20 ? 'console'
-       : r < 0.34 ? 'pod'
-       : r < 0.46 ? 'mimic'
-       : r < 0.73 ? 'crate'
+  kind = r < 0.10 ? 'chest'
+       : r < 0.26 ? 'console'
+       : r < 0.40 ? 'pod'
+       : r < 0.52 ? 'mimic'
+       : r < 0.76 ? 'crate'
        : 'canister';
   ```
-  (chest 8% / console 12% / pod 14% / mimic 12% / crate 27% / canister 27%. The crate
-  spawn-timer cap of ≤2 concurrent is unchanged, so the field is not flooded.)
+  (chest 10% / console 16% / pod 14% / mimic 12% / crate 24% / canister 24%. Chest and
+  console KEEP their original rates — pod+mimic are carved from crate/canister only, so the
+  F2 premium-loot availability is unaffected. The crate spawn-timer cap of ≤2 concurrent is
+  unchanged, so the field is not flooded.)
 - **Break payoffs** (in the crate-break branch, after the `console` branch):
   - **`pod`** → `addScore(s, 25, …, 'destroy')` + `blast(70)` + a seeded crystal burst at the
     pod: `n = 6 + floor(rng*3)` crystals, each pushed at a seeded angle/distance with outward
