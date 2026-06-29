@@ -94,6 +94,8 @@
     drone:       { x: 1215, y: 1019, w: 44, h: 38 }, // companion wingman drone
     portal:      { x: 36,   y: 271, w: 75,  h: 103 }, // spawn portal ring (world object)
     lootConsole: { x: 206,  y: 286, w: 96,  h: 74  }, // console objective — drops a power-up
+    hazardNode:  { x: 335,  y: 412, w: 60,  h: 66  }, // laser-fence emitter — power bolt (section 3)
+    laserColumn: { x: 989,  y: 150, w: 26,  h: 87  }, // laser-fence beam column (section 2)
     capsulePod:  { x: 195,  y: 390, w: 76,  h: 82  }, // crystal pod container (section 3)
     xContainer:  { x: 563,  y: 390, w: 87,  h: 82  }, // hazard mimic container (section 3, X-marked)
     eliteCore:   { x: 1097, y: 532, w: 89,  h: 101 }, // elite sentinel — hex armored core (beam emitter)

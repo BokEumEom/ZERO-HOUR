@@ -33,6 +33,7 @@
 
   // ---- HEAT multiplier tuning (checked high → low) ----
   const HEAT_X2_CAP = 4;      // ceiling on combined X2 × HEAT multiplier
+  const FENCE_BEAM_HALF = 11; // half-width of the F5 laser-fence beam hitbox (px)
   const HEAT_TIERS = [ { at: 26, mul: 2 }, { at: 14, mul: 1.5 }, { at: 6, mul: 1.25 } ];
 
   // ---- difficulty tiers (fixed knobs; daily is always 'normal') ----
@@ -146,7 +147,7 @@
       score: 0, combo: 0, maxCombo: 0, comboT: 0,
       pace: [0], paceSec: 0,
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
-      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], portals: [],
+      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], portals: [], fences: [],
       parts: [], waves: [], floats: [], blasts: [],
       boss: null, bossDown: false, bossWarnT: 0, bossCores: [],
       elite: null, eliteSpawned: false,
@@ -158,7 +159,7 @@
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
       heat: 0, heatMul: 1,
-      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, portal: 14, oneup: 16, bomb: 18 },
+      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, portal: 14, fence: 11, oneup: 16, bomb: 18 },
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
@@ -264,6 +265,12 @@
       x: 120 + s.rng() * (W - 240), y: 110 + s.rng() * (H - 240),
       state: 'warn', t: 1.0, spawnT: 0, spawnsLeft: 4 + Math.floor(s.rng() * 3), phase: s.rng() * 6,
     });
+  }
+  // ---- F5 laser fence: telegraphed cross-arena beam (reflect sec3 node + sec2 laser) ----
+  function spawnFence(s) {
+    const orient = s.rng() < 0.5 ? 'h' : 'v';
+    const pos = orient === 'h' ? 120 + s.rng() * (H - 240) : 120 + s.rng() * (W - 240);
+    s.fences.push({ orient, pos, state: 'warn', t: 1.1, phase: 0 });
   }
   // emit a homing mine AT a position (the portal mouth) — reuses the mine entity
   function spawnMineAt(s, x, y) {
@@ -781,6 +788,26 @@
         if (pt.t <= 0 || pt.spawnsLeft <= 0) { pt.state = 'closing'; pt.t = 0.6; }
       } else { // closing
         if (pt.t <= 0) s.portals.splice(i, 1);
+      }
+    }
+
+    // ---------- spawn + update laser fences (F5) ----------
+    s.spawnT.fence -= dt;
+    if (s.spawnT.fence <= 0) {
+      s.spawnT.fence = 15 + s.rng() * 9;
+      if (s.fences.length < 1 && s.diff.spawnMul >= 1) spawnFence(s); // normal/hard only
+    }
+    for (let i = s.fences.length - 1; i >= 0; i--) {
+      const fc = s.fences[i];
+      fc.phase += dt * 3; fc.t -= dt;
+      if (fc.state === 'warn') {
+        if (fc.t <= 0) { fc.state = 'firing'; fc.t = 1.4; SY.audio.shoot(); }
+      } else if (fc.state === 'firing') {
+        const perp = fc.orient === 'h' ? Math.abs(p.y - fc.pos) : Math.abs(p.x - fc.pos);
+        if (perp < FENCE_BEAM_HALF + p.r) hurtPlayer(s, p.x, p.y);
+        if (fc.t <= 0) { fc.state = 'fade'; fc.t = 0.35; }
+      } else { // fade
+        if (fc.t <= 0) s.fences.splice(i, 1);
       }
     }
 

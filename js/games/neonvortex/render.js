@@ -298,6 +298,30 @@
     }
   }
 
+  function drawFence(ctx, fc) {
+    const horiz = fc.orient === 'h';
+    const len = horiz ? W : H;
+    const midx = horiz ? W / 2 : fc.pos, midy = horiz ? fc.pos : H / 2;
+    ctx.save();
+    if (fc.state === 'warn') {
+      ctx.globalAlpha = 0.3 + 0.3 * Math.sin(fc.phase * 4); // pulsing telegraph
+      ctx.strokeStyle = fc.t < 0.5 ? '#ff5a6e' : '#ffb028';
+      ctx.lineWidth = 2; ctx.setLineDash([10, 8]);
+      ctx.beginPath();
+      if (horiz) { ctx.moveTo(0, fc.pos); ctx.lineTo(W, fc.pos); } else { ctx.moveTo(fc.pos, 0); ctx.lineTo(fc.pos, H); }
+      ctx.stroke(); ctx.setLineDash([]);
+    } else {
+      ctx.globalAlpha = fc.state === 'fade' ? Math.max(0, fc.t / 0.35) : 1;
+      ctx.globalCompositeOperation = 'lighter';
+      if (!SP.drawFit(ctx, 'laserColumn', midx, midy, 26, len, horiz ? Math.PI / 2 : 0)) {
+        drawBeamRay(ctx, horiz ? 0 : fc.pos, horiz ? fc.pos : 0, horiz ? 0 : Math.PI / 2, len, 11);
+      }
+      SP.draw(ctx, 'hazardNode', horiz ? 20 : fc.pos, horiz ? fc.pos : 20, 30, 0);
+      SP.draw(ctx, 'hazardNode', horiz ? W - 20 : fc.pos, horiz ? fc.pos : H - 20, 30, 0);
+    }
+    ctx.restore();
+  }
+
   function drawPortal(ctx, pt) {
     const open = pt.state === 'open';
     // warn: pulsing telegraph; open: bright; closing: fading
@@ -636,6 +660,7 @@
     if (s.elite) drawElite(ctx, s.elite);
     if (s.boss) drawBoss(ctx, s);
     for (const c of s.bossCores) drawBossCore(ctx, c, s.boss);
+    for (const fc of s.fences) drawFence(ctx, fc);
     drawPlayer(ctx, s);
     for (const dr of s.drones) drawDrone(ctx, dr);
 
