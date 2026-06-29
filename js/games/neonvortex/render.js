@@ -600,6 +600,16 @@
       ctx.restore();
     }
 
+    // warp-in rings (atlas, additive, expanding outward)
+    for (const w of s.warps) {
+      const grow = w.maxSize * (0.3 + (1 - w.life) * 0.7);
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, w.life) * 0.9;
+      ctx.globalCompositeOperation = 'lighter';
+      SP.draw(ctx, 'fxWarpRing', w.x, w.y, grow, w.rot);
+      ctx.restore();
+    }
+
     // player bullets (teal laser sprite, oriented along travel)
     ctx.shadowBlur = 0;
     for (const b of s.bullets) {

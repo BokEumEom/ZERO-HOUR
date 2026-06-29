@@ -37,3 +37,12 @@ test('a destroyed crate emits a warm fxBurstSm flash', () => {
   assert.equal(s.crates.length, 0, 'crate destroyed');
   assert.ok(s.blasts.some((b) => b.key === 'fxBurstSm'), 'crate break uses the small warm burst');
 });
+
+test('the boss entrance spawns a warp-in ring', () => {
+  const G = boot().SY.nvGame; const s = play(G);
+  s.warps = []; s.boss = null; s.bossDown = false;
+  s.timeLeft = 19; // boss spawns at duration>=40 && timeLeft<=20
+  G.update(1 / 60);
+  assert.ok(s.boss, 'boss spawned');
+  assert.ok(s.warps.length >= 1, 'a warp ring was emitted on entrance');
+});

@@ -149,7 +149,7 @@
       pace: [0], paceSec: 0,
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
       crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [],
-      parts: [], waves: [], floats: [], blasts: [],
+      parts: [], waves: [], floats: [], blasts: [], warps: [], slashes: [], debris: [],
       boss: null, bossDown: false, bossWarnT: 0, bossCores: [],
       elite: null, eliteSpawned: false,
       eliteAt: (SURGE_WARMUP + (duration >= 40 ? duration - 20 : duration)) / 2,
@@ -373,6 +373,7 @@
       t: 0, burstT: 1.8 * fm, aimT: 2.6 * fm, plasmaT: 4 * fm, fireMul: fm, flash: 0, dying: 0, ringRot: 0, coresDeployed: false,
     };
     s.bossWarnT = 1.6;
+    spawnWarp(s, W / 2, 128, 240); // warp-in ring at the boss's settle point
     s.shake = Math.max(s.shake, 7);
     SY.audio.bossSpawn();
   }
@@ -397,6 +398,10 @@
   // atlas sprite (default the teal `burst`); rot is position-derived (no Math.random).
   function blast(s, x, y, size, key) {
     s.blasts.push({ x, y, size, life: 1, rot: (x * 0.7 + y * 0.3) % (Math.PI * 2), key: key || 'burst' });
+  }
+  // warp-in ring on a boss/elite entrance (cosmetic; position-derived rot, no rng)
+  function spawnWarp(s, x, y, maxSize) {
+    s.warps.push({ x, y, maxSize, life: 1, rot: (x * 0.5 + y * 0.5) % (Math.PI * 2) });
   }
   function floatText(s, x, y, text, color) {
     s.floats.push({ x, y, text, color, life: 1 });
@@ -443,7 +448,7 @@
     }
   }
   const foeApi = { hurtPlayer, addScore, burst, wave, floatText, dropCrystals, blast };
-  const eliteApi = { hurtPlayer, addScore, spawnPow, spawnLoot, burst, wave, blast, floatText };
+  const eliteApi = { hurtPlayer, addScore, spawnPow, spawnLoot, burst, wave, blast, floatText, spawnWarp };
 
   // ---------- player damage ----------
   function hurtPlayer(s, x, y) {
@@ -633,6 +638,7 @@
     // ---------- elite Sentinel (E4a): scripted mid-field beam mini-boss ----------
     if (!s.elite && !s.eliteSpawned && s.duration >= 40 && s.t >= s.eliteAt && s.timeLeft > 20) {
       s.eliteSpawned = true; SY.nvElite.spawn(s);
+      if (s.elite) spawnWarp(s, s.elite.x, s.elite.y, 150);
     }
     if (s.elite) SY.nvElite.update(s, dt, slowMul, eliteApi);
 
@@ -1171,6 +1177,7 @@
       bl.life -= dt * 2.6; // ~0.38s flash
       if (bl.life <= 0) s.blasts.splice(i, 1);
     }
+    for (let i = s.warps.length - 1; i >= 0; i--) { const w = s.warps[i]; w.life -= dt * 1.4; if (w.life <= 0) s.warps.splice(i, 1); }
     if (s.shake > 0) s.shake = Math.max(0, s.shake - dt * 26);
   }
 
