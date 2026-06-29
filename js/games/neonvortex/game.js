@@ -228,12 +228,12 @@
 
   // ---- loot economy (E1) ----
   const TOKEN_VALUE = { coin: 15, teal: 25, amber: 50, purple: 100, data: 150, core: 250 };
-  const CRATE_HP = { crate: 4, canister: 3, chest: 6, console: 5 };
+  const CRATE_HP = { crate: 4, canister: 3, chest: 6, console: 5, pod: 3, mimic: 3 };
   function spawnCrate(s) {
-    // chest is a rare jackpot container; console is a bonus objective (drops a
-    // power-up); otherwise a crate/canister split.
+    // seeded kind roll: chest 8% (jackpot) / console 12% (bonus objective) /
+    // pod 14% (crystal cache) / mimic 12% (hazard) / crate 27% / canister 27%.
     const r = s.rng();
-    const kind = r < 0.10 ? 'chest' : r < 0.26 ? 'console' : r < 0.63 ? 'crate' : 'canister';
+    const kind = r < 0.08 ? 'chest' : r < 0.20 ? 'console' : r < 0.34 ? 'pod' : r < 0.46 ? 'mimic' : r < 0.73 ? 'crate' : 'canister';
     const hp = CRATE_HP[kind];
     s.crates.push({ kind, x: 90 + s.rng() * (W - 180), y: 80 + s.rng() * (H - 200), r: kind === 'chest' ? 24 : 20, hp, maxHp: hp, flash: 0, phase: s.rng() * 6 });
   }
@@ -994,6 +994,22 @@
               blast(s, cr.x, cr.y, 64);
               spawnPow(s, cr.x, cr.y); // bonus objective — guaranteed power-up
               pushToken(s, cr.x, cr.y, 'data'); // ...plus one guaranteed DATA salvage token (section-7 card)
+            } else if (cr.kind === 'pod') {
+              // CRYSTAL POD (section-3 capsule) — a crystal cache bursts out
+              addScore(s, 25, cr.x, cr.y, undefined, 'destroy');
+              blast(s, cr.x, cr.y, 70);
+              const n = 6 + Math.floor(s.rng() * 3);
+              for (let k = 0; k < n; k++) {
+                const a = s.rng() * Math.PI * 2, d = 10 + s.rng() * 30;
+                s.crystals.push({ x: cr.x + Math.cos(a) * d, y: cr.y + Math.sin(a) * d, vx: Math.cos(a) * 120, vy: Math.sin(a) * 120, r: 7, phase: s.rng() * 6 });
+              }
+            } else if (cr.kind === 'mimic') {
+              // HAZARD MIMIC (section-3 X-container) — looks like loot, bites back
+              addScore(s, 35, cr.x, cr.y, undefined, 'destroy');
+              blast(s, cr.x, cr.y, 80);
+              const m = 2 + Math.floor(s.rng() * 2);
+              for (let k = 0; k < m; k++) spawnMineAt(s, cr.x, cr.y);
+              spawnLoot(s, cr.x, cr.y, 'crate'); // consolation loot offsets the risk
             } else {
               addScore(s, cr.kind === 'chest' ? 40 : 20, cr.x, cr.y, undefined, 'destroy');
               blast(s, cr.x, cr.y, cr.kind === 'chest' ? 120 : 58);
