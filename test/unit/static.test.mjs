@@ -418,5 +418,6 @@ test('laser fence (F5 hazard) is wired', () => {
 test('INTEL data pickup (F7) is wired', () => {
   const game = read(`${NV}/game.js`);
   assert.ok(/function spawnIntel/.test(game) && /'INTEL'/.test(game), 'INTEL spawn + type');
+  assert.ok(!/POWER_TYPES = \[[^\]]*INTEL/.test(game), 'INTEL stays OUT of the seeded bag (POWER_TYPES)');
   assert.ok(/INTEL:\s*\{/.test(read(`${NV}/sprites.js`)), 'INTEL power icon rect');
 });
