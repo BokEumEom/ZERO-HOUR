@@ -36,13 +36,14 @@ test('same daily seed -> identical portal layout (fairness)', () => {
   assert.equal(run(), run());
 });
 
-test('a console drops a power-up (not loot tokens) when destroyed', () => {
+test('a console drops a power-up + exactly one guaranteed data token when destroyed', () => {
   const G = boot().SY.nvGame; const s = play(G);
   s.crates = [{ kind: 'console', x: 480, y: 300, r: 20, hp: 1, maxHp: 5, flash: 0, phase: 0 }];
   s.rocks = []; s.mines = []; s.boss = null; s.turrets = []; s.foes = []; s.bullets = []; s.tokens = []; s.pows = [];
   s.bullets.push({ x: 480, y: 300, vx: 0, vy: 0, life: 0.5 });
   G.update(1 / 60);
   assert.equal(s.crates.length, 0, 'console destroyed');
-  assert.equal(s.tokens.length, 0, 'no loot tokens dropped');
+  assert.equal(s.tokens.length, 1, 'exactly one data salvage token dropped');
+  assert.equal(s.tokens[0].tier, 'data', 'the token is a data salvage tier');
   assert.ok(s.pows.length >= 1, 'dropped a power-up');
 });

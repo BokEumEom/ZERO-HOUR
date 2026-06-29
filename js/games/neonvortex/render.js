@@ -337,7 +337,7 @@
 
   function drawToken(ctx, t) {
     const bob = Math.sin(t.phase) * 2;
-    const key = t.tier === 'coin' ? 'coin' : t.tier === 'amber' ? 'crystalAmber' : t.tier === 'purple' ? 'crystalBoss' : 'crystalTeal';
+    const key = t.tier === 'coin' ? 'coin' : t.tier === 'data' ? 'tokenData' : t.tier === 'core' ? 'tokenCore' : t.tier === 'amber' ? 'crystalAmber' : t.tier === 'purple' ? 'crystalBoss' : 'crystalTeal';
     if (SP.draw(ctx, key, t.x, t.y + bob, (t.r + 2) * 2.4, Math.sin(t.phase * 0.6) * 0.15)) return;
     ctx.save();
     ctx.fillStyle = t.tier === 'coin' ? '#ffcf4d' : '#9ff5e8';

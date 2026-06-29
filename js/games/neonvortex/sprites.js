@@ -105,6 +105,8 @@
     decoNode:    { x: 566,  y: 530, w: 56, h: 52 }, // section-5 glowing hex node (ambient decor)
     decoReadout: { x: 624,  y: 529, w: 40, h: 45 }, // section-5 readout lines panel (ambient decor)
     bossCore:    { x: 1217, y: 538, w: 90, h: 87 }, // boss orbital support core (section 6)
+    tokenData:   { x: 1004, y: 692, w: 89, h: 102 }, // DATA salvage — circuit card (section 7 reward)
+    tokenCore:   { x: 1145, y: 708, w: 73, h: 84 },  // DATA salvage — data disc/keycard (section 7 reward)
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
