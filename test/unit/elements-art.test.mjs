@@ -29,7 +29,7 @@ test('swapped keys point at the elements sheet with verified rects', () => {
 
 test('excluded keys stay on the atlas (no sheet tag)', () => {
   const A = load().atlas;
-  for (const key of ['player', 'boss', 'bossCore', 'enemyMid', 'enemyBig', 'foeHunter', 'crystalBoss', 'beam', 'lootCrate', 'portal']) {
+  for (const key of ['player', 'boss', 'bossCore', 'enemyMid', 'enemyBig', 'foeHunter', 'crystalBoss', 'beam', 'lootCrate']) {
     assert.equal(A[key] && A[key].sheet, undefined, `${key} must remain atlas (no sheet tag)`);
   }
 });

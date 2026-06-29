@@ -148,7 +148,7 @@
       score: 0, combo: 0, maxCombo: 0, comboT: 0,
       pace: [0], paceSec: 0,
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
-      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], portals: [], fences: [],
+      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [],
       parts: [], waves: [], floats: [], blasts: [],
       boss: null, bossDown: false, bossWarnT: 0, bossCores: [],
       elite: null, eliteSpawned: false,
@@ -160,7 +160,7 @@
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
       heat: 0, heatMul: 1,
-      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, portal: 14, fence: 11, oneup: 16, bomb: 18, intel: 17 },
+      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, fence: 11, oneup: 16, bomb: 18, intel: 17 },
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
@@ -260,13 +260,6 @@
     }
   }
 
-  // ---- world objects (E3): spawn portal — telegraphs, opens, emits mines, closes ----
-  function spawnPortal(s) {
-    s.portals.push({
-      x: 120 + s.rng() * (W - 240), y: 110 + s.rng() * (H - 240),
-      state: 'warn', t: 1.0, spawnT: 0, spawnsLeft: 4 + Math.floor(s.rng() * 3), phase: s.rng() * 6,
-    });
-  }
   // ---- F5 laser fence: telegraphed cross-arena beam (reflect sec3 node + sec2 laser) ----
   function spawnFence(s) {
     const orient = s.rng() < 0.5 ? 'h' : 'v';
@@ -785,26 +778,6 @@
       s.spawnT.intel = 17 + s.rng() * 11;
       if (s.rng() < 0.14 && s.timeLeft > 8 && !s.pows.some(o => o.type === 'INTEL')) spawnIntel(s);
     }
-    // ---------- spawn portals (E3a) ----------
-    s.spawnT.portal -= dt;
-    if (s.spawnT.portal <= 0) {
-      s.spawnT.portal = 16 + s.rng() * 8;
-      if (s.portals.length < 1 && s.diff.spawnMul >= 1) spawnPortal(s); // normal/hard only (easy spawnMul 0.75)
-    }
-    for (let i = s.portals.length - 1; i >= 0; i--) {
-      const pt = s.portals[i];
-      pt.phase += dt * 3; pt.t -= dt;
-      if (pt.state === 'warn') {
-        if (pt.t <= 0) { pt.state = 'open'; pt.t = 3.2; pt.spawnT = 0.2; }
-      } else if (pt.state === 'open') {
-        pt.spawnT -= dt;
-        if (pt.spawnT <= 0 && pt.spawnsLeft > 0) { pt.spawnT = 0.55; pt.spawnsLeft--; spawnMineAt(s, pt.x, pt.y); }
-        if (pt.t <= 0 || pt.spawnsLeft <= 0) { pt.state = 'closing'; pt.t = 0.6; }
-      } else { // closing
-        if (pt.t <= 0) s.portals.splice(i, 1);
-      }
-    }
-
     // ---------- spawn + update laser fences (F5) ----------
     s.spawnT.fence -= dt;
     if (s.spawnT.fence <= 0) {
