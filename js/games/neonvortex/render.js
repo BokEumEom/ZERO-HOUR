@@ -591,7 +591,7 @@
       ctx.save();
       ctx.globalAlpha = Math.max(0, bl.life);
       ctx.globalCompositeOperation = 'lighter';
-      if (!SP.draw(ctx, 'burst', bl.x, bl.y, grow, bl.rot)) {
+      if (!SP.draw(ctx, bl.key || 'burst', bl.x, bl.y, grow, bl.rot)) {
         ctx.beginPath();
         ctx.arc(bl.x, bl.y, grow * 0.4, 0, Math.PI * 2);
         ctx.fillStyle = '#ffd9a8';

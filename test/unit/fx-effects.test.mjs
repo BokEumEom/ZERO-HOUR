@@ -2,6 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadModules } from './helpers.mjs';
 
+const boot = () => loadModules(
+  ['js/store.js', 'js/games/neonvortex/foes.js', 'js/games/neonvortex/elite.js', 'js/games/neonvortex/game.js'],
+  { nowIso: '2026-03-01T00:30:00Z' });
+function play(G, diff = 'normal') {
+  G.start('free', diff);
+  for (let i = 0; i < 200 && G.phase !== 'playing'; i++) G.update(1 / 60);
+  return G.state;
+}
+
 test('G1 effect rects exist on the atlas (no sheet tag, verified coords)', () => {
   const A = loadModules(['js/games/neonvortex/sprites.js']).SY.nvSprites.atlas;
   const want = {
@@ -17,4 +26,14 @@ test('G1 effect rects exist on the atlas (no sheet tag, verified coords)', () =>
     assert.equal(A[k].sheet, undefined, `${k} stays on the atlas (no sheet tag)`);
     assert.deepEqual({ x: A[k].x, y: A[k].y, w: A[k].w, h: A[k].h }, r, `${k} rect`);
   }
+});
+
+test('a destroyed crate emits a warm fxBurstSm flash', () => {
+  const G = boot().SY.nvGame; const s = play(G);
+  s.crates = [{ kind: 'crate', x: 480, y: 300, r: 20, hp: 1, maxHp: 3, flash: 0, phase: 0 }];
+  s.rocks = []; s.mines = []; s.boss = null; s.turrets = []; s.foes = []; s.bullets = []; s.blasts = [];
+  s.bullets.push({ x: 480, y: 300, vx: 0, vy: 0, life: 0.5 });
+  G.update(1 / 60);
+  assert.equal(s.crates.length, 0, 'crate destroyed');
+  assert.ok(s.blasts.some((b) => b.key === 'fxBurstSm'), 'crate break uses the small warm burst');
 });

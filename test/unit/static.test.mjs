@@ -339,7 +339,7 @@ test('big kills spawn an atlas burst-sprite explosion flash (FX polish)', () => 
   assert.ok(/blasts: \[\]/.test(game), 'state seeds a blasts array');
   const render = read(`${NV}/render.js`);
   assert.ok(/s\.blasts/.test(render), 'render iterates blasts');
-  assert.ok(/SP\.draw\(ctx, 'burst'/.test(render), 'blasts blit the atlas burst sprite');
+  assert.ok(/SP\.draw\(ctx, bl\.key \|\| 'burst'/.test(render), 'blasts blit the atlas burst sprite (key-routed)');
 });
 
 test('crystals use context gem variants (surge amber, boss-drop purple)', () => {
