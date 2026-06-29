@@ -407,6 +407,10 @@
   function spawnDebris(s, x, y) {
     s.debris.push({ x, y, life: 1, rot: (x * 0.3 + y * 0.7) % (Math.PI * 2) });
   }
+  // directional slash on a charger dash (cosmetic; angle from the dash vector)
+  function spawnSlash(s, x, y, angle) {
+    s.slashes.push({ x, y, angle, life: 1 });
+  }
   function floatText(s, x, y, text, color) {
     s.floats.push({ x, y, text, color, life: 1 });
   }
@@ -451,7 +455,7 @@
       s.crystals.push({ x, y, vx: Math.cos(a) * 120, vy: Math.sin(a) * 120, r: 7, phase: s.rng() * 6 });
     }
   }
-  const foeApi = { hurtPlayer, addScore, burst, wave, floatText, dropCrystals, blast };
+  const foeApi = { hurtPlayer, addScore, burst, wave, floatText, dropCrystals, blast, spawnSlash };
   const eliteApi = { hurtPlayer, addScore, spawnPow, spawnLoot, burst, wave, blast, floatText, spawnWarp };
 
   // ---------- player damage ----------
@@ -1185,6 +1189,7 @@
     }
     for (let i = s.warps.length - 1; i >= 0; i--) { const w = s.warps[i]; w.life -= dt * 1.4; if (w.life <= 0) s.warps.splice(i, 1); }
     for (let i = s.debris.length - 1; i >= 0; i--) { const d = s.debris[i]; d.life -= dt * 1.6; if (d.life <= 0) s.debris.splice(i, 1); }
+    for (let i = s.slashes.length - 1; i >= 0; i--) { const sl = s.slashes[i]; sl.life -= dt * 3.0; if (sl.life <= 0) s.slashes.splice(i, 1); }
     if (s.shake > 0) s.shake = Math.max(0, s.shake - dt * 26);
   }
 

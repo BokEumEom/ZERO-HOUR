@@ -55,3 +55,13 @@ test('a destroyed crate scatters debris', () => {
   G.update(1 / 60);
   assert.ok(s.debris.length >= 1, 'crate break scattered debris');
 });
+
+test('a charger entering its dash emits a directional slash', () => {
+  const G = boot().SY.nvGame; const s = play(G);
+  s.boss = null; s.bullets = []; s.slashes = [];
+  // a charger one frame from committing to its dash
+  s.foes = [{ kind: 'charger', x: 480, y: 200, vx: 0, vy: 0, r: 18, hp: 2, maxHp: 2, flash: 0, phase: 0, state: 'lock', stateT: 0.001, dirX: 0, dirY: 1 }];
+  G.update(1 / 60);
+  assert.equal(s.foes[0].state, 'dash', 'charger entered dash');
+  assert.ok(s.slashes.length >= 1, 'a slash was emitted on dash entry');
+});

@@ -619,6 +619,15 @@
       ctx.restore();
     }
 
+    // directional slashes (charger dash, atlas, additive)
+    for (const sl of s.slashes) {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, sl.life);
+      ctx.globalCompositeOperation = 'lighter';
+      SP.draw(ctx, 'fxSwoosh', sl.x, sl.y, 70, sl.angle);
+      ctx.restore();
+    }
+
     // player bullets (teal laser sprite, oriented along travel)
     ctx.shadowBlur = 0;
     for (const b of s.bullets) {
