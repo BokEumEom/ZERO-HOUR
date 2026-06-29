@@ -4279,6 +4279,19 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   uiSheet.onload = () => { uiReady = true; };
   const uiDecoded = () => uiReady || (uiSheet.complete && uiSheet.naturalWidth > 0);
   uiSheet.src = 'assets/ui-kit.png';
+
+  // ---- elements sheet: a crisper second gameplay kit (assets/sprite-elements.png).
+  // A subset of keys in `A` carry `sheet: 'el'` and are blitted from here instead of
+  // the atlas. Same decode guard as the atlas (covers the standalone case).
+  const gpSheet = new Image();
+  let gpReady = false;
+  gpSheet.onload = () => { gpReady = true; };
+  const gpDecoded = () => gpReady || (gpSheet.complete && gpSheet.naturalWidth > 0);
+  gpSheet.src = 'assets/sprite-elements.png?v=1';
+  // Resolve the backing sheet / decode-state for a rect (atlas unless tagged 'el').
+  const sheetFor = (r) => (r.sheet === 'el' ? gpSheet : sheet);
+  const decodedFor = (r) => (r.sheet === 'el' ? gpDecoded() : decoded());
+
   const UI = {
     reticle: { x: 1129, y: 632,  w: 67,  h: 63 },  // cyan circular target reticle
     bWarning:{ x: 234,  y: 931,  w: 210, h: 70 },  // "WARNING" banner (surge telegraph)
@@ -4305,14 +4318,14 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     boss:        { x: 748,  y: 552, w: 74,  h: 80  }, // Core Warden — pink mechanical core
     enemyBig:    { x: 900,  y: 32,  w: 112, h: 108 }, // red turret-drone (rock)
     enemyMid:    { x: 1022, y: 48,  w: 90,  h: 76  },
-    enemySmall:  { x: 1124, y: 62,  w: 68,  h: 60  }, // round red orb-eye (mine)
-    crystalTeal: { x: 216,  y: 734, w: 40,  h: 64  }, // collectible crystal (normal)
-    crystalAmber:{ x: 400,  y: 730, w: 46,  h: 64  }, // amber gem — surge (HEAT) crystals
+    enemySmall:  { x: 1320, y: 174, w: 100, h: 86,  sheet: 'el' }, // crisp spiked orb (mine) — elements sheet
+    crystalTeal: { x: 875,  y: 565, w: 98,  h: 187, sheet: 'el' }, // collectible crystal (normal) — elements sheet
+    crystalAmber:{ x: 872,  y: 787, w: 99,  h: 187, sheet: 'el' }, // amber gem — surge (HEAT) crystals — elements sheet
     crystalBoss: { x: 758,  y: 701, w: 46,  h: 89  }, // purple prize gem — boss-kill drops
-    bulletTeal:  { x: 872,  y: 270, w: 42,  h: 120 }, // player shot (cyan energy bolt)
-    bulletPink:  { x: 964,  y: 274, w: 50,  h: 114 }, // enemy/boss shot (red missile)
+    bulletTeal:  { x: 60,   y: 537, w: 26,  h: 102, sheet: 'el' }, // player shot (cyan bolt) — elements sheet
+    bulletPink:  { x: 277,  y: 541, w: 21,  h: 84,  sheet: 'el' }, // enemy/boss shot (red bolt) — elements sheet
     beam:        { x: 1152, y: 274, w: 52,  h: 114 }, // boss beam column
-    burst:       { x: 1224, y: 278, w: 98,  h: 90  }, // destruction explosion
+    burst:       { x: 82,   y: 810, w: 273, h: 223, sheet: 'el' }, // destruction explosion — elements sheet
     shielded:    { x: 1050, y: 826, w: 142, h: 142 }, // SHIELDED frame (hull + hex bubble)
     boosted:     { x: 907,  y: 827, w: 109, h: 133 }, // BOOSTED frame (large triple flames)
     damaged:     { x: 1209, y: 833, w: 122, h: 126 }, // DAMAGED frame (cracks + sparks)
@@ -4342,7 +4355,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     oneUp:       { x: 640,  y: 46,  w: 58,  h: 70  }, // 1UP heart — rare extra-life pickup (section 1)
     plasmaOrb:   { x: 1057, y: 293, w: 60,  h: 66  }, // heavy plasma orb (boss enemy projectile, section 4)
     drone2:      { x: 1326, y: 1023, w: 84, h: 44 }, // 2nd companion drone variant (winged core, section 8)
-    crystalLarge:{ x: 36,   y: 706, w: 44, h: 95 }, // rare large value gem (section 7 — largest teal crystal)
+    crystalLarge:{ x: 875,  y: 565, w: 98, h: 187, sheet: 'el' }, // rare large gem — same crop as crystalTeal; size/glow diff is caller-driven (render.js c.big branch)
     decoPanel:   { x: 56,   y: 547, w: 75, h: 39 }, // section-5 dual-hex module panel (ambient decor)
     decoNode:    { x: 566,  y: 530, w: 56, h: 52 }, // section-5 glowing hex node (ambient decor)
     decoReadout: { x: 624,  y: 529, w: 40, h: 45 }, // section-5 readout lines panel (ambient decor)
@@ -4388,6 +4401,9 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // colour so they never read as the player. Build-once offscreen cache (same
   // recipe as playerCanvas): base sprite -> source-atop tint -> multiply shade
   // -> re-mask to the sprite's alpha. Cosmetic only.
+  // INVARIANT: FOE_TINTS keys must stay atlas-only (no sheet:'el'). This cache reads
+  // the atlas `sheet`/`decoded()` directly; tag an 'el' foe and switch to sheetFor/
+  // decodedFor first, or the tint blits the wrong sheet silently.
   const FOE_TINTS = {
     foeCharger: { tint: 'rgba(255, 70, 90, 0.62)', shade: 'rgba(150, 20, 40, 0.4)' },
   };
@@ -4419,6 +4435,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // Build (once) a native-size offscreen canvas of frame `frameKey` re-tinted
   // for `id`. Returns the canvas, or null for `neon` / before the atlas decodes.
   // Cache is nested (playerCache[frameKey][id]) so hot-path hits allocate nothing.
+  // INVARIANT: HULL_FRAMES keys stay atlas-only — this reads the atlas `sheet` directly.
   function playerCanvas(frameKey, id) {
     const def = PAINTS[id];
     if (!def) return null;            // neon (or unknown) -> atlas sprite
@@ -4490,9 +4507,9 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // non-neon coating, blits the CACHED tinted canvas (built once, never rebuilt
   // per frame) instead of the atlas — same scale/rotate math.
   function draw(ctx, key, x, y, size, rot) {
-    if (!decoded()) return false;
     const r = A[key];
-    if (!r) return false;
+    if (!r || !decodedFor(r)) return false;
+    const img = sheetFor(r);
     const sc = size / Math.max(r.w, r.h);
     const dw = r.w * sc, dh = r.h * sc;
     const tinted = HULL_FRAMES.has(key) ? playerCanvas(key, paint) : (FOE_TINTS[key] ? foeTintCanvas(key) : null);
@@ -4501,12 +4518,12 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       ctx.translate(x, y);
       ctx.rotate(rot);
       if (tinted) ctx.drawImage(tinted, -dw / 2, -dh / 2, dw, dh);
-      else ctx.drawImage(sheet, r.x, r.y, r.w, r.h, -dw / 2, -dh / 2, dw, dh);
+      else ctx.drawImage(img, r.x, r.y, r.w, r.h, -dw / 2, -dh / 2, dw, dh);
       ctx.restore();
     } else if (tinted) {
       ctx.drawImage(tinted, x - dw / 2, y - dh / 2, dw, dh);
     } else {
-      ctx.drawImage(sheet, r.x, r.y, r.w, r.h, x - dw / 2, y - dh / 2, dw, dh);
+      ctx.drawImage(img, r.x, r.y, r.w, r.h, x - dw / 2, y - dh / 2, dw, dh);
     }
     return true;
   }
@@ -4514,18 +4531,18 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // Draw the player sprite stretched to an explicit width/height (the hull is
   // taller than wide), centred at (x,y), pointing up; optional rotation.
   function drawFit(ctx, key, x, y, w, h, rot) {
-    if (!decoded()) return false;
     const r = A[key];
-    if (!r) return false;
-    // note: drawFit blits the raw atlas (no paint tint) — not for hull frames.
+    if (!r || !decodedFor(r)) return false;
+    const img = sheetFor(r);
+    // note: drawFit blits the raw sheet (no paint tint) — not for hull frames.
     if (rot) {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(rot);
-      ctx.drawImage(sheet, r.x, r.y, r.w, r.h, -w / 2, -h / 2, w, h);
+      ctx.drawImage(img, r.x, r.y, r.w, r.h, -w / 2, -h / 2, w, h);
       ctx.restore();
     } else {
-      ctx.drawImage(sheet, r.x, r.y, r.w, r.h, x - w / 2, y - h / 2, w, h);
+      ctx.drawImage(img, r.x, r.y, r.w, r.h, x - w / 2, y - h / 2, w, h);
     }
     return true;
   }
@@ -4533,6 +4550,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   // ---- power-up pickup icons -------------------------------------------------
   // Each badge is tinted to its power-up's color once per (type,color) and
   // cached (nested object key — no per-frame string allocation on the hot path).
+  // INVARIANT: POWER_ICONS keys stay atlas-only — this reads the atlas `sheet` directly.
   const iconCache = {}; // iconCache[type][color] -> { canvas, builtReady }
   function powerIconCanvas(type, color) {
     const r = POWER_ICONS[type];
