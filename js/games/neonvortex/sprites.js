@@ -114,6 +114,13 @@
     bossCore:    { x: 1217, y: 538, w: 90, h: 87 }, // boss orbital support core (section 6)
     tokenData:   { x: 1004, y: 692, w: 89, h: 102 }, // DATA salvage — circuit card (section 7 reward)
     tokenCore:   { x: 1145, y: 708, w: 73, h: 84 },  // DATA salvage — data disc/keycard (section 7 reward)
+    // G1 effects (section-4 WEAPONS/EFFECTS) — cosmetic one-shot flashes (render.js)
+    fxWarpRing:  { x: 745,  y: 398, w: 151, h: 98 },  // boss/elite warp-in ring
+    fxBurstLg:   { x: 1241, y: 396, w: 136, h: 101 }, // large orange explosion
+    fxBurstMd:   { x: 1088, y: 414, w: 102, h: 79 },  // medium orange explosion
+    fxBurstSm:   { x: 1236, y: 288, w: 81,  h: 73 },  // small orange burst
+    fxSwoosh:    { x: 1335, y: 295, w: 75,  h: 78 },  // directional slash (charger dash)
+    fxDebris:    { x: 954,  y: 422, w: 84,  h: 62 },  // destruction debris
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
