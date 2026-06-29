@@ -53,3 +53,18 @@ test('re-picking DRONE extends the timer without adding more drones', () => {
   assert.equal(s.drones.length, 2, 'still two drones');
   assert.ok(s.fx.DRONE > 11.9, 'timer extended (3 + 9)');
 });
+
+test('section-8 drone variants exist on the atlas (droneV3..droneV6)', () => {
+  const A = loadModules(['js/games/neonvortex/sprites.js']).SY.nvSprites.atlas;
+  const want = {
+    droneV3: { x: 44, y: 1019, w: 56, h: 51 },
+    droneV4: { x: 166, y: 1022, w: 64, h: 43 },
+    droneV5: { x: 660, y: 1023, w: 80, h: 45 },
+    droneV6: { x: 922, y: 1017, w: 89, h: 54 },
+  };
+  for (const [k, r] of Object.entries(want)) {
+    assert.ok(A[k], `${k} rect exists`);
+    assert.equal(A[k].sheet, undefined, `${k} stays on the atlas (no sheet tag)`);
+    assert.deepEqual({ x: A[k].x, y: A[k].y, w: A[k].w, h: A[k].h }, r, `${k} rect`);
+  }
+});
