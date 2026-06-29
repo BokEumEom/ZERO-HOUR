@@ -718,7 +718,7 @@
       if (dr.fireCd <= 0) {
         const target = nearestTarget(s, dr.x, dr.y, 360 * 360);
         if (target) {
-          dr.fireCd = 0.55;
+          dr.fireCd = DRONE_FIRE_PERIOD; // DPS-neutral (see spawnDrones)
           const a = Math.atan2(target.y - dr.y, target.x - dr.x);
           s.bullets.push({ x: dr.x, y: dr.y, vx: Math.cos(a) * 480, vy: Math.sin(a) * 480, life: 0.7 });
           SY.audio.shoot();
@@ -1080,10 +1080,18 @@
     SY.audio.explode();
   }
 
-  // two companion wingman drones, evenly spaced (deterministic — no rng)
+  // a six-wingman squadron, evenly spaced (deterministic — no rng). Per-drone fire rate
+  // is tuned (DRONE_FIRE_PERIOD) so total DPS matches the old two-drone setup.
+  const SQUADRON_SIZE = 6;
+  const DRONE_FIRE_PERIOD = 1.65; // per-drone fire period: 6 @ 1.65s == old 2 @ 0.55s (DPS-neutral)
   function spawnDrones(s) {
-    for (let i = 0; i < 2; i++) {
-      s.drones.push({ angle: i * Math.PI, orbitR: 40, fireCd: 0.3 + i * 0.2, x: s.player.x, y: s.player.y, variant: i });
+    for (let i = 0; i < SQUADRON_SIZE; i++) {
+      s.drones.push({
+        angle: i * (Math.PI * 2 / SQUADRON_SIZE),
+        orbitR: 46,
+        fireCd: DRONE_FIRE_PERIOD * i / SQUADRON_SIZE, // staggered first shots
+        x: s.player.x, y: s.player.y, variant: i,
+      });
     }
   }
 
