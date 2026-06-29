@@ -137,20 +137,25 @@ shell.js  requestAnimationFrame(loop):
 크롭으로 그린다. 디코드 전·실패 시 벡터 도형 폴백(핫패스 무할당). 도색
 (neon/stealth/solar)은 코팅별 오프스크린 캔버스 1회 프리캐시 — 시뮬·RNG 무관 코스메틱.
 
+**방향(2026-06-29): 모든 에셋을 다 활용한다(full utilization).** `sprites.js`의 `A`
+rect 테이블(~59키) + `POWER_ICONS` + `UI`가 두 게임 시트의 스프라이트를 코드에서
+참조한다. 남은 미사용 스프라이트는 `docs/plans/2026-06-29-full-asset-utilization-
+roadmap.md`의 작업 대상(이전의 "억지 회피 → 잔여 미사용 허용" 방침은 폐기). 데일리
+공정성(시드 RNG)은 별개 불변식으로 유지.
+
 | 파일 | 용도 | 코드 사용 |
 |---|---|---|
-| `sprite-atlas.png` | 게임 스프라이트 아틀라스 (엔티티 12키 + 파워업 배지 7종 렌더) | ✅ `sprites.js` + `index.html` preload |
-| `sprite-reference.png` | 라벨 스프라이트 설계 참조 시트 | ✗ 디자인 참조 |
-| `sprite-elements.png` | 낱개 스프라이트 요소 렌더 | ✗ 디자인 참조 |
-| `ui-kit.png` | HUD/UI 목업 키트 | ✗ 디자인 참조 |
-| `keyart.png` | 키아트(히어로 배너) | ✗ 디자인 참조 |
+| `sprite-atlas.png` | 메인 게임 아틀라스 (8섹션: 파워업·적·월드·웨폰·환경·보스·통화·기체/드론) | ✅ `sprites.js` `A`/`POWER_ICONS` + preload |
+| `sprite-elements.png` | 크리스털·총알·폭발 등 정밀 게임 요소 (rect에 `sheet:'el'` 태그) | ✅ `sprites.js` `gpSheet`(`draw`/`drawFit` 라우팅) |
+| `ui-kit.png` | 네온 HUD 키트 — 아레나 위 레티클·배너만 사용 (HUD 크롬 부분은 DOM이라 미사용) | ✅ `sprites.js` `UI`/`drawUi`(`lighter` 블렌드) |
+| `sprite-reference.png` | 라벨 스프라이트 설계 참조 시트(좌표 문서) | ✗ 설계 참조(패킹 불가) |
+| `keyart.png` | 키아트(히어로 배너) | ✗ 마케팅 자산 |
 
 함선 상태 프레임 `shielded`·`boosted`·`damaged`는 `render.drawPlayer`가 상태
-(실드/저체력/부스트)에 따라 선택해 사용(`SY.nvSprites.pickHullFrame`). 터렛 적은
-`enemyMid`(빨강 중형 드론)를 사용한다. 미사용 키 2개(`beam`·`burst`) — 보스 빔·정적
-폭발은 대응 메커니즘 부재로
-벡터/파티클 유지. 파워업 7종은 섹션1 "POWER-UPS/PICKUPS" 배지를 색 틴트해 사용
-(`SY.nvSprites.drawPowerIcon`). 참조 이미지 4개는 코드 미로드(설계 자료).
+(실드/저체력/부스트)에 따라 선택해 사용. 터렛=`enemyMid`, 락=`enemyBig`,
+지뢰=`enemySmall`(elements 시트). `beam`은 엘리트 빔 머즐, `burst`(elements)는 파괴
+폭발로 사용 중. 파워업 배지는 섹션1 "POWER-UPS/PICKUPS"를 색 틴트해 사용
+(`SY.nvSprites.drawPowerIcon`).
 
 ---
 
