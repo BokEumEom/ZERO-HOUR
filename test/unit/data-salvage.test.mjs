@@ -51,3 +51,13 @@ test('crates and canisters never drop data/core salvage', () => {
 test('breaking a console yields exactly one guaranteed data token', () => {
   assert.deepEqual(dropTiers('console', 0.5), ['data'], 'console drops one data token');
 });
+
+test('section-7 salvage rects exist on the atlas (tokenData/tokenCore)', () => {
+  const A = loadModules(['js/games/neonvortex/sprites.js']).SY.nvSprites.atlas;
+  const want = { tokenData: { x: 1004, y: 692, w: 89, h: 102 }, tokenCore: { x: 1145, y: 708, w: 73, h: 84 } };
+  for (const [k, r] of Object.entries(want)) {
+    assert.ok(A[k], `${k} rect exists`);
+    assert.equal(A[k].sheet, undefined, `${k} stays on the atlas (no sheet tag)`);
+    assert.deepEqual({ x: A[k].x, y: A[k].y, w: A[k].w, h: A[k].h }, r, `${k} rect`);
+  }
+});
