@@ -206,11 +206,12 @@ test('elite sentinel (E4a) is wired', () => {
   assert.ok(/eliteCore:\s*\{/.test(spr), 'eliteCore rect');
 });
 
-test('companion drones use two distinct atlas variants', () => {
+test('companion drones use distinct atlas variants per squadron slot', () => {
   const sprD = read(`${NV}/sprites.js`);
   assert.ok(/drone2:\s*\{/.test(sprD), 'drone2 rect defined');
+  assert.ok(/droneV6:\s*\{/.test(sprD), 'squadron variant rects defined');
   const renderD = read(`${NV}/render.js`);
-  assert.ok(/dr\.variant \? 'drone2' : 'drone'/.test(renderD), 'drawDrone picks the variant sprite');
+  assert.ok(/DRONE_VARIANT_KEYS/.test(renderD), 'drawDrone maps variant index to a distinct sprite');
 });
 
 test('boss heavy plasma orb (atlas orb projectile) is wired', () => {

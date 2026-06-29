@@ -21,11 +21,12 @@ test('DRONE is an eighth power-up type with a duration', () => {
   assert.equal(G.POWER_DURATION.DRONE, 9);
 });
 
-test('the DRONE power-up spawns two orbiting drones and arms the timer', () => {
+test('the DRONE power-up deploys a six-wingman squadron and arms the timer', () => {
   const G = boot().SY.nvGame; const s = play(G);
   assert.equal(s.drones.length, 0);
   pickUp(G, s, 'DRONE');
-  assert.equal(s.drones.length, 2, 'two drones deploy');
+  assert.equal(s.drones.length, 6, 'six wingmen deploy');
+  assert.equal(new Set(s.drones.map((d) => d.variant)).size, 6, 'six distinct variants');
   assert.ok(s.fx.DRONE > 8.9, 'drone timer armed (~9)');
 });
 
@@ -36,6 +37,7 @@ test('drones auto-fire at a nearby enemy into the shared bullet pool', () => {
   s.rocks = []; s.boss = null; s.turrets = []; s.foes = []; s.crates = []; s.bullets = [];
   G.update(1 / 60);
   assert.ok(s.bullets.length > 0, 'a drone bullet was emitted at the enemy');
+  assert.equal(s.drones[0].fireCd, 1.65, 'fire cooldown resets to the DPS-neutral 1.65s');
 });
 
 test('drones are removed when the timer expires', () => {
@@ -50,6 +52,21 @@ test('re-picking DRONE extends the timer without adding more drones', () => {
   pickUp(G, s, 'DRONE');
   s.fx.DRONE = 3;
   pickUp(G, s, 'DRONE');
-  assert.equal(s.drones.length, 2, 'still two drones');
+  assert.equal(s.drones.length, 6, 'still one squad of six');
   assert.ok(s.fx.DRONE > 11.9, 'timer extended (3 + 9)');
+});
+
+test('section-8 drone variants exist on the atlas (droneV3..droneV6)', () => {
+  const A = loadModules(['js/games/neonvortex/sprites.js']).SY.nvSprites.atlas;
+  const want = {
+    droneV3: { x: 44, y: 1019, w: 56, h: 51 },
+    droneV4: { x: 166, y: 1022, w: 64, h: 43 },
+    droneV5: { x: 660, y: 1023, w: 80, h: 45 },
+    droneV6: { x: 922, y: 1017, w: 89, h: 54 },
+  };
+  for (const [k, r] of Object.entries(want)) {
+    assert.ok(A[k], `${k} rect exists`);
+    assert.equal(A[k].sheet, undefined, `${k} stays on the atlas (no sheet tag)`);
+    assert.deepEqual({ x: A[k].x, y: A[k].y, w: A[k].w, h: A[k].h }, r, `${k} rect`);
+  }
 });

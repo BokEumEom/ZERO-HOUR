@@ -325,9 +325,12 @@
     }
   }
 
+  // companion wingmen: each squadron slot uses a distinct atlas sprite by variant index.
+  // One entry per SQUADRON_SIZE slot (game.js) — extend both together if the squadron grows.
+  const DRONE_VARIANT_KEYS = ['drone', 'drone2', 'droneV3', 'droneV4', 'droneV5', 'droneV6'];
   function drawDrone(ctx, dr) {
-    const key = dr.variant ? 'drone2' : 'drone'; // two companions use distinct atlas art
-    if (!SP.draw(ctx, key, dr.x, dr.y, dr.variant ? 30 : 26, dr.angle * 0.5)) {
+    const key = DRONE_VARIANT_KEYS[dr.variant] || 'drone'; // squadron slot → distinct sprite
+    if (!SP.draw(ctx, key, dr.x, dr.y, 28, dr.angle * 0.5)) {
       ctx.save();
       ctx.fillStyle = '#5ad1ff'; ctx.shadowColor = '#5ad1ff'; ctx.shadowBlur = 8;
       ctx.beginPath(); ctx.arc(dr.x, dr.y, 6, 0, Math.PI * 2); ctx.fill();
