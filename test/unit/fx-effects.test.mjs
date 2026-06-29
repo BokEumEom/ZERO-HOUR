@@ -46,3 +46,12 @@ test('the boss entrance spawns a warp-in ring', () => {
   assert.ok(s.boss, 'boss spawned');
   assert.ok(s.warps.length >= 1, 'a warp ring was emitted on entrance');
 });
+
+test('a destroyed crate scatters debris', () => {
+  const G = boot().SY.nvGame; const s = play(G);
+  s.crates = [{ kind: 'crate', x: 480, y: 300, r: 20, hp: 1, maxHp: 3, flash: 0, phase: 0 }];
+  s.rocks = []; s.mines = []; s.boss = null; s.turrets = []; s.foes = []; s.bullets = []; s.debris = [];
+  s.bullets.push({ x: 480, y: 300, vx: 0, vy: 0, life: 0.5 });
+  G.update(1 / 60);
+  assert.ok(s.debris.length >= 1, 'crate break scattered debris');
+});

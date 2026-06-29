@@ -403,6 +403,10 @@
   function spawnWarp(s, x, y, maxSize) {
     s.warps.push({ x, y, maxSize, life: 1, rot: (x * 0.5 + y * 0.5) % (Math.PI * 2) });
   }
+  // one-shot debris flash on a crate/rock break (cosmetic; position-derived rot)
+  function spawnDebris(s, x, y) {
+    s.debris.push({ x, y, life: 1, rot: (x * 0.3 + y * 0.7) % (Math.PI * 2) });
+  }
   function floatText(s, x, y, text, color) {
     s.floats.push({ x, y, text, color, life: 1 });
   }
@@ -955,6 +959,7 @@
           burst(s, b.x, b.y, '#9ff5e8', 4, 110, 2);
           if (r.hp <= 0) {
             s.rocks.splice(j, 1);
+            spawnDebris(s, r.x, r.y);
             addScore(s, 40, r.x, r.y, undefined, 'destroy');
             burst(s, r.x, r.y, '#2de2c6', 18, 220, 3);
             blast(s, r.x, r.y, 64, 'fxBurstSm');
@@ -1008,6 +1013,7 @@
           burst(s, b.x, b.y, '#ffd9a8', 4, 110, 2);
           if (cr.hp <= 0) {
             s.crates.splice(j, 1);
+            spawnDebris(s, cr.x, cr.y);
             if (cr.kind === 'console') {
               addScore(s, 30, cr.x, cr.y, undefined, 'destroy');
               blast(s, cr.x, cr.y, 64, 'fxBurstSm');
@@ -1178,6 +1184,7 @@
       if (bl.life <= 0) s.blasts.splice(i, 1);
     }
     for (let i = s.warps.length - 1; i >= 0; i--) { const w = s.warps[i]; w.life -= dt * 1.4; if (w.life <= 0) s.warps.splice(i, 1); }
+    for (let i = s.debris.length - 1; i >= 0; i--) { const d = s.debris[i]; d.life -= dt * 1.6; if (d.life <= 0) s.debris.splice(i, 1); }
     if (s.shake > 0) s.shake = Math.max(0, s.shake - dt * 26);
   }
 

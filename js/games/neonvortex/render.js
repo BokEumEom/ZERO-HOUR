@@ -610,6 +610,15 @@
       ctx.restore();
     }
 
+    // destruction debris (atlas, normal alpha, expanding + fading)
+    for (const d of s.debris) {
+      const grow = 70 * (0.7 + (1 - d.life) * 0.5);
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, d.life);
+      SP.draw(ctx, 'fxDebris', d.x, d.y, grow, d.rot);
+      ctx.restore();
+    }
+
     // player bullets (teal laser sprite, oriented along travel)
     ctx.shadowBlur = 0;
     for (const b of s.bullets) {
