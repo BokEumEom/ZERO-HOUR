@@ -227,7 +227,7 @@
   }
 
   // ---- loot economy (E1) ----
-  const TOKEN_VALUE = { coin: 15, teal: 25, amber: 50, purple: 100 };
+  const TOKEN_VALUE = { coin: 15, teal: 25, amber: 50, purple: 100, data: 150, core: 250 };
   const CRATE_HP = { crate: 4, canister: 3, chest: 6, console: 5 };
   function spawnCrate(s) {
     // chest is a rare jackpot container; console is a bonus objective (drops a
@@ -237,17 +237,24 @@
     const hp = CRATE_HP[kind];
     s.crates.push({ kind, x: 90 + s.rng() * (W - 180), y: 80 + s.rng() * (H - 200), r: kind === 'chest' ? 24 : 20, hp, maxHp: hp, flash: 0, phase: s.rng() * 6 });
   }
+  // Spawn one reward token of `tier` at (x,y) with seeded scatter. Premium DATA
+  // SALVAGE (data/core) reads larger. rng order: angle, speed, phase.
+  function pushToken(s, x, y, tier) {
+    const a = s.rng() * Math.PI * 2, sp = 60 + s.rng() * 90;
+    const r = tier === 'data' || tier === 'core' ? 10 : 8;
+    s.tokens.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r, phase: s.rng() * 6, tier });
+  }
   function spawnLoot(s, x, y, kind) {
     const jackpot = kind === 'chest';
     const n = jackpot ? 7 + Math.floor(s.rng() * 4) : 3 + Math.floor(s.rng() * 3); // chest 7-10, else 3-5
     for (let i = 0; i < n; i++) {
       const roll = s.rng();
-      // chest skews toward higher-value gems; crates skew toward coins
+      // chest: core 5%, data 12%, coin 20%, teal 21%, amber 25%, purple 17%.
+      // crates skew to coins and NEVER drop DATA SALVAGE (core/data).
       const tier = jackpot
-        ? (roll < 0.25 ? 'coin' : roll < 0.55 ? 'teal' : roll < 0.85 ? 'amber' : 'purple')
+        ? (roll < 0.05 ? 'core' : roll < 0.17 ? 'data' : roll < 0.37 ? 'coin' : roll < 0.58 ? 'teal' : roll < 0.83 ? 'amber' : 'purple')
         : (roll < 0.6 ? 'coin' : roll < 0.82 ? 'teal' : roll < 0.95 ? 'amber' : 'purple');
-      const a = s.rng() * Math.PI * 2, sp = 60 + s.rng() * 90;
-      s.tokens.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: 8, phase: s.rng() * 6, tier });
+      pushToken(s, x, y, tier);
     }
   }
 
@@ -986,6 +993,7 @@
               addScore(s, 30, cr.x, cr.y, undefined, 'destroy');
               blast(s, cr.x, cr.y, 64);
               spawnPow(s, cr.x, cr.y); // bonus objective — guaranteed power-up
+              pushToken(s, cr.x, cr.y, 'data'); // ...plus one guaranteed DATA salvage token (section-7 card)
             } else {
               addScore(s, cr.kind === 'chest' ? 40 : 20, cr.x, cr.y, undefined, 'destroy');
               blast(s, cr.x, cr.y, cr.kind === 'chest' ? 120 : 58);
