@@ -413,6 +413,17 @@ test('laser fence (F5 hazard) is wired', () => {
   assert.ok(/function drawFence/.test(render) && /s\.fences/.test(render), 'fence drawn');
 });
 
+test('G1 effects are wired (game spawns + render passes), rng-free', () => {
+  const game = read(`${NV}/game.js`);
+  const render = read(`${NV}/render.js`);
+  for (const sym of ['spawnWarp', 'spawnSlash', 'spawnDebris', 'fxBurstLg', 'fxBurstMd']) {
+    assert.ok(game.includes(sym), `game.js wires ${sym}`);
+  }
+  for (const key of ['fxWarpRing', 'fxSwoosh', 'fxDebris']) {
+    assert.ok(render.includes(key), `render.js draws ${key}`);
+  }
+});
+
 test('INTEL data pickup (F7) is wired', () => {
   const game = read(`${NV}/game.js`);
   assert.ok(/function spawnIntel/.test(game) && /'INTEL'/.test(game), 'INTEL spawn + type');
