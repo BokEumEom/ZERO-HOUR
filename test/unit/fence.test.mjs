@@ -61,3 +61,13 @@ test('same daily seed -> identical fence layout (fairness)', () => {
   assert.equal(a, run(), 'identical fence trajectory for the same seed');
   assert.ok(a.length > 0, 'at least one fence spawned in 40s (test is not trivially empty)');
 });
+
+test('fence atlas sprites exist (hazardNode/laserColumn)', () => {
+  const A = loadModules(['js/games/neonvortex/sprites.js']).SY.nvSprites.atlas;
+  const want = { hazardNode: { x: 335, y: 412, w: 60, h: 66 }, laserColumn: { x: 989, y: 150, w: 26, h: 87 } };
+  for (const [k, r] of Object.entries(want)) {
+    assert.ok(A[k], `${k} rect exists`);
+    assert.equal(A[k].sheet, undefined, `${k} stays on the atlas`);
+    assert.deepEqual({ x: A[k].x, y: A[k].y, w: A[k].w, h: A[k].h }, r, `${k} rect`);
+  }
+});

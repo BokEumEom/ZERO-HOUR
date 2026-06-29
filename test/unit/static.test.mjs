@@ -407,3 +407,10 @@ test('shell.js scales the canvas backing store by devicePixelRatio', () => {
   assert.match(src, /canvas\.style\.width = SW \+ /, 'CSS width pinned to logical size');
   assert.match(src, /ctx\.setTransform\(dpr, 0, 0, dpr, 0, 0\)/, 'context maps logical coords to backing store');
 });
+
+test('laser fence (F5 hazard) is wired', () => {
+  const game = read(`${NV}/game.js`);
+  assert.ok(/s\.fences/.test(game) && /function spawnFence/.test(game), 'fence state + spawn helper');
+  const render = read(`${NV}/render.js`);
+  assert.ok(/function drawFence/.test(render) && /s\.fences/.test(render), 'fence drawn');
+});
