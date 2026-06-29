@@ -4355,6 +4355,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     oneUp:       { x: 640,  y: 46,  w: 58,  h: 70  }, // 1UP heart — rare extra-life pickup (section 1)
     plasmaOrb:   { x: 1057, y: 293, w: 60,  h: 66  }, // heavy plasma orb (boss enemy projectile, section 4)
     drone2:      { x: 1326, y: 1023, w: 84, h: 44 }, // 2nd companion drone variant (winged core, section 8)
+    droneV3:     { x: 44,   y: 1019, w: 56, h: 51 }, // squadron wingman — spiked diamond (section 8)
+    droneV4:     { x: 166,  y: 1022, w: 64, h: 43 }, // squadron wingman — orbital ring (section 8)
+    droneV5:     { x: 660,  y: 1023, w: 80, h: 45 }, // squadron wingman — winged (section 8)
+    droneV6:     { x: 922,  y: 1017, w: 89, h: 54 }, // squadron wingman — feathered wings (section 8)
     crystalLarge:{ x: 875,  y: 565, w: 98, h: 187, sheet: 'el' }, // rare large gem — same crop as crystalTeal; size/glow diff is caller-driven (render.js c.big branch)
     decoPanel:   { x: 56,   y: 547, w: 75, h: 39 }, // section-5 dual-hex module panel (ambient decor)
     decoNode:    { x: 566,  y: 530, w: 56, h: 52 }, // section-5 glowing hex node (ambient decor)
@@ -5729,7 +5733,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       if (dr.fireCd <= 0) {
         const target = nearestTarget(s, dr.x, dr.y, 360 * 360);
         if (target) {
-          dr.fireCd = 0.55;
+          dr.fireCd = DRONE_FIRE_PERIOD; // DPS-neutral (see spawnDrones)
           const a = Math.atan2(target.y - dr.y, target.x - dr.x);
           s.bullets.push({ x: dr.x, y: dr.y, vx: Math.cos(a) * 480, vy: Math.sin(a) * 480, life: 0.7 });
           SY.audio.shoot();
@@ -6091,10 +6095,18 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     SY.audio.explode();
   }
 
-  // two companion wingman drones, evenly spaced (deterministic — no rng)
+  // a six-wingman squadron, evenly spaced (deterministic — no rng). Per-drone fire rate
+  // is tuned (DRONE_FIRE_PERIOD) so total DPS matches the old two-drone setup.
+  const SQUADRON_SIZE = 6;
+  const DRONE_FIRE_PERIOD = 1.65; // per-drone fire period: 6 @ 1.65s == old 2 @ 0.55s (DPS-neutral)
   function spawnDrones(s) {
-    for (let i = 0; i < 2; i++) {
-      s.drones.push({ angle: i * Math.PI, orbitR: 40, fireCd: 0.3 + i * 0.2, x: s.player.x, y: s.player.y, variant: i });
+    for (let i = 0; i < SQUADRON_SIZE; i++) {
+      s.drones.push({
+        angle: i * (Math.PI * 2 / SQUADRON_SIZE),
+        orbitR: 46,
+        fireCd: DRONE_FIRE_PERIOD * i / SQUADRON_SIZE, // staggered first shots
+        x: s.player.x, y: s.player.y, variant: i,
+      });
     }
   }
 
@@ -6501,9 +6513,11 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     }
   }
 
+  // companion wingmen: each squadron slot uses a distinct atlas sprite by variant index.
+  const DRONE_VARIANT_KEYS = ['drone', 'drone2', 'droneV3', 'droneV4', 'droneV5', 'droneV6'];
   function drawDrone(ctx, dr) {
-    const key = dr.variant ? 'drone2' : 'drone'; // two companions use distinct atlas art
-    if (!SP.draw(ctx, key, dr.x, dr.y, dr.variant ? 30 : 26, dr.angle * 0.5)) {
+    const key = DRONE_VARIANT_KEYS[dr.variant] || 'drone'; // squadron slot → distinct sprite
+    if (!SP.draw(ctx, key, dr.x, dr.y, 28, dr.angle * 0.5)) {
       ctx.save();
       ctx.fillStyle = '#5ad1ff'; ctx.shadowColor = '#5ad1ff'; ctx.shadowBlur = 8;
       ctx.beginPath(); ctx.arc(dr.x, dr.y, 6, 0, Math.PI * 2); ctx.fill();
