@@ -348,6 +348,39 @@
     }
   }
 
+  // ---- R2 sweeping hazard barrier ----
+  // warn: dashed orange pulse at the start edge; sweep: translucent orange fill band
+  // + hazardStripe tiles along the length axis (additive). Mirrors fence warn style.
+  function drawBarrier(ctx, ba) {
+    const horiz = ba.orient === 'h';
+    ctx.save();
+    if (ba.state === 'warn') {
+      ctx.globalAlpha = 0.3 + 0.3 * Math.sin(ba.phase * 4);
+      ctx.strokeStyle = '#ff9a28';
+      ctx.lineWidth = 3; ctx.setLineDash(BARRIER_DASH);
+      ctx.beginPath();
+      if (horiz) { ctx.moveTo(0, ba.pos); ctx.lineTo(W, ba.pos); }
+      else        { ctx.moveTo(ba.pos, 0); ctx.lineTo(ba.pos, H); }
+      ctx.stroke(); ctx.setLineDash([]);
+    } else { // sweep
+      const thick = ba.half * 2;
+      ctx.globalAlpha = 0.22 + 0.08 * Math.sin(ba.phase * 2);
+      ctx.fillStyle = '#ff8020';
+      if (horiz) ctx.fillRect(0, ba.pos - ba.half, W, thick);
+      else       ctx.fillRect(ba.pos - ba.half, 0, thick, H);
+      // hazardStripe tiles along the length axis (additive blend for neon glow)
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.55;
+      const step = 140;
+      if (horiz) {
+        for (let tx = step * 0.5; tx < W; tx += step) SP.draw(ctx, 'hazardStripe', tx, ba.pos, thick * 1.1, 0);
+      } else {
+        for (let ty = step * 0.5; ty < H; ty += step) SP.draw(ctx, 'hazardStripe', ba.pos, ty, thick * 1.1, Math.PI / 2);
+      }
+    }
+    ctx.restore();
+  }
+
   function drawPad(ctx, pd) {
     ctx.save(); // pad base ring (dim on cooldown)
     ctx.globalAlpha = pd.armed ? 1 : 0.4;
@@ -475,6 +508,7 @@
 
   const BEAM_DASH = [10, 8]; // hoisted so the telegraph dash doesn't alloc per frame
   const FLAIL_DASH = [10, 8]; // hoisted: flail warn-circle dash (no per-frame array alloc)
+  const BARRIER_DASH = [12, 8]; // hoisted: barrier warn-line dash (no per-frame array alloc)
   function drawBeamRay(ctx, x, y, a, len, w) {
     ctx.save(); ctx.translate(x, y); ctx.rotate(a);
     ctx.fillStyle = 'rgba(255,90,158,0.22)'; ctx.fillRect(0, -w, len, w * 2);
@@ -737,6 +771,7 @@
     for (const c of s.bossCores) drawBossCore(ctx, c, s.boss);
     for (const fc of s.fences) drawFence(ctx, fc);
     for (const fl of s.flails) drawFlail(ctx, fl);
+    for (const ba of s.barriers) drawBarrier(ctx, ba);
     drawPlayer(ctx, s);
     for (const dr of s.drones) drawDrone(ctx, dr);
 
