@@ -148,7 +148,7 @@
       score: 0, combo: 0, maxCombo: 0, comboT: 0,
       pace: [0], paceSec: 0,
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
-      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [], flails: [], pads: [], barriers: [], arcs: [],
+      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [], flails: [], pads: [], barriers: [], arcs: [], orbs: [],
       parts: [], waves: [], floats: [], blasts: [], warps: [], slashes: [], debris: [],
       boss: null, bossDown: false, bossWarnT: 0, bossCores: [],
       elite: null, eliteSpawned: false,
@@ -160,7 +160,7 @@
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
       heat: 0, heatMul: 1,
-      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, fence: 11, flail: 13, pad: 9, oneup: 16, bomb: 18, intel: 17, barrier: 15, arc: 19 },
+      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, fence: 11, flail: 13, pad: 9, oneup: 16, bomb: 18, intel: 17, barrier: 15, arc: 19, orb: 10 },
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
@@ -226,6 +226,24 @@
       r: 22, hp: 3, maxHp: 3, rot: s.rng() * Math.PI * 2,
       spin: (s.rng() - 0.5) * 0.8, flash: 0,
     });
+  }
+
+  // ---- R4 splitter orb ----
+  const ORB_BIG = 30, ORB_SMALL = 15;
+  function countOrbTier(s, tier) { let n = 0; for (const o of s.orbs) if (o.tier === tier) n++; return n; }
+  function spawnOrb(s) {
+    const a = s.rng() * Math.PI * 2, sp = 40 + s.rng() * 30;
+    s.orbs.push({ x: 90 + s.rng() * (W - 180), y: 80 + s.rng() * (H - 200),
+      vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: 18, hp: 3, maxHp: 3,
+      tier: 'big', rot: s.rng() * 6, spin: (s.rng() - 0.5) * 1.2, flash: 0 });
+  }
+  function splitOrb(s, o) {
+    const n = 2 + Math.floor(s.rng() * 2); // 2-3 children
+    for (let k = 0; k < n; k++) {
+      const a = s.rng() * Math.PI * 2, sp = 70 + s.rng() * 50;
+      s.orbs.push({ x: o.x, y: o.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+        r: 10, hp: 1, maxHp: 1, tier: 'small', rot: s.rng() * 6, spin: (s.rng() - 0.5) * 1.8, flash: 0 });
+    }
   }
 
   // ---- loot economy (E1) ----
@@ -918,6 +936,21 @@
       if (ar.life <= 0) s.arcs.splice(i, 1);
     }
 
+    // ---------- spawn + update splitter orbs (R4) ----------
+    s.spawnT.orb -= dt;
+    if (s.spawnT.orb <= 0) {
+      s.spawnT.orb = 9 + s.rng() * 6;
+      if (countOrbTier(s, 'big') < 2) spawnOrb(s);
+    }
+    for (let i = s.orbs.length - 1; i >= 0; i--) {
+      const o = s.orbs[i];
+      o.rot += o.spin * dt; if (o.flash > 0) o.flash -= dt;
+      o.x += o.vx * dt; o.y += o.vy * dt;
+      if (o.x < 30 || o.x > W - 30) { o.vx = -o.vx; o.x = Math.max(30, Math.min(W - 30, o.x)); }
+      if (o.y < 40 || o.y > H - 40) { o.vy = -o.vy; o.y = Math.max(40, Math.min(H - 40, o.y)); }
+      if (dist2(o, p) < (o.r + p.r) * (o.r + p.r)) hurtPlayer(s, o.x, o.y);
+    }
+
     // ---------- crystals ----------
     const magnetR = s.fx.MAGNET > 0 ? 215 : 0;
     for (let i = s.crystals.length - 1; i >= 0; i--) {
@@ -1082,6 +1115,20 @@
               s.crystals.push({ x: r.x, y: r.y, vx: Math.cos(a) * 140, vy: Math.sin(a) * 140, r: 7, phase: s.rng() * 6 });
             }
             if (s.rng() < 0.45) spawnPow(s, r.x, r.y);
+          }
+          break;
+        }
+      }
+      if (!dead) for (let j = s.orbs.length - 1; j >= 0; j--) {
+        const o = s.orbs[j];
+        if (dist2(b, o) < (o.r + 4) * (o.r + 4)) {
+          o.hp -= 1; o.flash = 0.07; dead = true;
+          burst(s, b.x, b.y, '#ff9ad0', 4, 110, 2);
+          if (o.hp <= 0) {
+            s.orbs.splice(j, 1);
+            if (o.tier === 'big') { addScore(s, ORB_BIG, o.x, o.y, undefined, 'destroy'); blast(s, o.x, o.y, 56, 'fxBurstSm'); splitOrb(s, o); }
+            else { addScore(s, ORB_SMALL, o.x, o.y, undefined, 'destroy'); blast(s, o.x, o.y, 40, 'fxBurstSm'); }
+            SY.audio.explode();
           }
           break;
         }
