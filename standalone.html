@@ -4389,6 +4389,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     decoChip:    { x: 363, y: 616, w: 108, h: 67 }, // circuit chip board
     decoConduit: { x: 38,  y: 623, w: 156, h: 29 }, // conduit/rail bar
     miniIcon:    { x: 1357, y: 881, w: 54, h: 47 }, // small ship mark → corner decor
+    // R2 sweeping hazard barrier (section-5 orange diagonal hazard stripe)
+    hazardStripe:{ x: 363,  y: 523, w: 69, h: 79 }, // orange diagonal hazard stripe (s5)
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
@@ -5187,7 +5189,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       score: 0, combo: 0, maxCombo: 0, comboT: 0,
       pace: [0], paceSec: 0,
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
-      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [], flails: [], pads: [],
+      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [], flails: [], pads: [], barriers: [],
       parts: [], waves: [], floats: [], blasts: [], warps: [], slashes: [], debris: [],
       boss: null, bossDown: false, bossWarnT: 0, bossCores: [],
       elite: null, eliteSpawned: false,
@@ -5199,7 +5201,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
       heat: 0, heatMul: 1,
-      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, fence: 11, flail: 13, pad: 9, oneup: 16, bomb: 18, intel: 17 },
+      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, fence: 11, flail: 13, pad: 9, oneup: 16, bomb: 18, intel: 17, barrier: 15 },
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
@@ -5314,6 +5316,21 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     const spin = (s.rng() < 0.5 ? -1 : 1) * 1.8;    // signed angular speed (rad/s)
     const ang = s.rng() * Math.PI * 2;              // start angle
     s.flails.push({ ax, ay, len, ang, spin, ballR: 16, state: 'warn', t: 1.0, phase: 0 });
+  }
+
+  // ---- R2 sweeping hazard barrier: telegraphed bar that slides across the arena ----
+  // orient 'h' sweeps vertically (pos=y tracks the bar's y); 'v' sweeps horizontally (pos=x).
+  // Mirrors the F5 fence pattern but moves. Spawn/pos all seeded — daily fairness.
+  function spawnBarrier(s) {
+    const horiz = s.rng() < 0.5;     // 'h' = bar runs horizontally, sweeps top→bottom or reverse
+    const fromStart = s.rng() < 0.5; // which edge it starts from
+    if (horiz) {
+      s.barriers.push({ orient: 'h', pos: fromStart ? 70 : H - 70, half: 22,
+        dir: fromStart ? 1 : -1, speed: 120, state: 'warn', t: 1.2, phase: 0 });
+    } else {
+      s.barriers.push({ orient: 'v', pos: fromStart ? 90 : W - 90, half: 22,
+        dir: fromStart ? 1 : -1, speed: 200, state: 'warn', t: 1.2, phase: 0 });
+    }
   }
 
   // ---- G4 boost pad: a seeded friendly floor object; overlap grants fx.BOOST ----
@@ -5887,6 +5904,28 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         if (fl.t <= 0) { fl.state = 'leave'; fl.t = 0.4; }
       } else { // leave
         if (fl.t <= 0) s.flails.splice(i, 1);
+      }
+    }
+
+    // ---------- spawn + update sweeping hazard barriers (R2) ----------
+    s.spawnT.barrier -= dt;
+    if (s.spawnT.barrier <= 0) {
+      s.spawnT.barrier = 17 + s.rng() * 10;
+      if (s.barriers.length < 1 && s.diff.spawnMul >= 1) spawnBarrier(s); // normal/hard only
+    }
+    for (let i = s.barriers.length - 1; i >= 0; i--) {
+      const ba = s.barriers[i];
+      ba.phase += dt * 4;
+      if (ba.state === 'warn') {
+        ba.t -= dt;
+        if (ba.t <= 0) { ba.state = 'sweep'; SY.audio.shoot(); }
+      } else { // sweep
+        ba.pos += ba.dir * ba.speed * dt;
+        const perp = ba.orient === 'h' ? Math.abs(p.y - ba.pos) : Math.abs(p.x - ba.pos);
+        if (perp < ba.half + p.r) hurtPlayer(s, p.x, p.y);
+        const off = ba.orient === 'h' ? (ba.pos < -30 || ba.pos > H + 30)
+                                      : (ba.pos < -30 || ba.pos > W + 30);
+        if (off) s.barriers.splice(i, 1);
       }
     }
 
@@ -6669,6 +6708,39 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     }
   }
 
+  // ---- R2 sweeping hazard barrier ----
+  // warn: dashed orange pulse at the start edge; sweep: translucent orange fill band
+  // + hazardStripe tiles along the length axis (additive). Mirrors fence warn style.
+  function drawBarrier(ctx, ba) {
+    const horiz = ba.orient === 'h';
+    ctx.save();
+    if (ba.state === 'warn') {
+      ctx.globalAlpha = 0.3 + 0.3 * Math.sin(ba.phase * 4);
+      ctx.strokeStyle = '#ff9a28';
+      ctx.lineWidth = 3; ctx.setLineDash(BARRIER_DASH);
+      ctx.beginPath();
+      if (horiz) { ctx.moveTo(0, ba.pos); ctx.lineTo(W, ba.pos); }
+      else        { ctx.moveTo(ba.pos, 0); ctx.lineTo(ba.pos, H); }
+      ctx.stroke(); ctx.setLineDash([]);
+    } else { // sweep
+      const thick = ba.half * 2;
+      ctx.globalAlpha = 0.22 + 0.08 * Math.sin(ba.phase * 2);
+      ctx.fillStyle = '#ff8020';
+      if (horiz) ctx.fillRect(0, ba.pos - ba.half, W, thick);
+      else       ctx.fillRect(ba.pos - ba.half, 0, thick, H);
+      // hazardStripe tiles along the length axis (additive blend for neon glow)
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.55;
+      const step = 140;
+      if (horiz) {
+        for (let tx = step * 0.5; tx < W; tx += step) SP.draw(ctx, 'hazardStripe', tx, ba.pos, thick * 1.1, 0);
+      } else {
+        for (let ty = step * 0.5; ty < H; ty += step) SP.draw(ctx, 'hazardStripe', ba.pos, ty, thick * 1.1, Math.PI / 2);
+      }
+    }
+    ctx.restore();
+  }
+
   function drawPad(ctx, pd) {
     ctx.save(); // pad base ring (dim on cooldown)
     ctx.globalAlpha = pd.armed ? 1 : 0.4;
@@ -6796,6 +6868,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 
   const BEAM_DASH = [10, 8]; // hoisted so the telegraph dash doesn't alloc per frame
   const FLAIL_DASH = [10, 8]; // hoisted: flail warn-circle dash (no per-frame array alloc)
+  const BARRIER_DASH = [12, 8]; // hoisted: barrier warn-line dash (no per-frame array alloc)
   function drawBeamRay(ctx, x, y, a, len, w) {
     ctx.save(); ctx.translate(x, y); ctx.rotate(a);
     ctx.fillStyle = 'rgba(255,90,158,0.22)'; ctx.fillRect(0, -w, len, w * 2);
@@ -7058,6 +7131,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     for (const c of s.bossCores) drawBossCore(ctx, c, s.boss);
     for (const fc of s.fences) drawFence(ctx, fc);
     for (const fl of s.flails) drawFlail(ctx, fl);
+    for (const ba of s.barriers) drawBarrier(ctx, ba);
     drawPlayer(ctx, s);
     for (const dr of s.drones) drawDrone(ctx, dr);
 
