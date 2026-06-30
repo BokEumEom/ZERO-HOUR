@@ -4391,6 +4391,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     miniIcon:    { x: 1357, y: 881, w: 54, h: 47 }, // small ship mark → corner decor
     // R2 sweeping hazard barrier (section-5 orange diagonal hazard stripe)
     hazardStripe:{ x: 363,  y: 523, w: 69, h: 79 }, // orange diagonal hazard stripe (s5)
+    // R3 electric arc trap (section-2 xNode — two nodes + cross electric arc)
+    arcNode:     { x: 1289, y: 149, w: 140, h: 84 }, // dual-node electric arc emitter (s2)
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
@@ -5189,7 +5191,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       score: 0, combo: 0, maxCombo: 0, comboT: 0,
       pace: [0], paceSec: 0,
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
-      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [], flails: [], pads: [], barriers: [],
+      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [], flails: [], pads: [], barriers: [], arcs: [],
       parts: [], waves: [], floats: [], blasts: [], warps: [], slashes: [], debris: [],
       boss: null, bossDown: false, bossWarnT: 0, bossCores: [],
       elite: null, eliteSpawned: false,
@@ -5201,7 +5203,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
       heat: 0, heatMul: 1,
-      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, fence: 11, flail: 13, pad: 9, oneup: 16, bomb: 18, intel: 17, barrier: 15 },
+      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, fence: 11, flail: 13, pad: 9, oneup: 16, bomb: 18, intel: 17, barrier: 15, arc: 19 },
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
@@ -5331,6 +5333,15 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       s.barriers.push({ orient: 'v', pos: fromStart ? 90 : W - 90, half: 22,
         dir: fromStart ? 1 : -1, speed: 200, state: 'warn', t: 1.2, phase: 0 });
     }
+  }
+
+  // ---- R3 electric arc trap: stationary telegraphed area-denial hazard (sec-2 xNode) ----
+  // Cycles warn(1s) → active(1.3s, contact damage in radius) → idle(2.4s) → re-warn → …
+  // Non-destructible, no score. Spawns only on normal/hard (spawnMul>=1). Cap 1.
+  function spawnArc(s) {
+    const x = 160 + s.rng() * (W - 320);
+    const y = 120 + s.rng() * (H - 240);
+    s.arcs.push({ x, y, r: 52, state: 'warn', t: 1.0, phase: 0, life: 13 });
   }
 
   // ---- G4 boost pad: a seeded friendly floor object; overlap grants fx.BOOST ----
@@ -5927,6 +5938,27 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
                                       : (ba.pos < -30 || ba.pos > W + 30);
         if (off) s.barriers.splice(i, 1);
       }
+    }
+
+    // ---------- spawn + update electric arc traps (R3) ----------
+    s.spawnT.arc -= dt;
+    if (s.spawnT.arc <= 0) {
+      s.spawnT.arc = 18 + s.rng() * 9;
+      if (s.arcs.length < 1 && s.diff.spawnMul >= 1) spawnArc(s);
+    }
+    for (let i = s.arcs.length - 1; i >= 0; i--) {
+      const ar = s.arcs[i];
+      ar.phase += dt * 5; ar.t -= dt; ar.life -= dt;
+      if (ar.state === 'warn') {
+        if (ar.t <= 0) { ar.state = 'active'; ar.t = 1.3; SY.audio.shoot(); }
+      } else if (ar.state === 'active') {
+        const dx = p.x - ar.x, dy = p.y - ar.y;
+        if (dx * dx + dy * dy < (ar.r + p.r) * (ar.r + p.r)) hurtPlayer(s, p.x, p.y);
+        if (ar.t <= 0) { ar.state = 'idle'; ar.t = 2.4; }
+      } else { // idle -> brief re-warn -> active again
+        if (ar.t <= 0) { ar.state = 'warn'; ar.t = 0.8; }
+      }
+      if (ar.life <= 0) s.arcs.splice(i, 1);
     }
 
     // ---------- crystals ----------
@@ -6741,6 +6773,47 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     ctx.restore();
   }
 
+  // ---- R3 electric arc trap ----
+  // warn:   dashed pulse circle (orange→pink telegraph) around the hazard radius.
+  // active: arcNode sprite additive + bright pulse; vector circle fallback.
+  // idle:   arcNode sprite at low alpha (0.3) — dimmed.
+  function drawArc(ctx, ar) {
+    ctx.save();
+    if (ar.state === 'warn') {
+      const alpha = 0.3 + 0.3 * Math.sin(ar.phase * 4);
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = ar.t < 0.4 ? '#ff5a6e' : '#ff9a28';
+      ctx.lineWidth = 2;
+      ctx.setLineDash(ARC_DASH);
+      ctx.beginPath();
+      ctx.arc(ar.x, ar.y, ar.r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash(NO_DASH);
+    } else if (ar.state === 'active') {
+      const pulse = 0.7 + 0.3 * Math.sin(ar.phase);
+      ctx.globalAlpha = pulse;
+      ctx.globalCompositeOperation = 'lighter';
+      if (!SP.draw(ctx, 'arcNode', ar.x, ar.y, ar.r * 2.6, 0)) {
+        // vector circle fallback
+        ctx.beginPath();
+        ctx.arc(ar.x, ar.y, ar.r, 0, Math.PI * 2);
+        ctx.strokeStyle = '#e0aaff';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      }
+    } else { // idle
+      ctx.globalAlpha = 0.3;
+      if (!SP.draw(ctx, 'arcNode', ar.x, ar.y, ar.r * 2.6, 0)) {
+        ctx.beginPath();
+        ctx.arc(ar.x, ar.y, ar.r, 0, Math.PI * 2);
+        ctx.strokeStyle = '#7a4a99';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
   function drawPad(ctx, pd) {
     ctx.save(); // pad base ring (dim on cooldown)
     ctx.globalAlpha = pd.armed ? 1 : 0.4;
@@ -6869,6 +6942,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   const BEAM_DASH = [10, 8]; // hoisted so the telegraph dash doesn't alloc per frame
   const FLAIL_DASH = [10, 8]; // hoisted: flail warn-circle dash (no per-frame array alloc)
   const BARRIER_DASH = [12, 8]; // hoisted: barrier warn-line dash (no per-frame array alloc)
+  const ARC_DASH = [10, 8]; // hoisted: arc-trap warn-circle dash (no per-frame array alloc)
+  const NO_DASH = []; // hoisted solid-line reset (no per-frame array alloc)
   function drawBeamRay(ctx, x, y, a, len, w) {
     ctx.save(); ctx.translate(x, y); ctx.rotate(a);
     ctx.fillStyle = 'rgba(255,90,158,0.22)'; ctx.fillRect(0, -w, len, w * 2);
@@ -7132,6 +7207,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     for (const fc of s.fences) drawFence(ctx, fc);
     for (const fl of s.flails) drawFlail(ctx, fl);
     for (const ba of s.barriers) drawBarrier(ctx, ba);
+    for (const ar of s.arcs) drawArc(ctx, ar);
     drawPlayer(ctx, s);
     for (const dr of s.drones) drawDrone(ctx, dr);
 

@@ -381,6 +381,47 @@
     ctx.restore();
   }
 
+  // ---- R3 electric arc trap ----
+  // warn:   dashed pulse circle (orange→pink telegraph) around the hazard radius.
+  // active: arcNode sprite additive + bright pulse; vector circle fallback.
+  // idle:   arcNode sprite at low alpha (0.3) — dimmed.
+  function drawArc(ctx, ar) {
+    ctx.save();
+    if (ar.state === 'warn') {
+      const alpha = 0.3 + 0.3 * Math.sin(ar.phase * 4);
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = ar.t < 0.4 ? '#ff5a6e' : '#ff9a28';
+      ctx.lineWidth = 2;
+      ctx.setLineDash(ARC_DASH);
+      ctx.beginPath();
+      ctx.arc(ar.x, ar.y, ar.r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash(NO_DASH);
+    } else if (ar.state === 'active') {
+      const pulse = 0.7 + 0.3 * Math.sin(ar.phase);
+      ctx.globalAlpha = pulse;
+      ctx.globalCompositeOperation = 'lighter';
+      if (!SP.draw(ctx, 'arcNode', ar.x, ar.y, ar.r * 2.6, 0)) {
+        // vector circle fallback
+        ctx.beginPath();
+        ctx.arc(ar.x, ar.y, ar.r, 0, Math.PI * 2);
+        ctx.strokeStyle = '#e0aaff';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      }
+    } else { // idle
+      ctx.globalAlpha = 0.3;
+      if (!SP.draw(ctx, 'arcNode', ar.x, ar.y, ar.r * 2.6, 0)) {
+        ctx.beginPath();
+        ctx.arc(ar.x, ar.y, ar.r, 0, Math.PI * 2);
+        ctx.strokeStyle = '#7a4a99';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
   function drawPad(ctx, pd) {
     ctx.save(); // pad base ring (dim on cooldown)
     ctx.globalAlpha = pd.armed ? 1 : 0.4;
@@ -509,6 +550,8 @@
   const BEAM_DASH = [10, 8]; // hoisted so the telegraph dash doesn't alloc per frame
   const FLAIL_DASH = [10, 8]; // hoisted: flail warn-circle dash (no per-frame array alloc)
   const BARRIER_DASH = [12, 8]; // hoisted: barrier warn-line dash (no per-frame array alloc)
+  const ARC_DASH = [10, 8]; // hoisted: arc-trap warn-circle dash (no per-frame array alloc)
+  const NO_DASH = []; // hoisted solid-line reset (no per-frame array alloc)
   function drawBeamRay(ctx, x, y, a, len, w) {
     ctx.save(); ctx.translate(x, y); ctx.rotate(a);
     ctx.fillStyle = 'rgba(255,90,158,0.22)'; ctx.fillRect(0, -w, len, w * 2);
@@ -772,6 +815,7 @@
     for (const fc of s.fences) drawFence(ctx, fc);
     for (const fl of s.flails) drawFlail(ctx, fl);
     for (const ba of s.barriers) drawBarrier(ctx, ba);
+    for (const ar of s.arcs) drawArc(ctx, ar);
     drawPlayer(ctx, s);
     for (const dr of s.drones) drawDrone(ctx, dr);
 
