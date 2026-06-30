@@ -424,6 +424,14 @@ test('G1 effects are wired (game spawns + render passes), rng-free', () => {
   }
 });
 
+test('G2 telegraph badges are wired in render (state-gated)', () => {
+  const render = read(`${NV}/render.js`);
+  assert.ok(render.includes('warnTri'), 'render draws warnTri');
+  assert.ok(render.includes('skullHex'), 'render draws skullHex');
+  assert.ok(/e\.state === 'telegraph'[\s\S]{0,300}warnTri/.test(render), 'warnTri gated on elite telegraph');
+  assert.ok(/f\.state === 'lock'[\s\S]{0,300}skullHex/.test(render), 'skullHex gated on charger lock');
+});
+
 test('INTEL data pickup (F7) is wired', () => {
   const game = read(`${NV}/game.js`);
   assert.ok(/function spawnIntel/.test(game) && /'INTEL'/.test(game), 'INTEL spawn + type');

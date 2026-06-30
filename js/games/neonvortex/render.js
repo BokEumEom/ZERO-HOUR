@@ -383,6 +383,13 @@
         ctx.stroke();
         ctx.restore();
       }
+      if (f.state === 'lock') { // skull crest above the charger (dash imminent)
+        ctx.save();
+        ctx.globalAlpha = 0.5 + 0.4 * Math.sin(f.phase * 10);
+        ctx.globalCompositeOperation = 'lighter';
+        SP.draw(ctx, 'skullHex', f.x, f.y - (f.r + 34), 40, 0);
+        ctx.restore();
+      }
       const rot = (f.dirX || f.dirY) ? Math.atan2(f.dirY, f.dirX) + Math.PI / 2 : 0;
       if (!SP.draw(ctx, 'foeCharger', f.x, f.y, (f.r + 5) * 2.3, rot)) {
         ctx.save();
@@ -442,6 +449,13 @@
       ctx.beginPath(); ctx.moveTo(e.x, e.y);
       ctx.lineTo(e.x + Math.cos(e.beamFrom) * 760, e.y + Math.sin(e.beamFrom) * 760);
       ctx.stroke(); ctx.restore();
+    }
+    if (e.state === 'telegraph') { // warning-triangle badge above the elite
+      ctx.save();
+      ctx.globalAlpha = 0.45 + 0.4 * Math.sin(e.phase * 8);
+      ctx.globalCompositeOperation = 'lighter';
+      SP.draw(ctx, 'warnTri', e.x, e.y - (e.r + 40), 48, 0);
+      ctx.restore();
     }
     // firing beam
     if (e.state === 'firing') {
