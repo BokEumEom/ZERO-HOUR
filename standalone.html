@@ -4379,6 +4379,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     // G2 danger telegraphs (section-6 BOSS/ELITE) — render-only badges (render.js)
     warnTri:     { x: 991,  y: 536, w: 71, h: 95 },   // warning triangle — elite fire telegraph
     skullHex:    { x: 1327, y: 545, w: 91, h: 85 },   // skull crest — charger dash telegraph
+    // G3 hazard (section-2 ENEMY/HAZARD) — spiked flail ball on a chain (render.js drawFlail)
+    flailBall:   { x: 835, y: 64, w: 46, h: 54 },
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
@@ -5177,7 +5179,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       score: 0, combo: 0, maxCombo: 0, comboT: 0,
       pace: [0], paceSec: 0,
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
-      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [],
+      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [], flails: [],
       parts: [], waves: [], floats: [], blasts: [], warps: [], slashes: [], debris: [],
       boss: null, bossDown: false, bossWarnT: 0, bossCores: [],
       elite: null, eliteSpawned: false,
@@ -5189,7 +5191,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
       heat: 0, heatMul: 1,
-      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, fence: 11, oneup: 16, bomb: 18, intel: 17 },
+      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, fence: 11, flail: 13, oneup: 16, bomb: 18, intel: 17 },
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
@@ -5295,6 +5297,17 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     const pos = orient === 'h' ? 120 + s.rng() * (H - 240) : 120 + s.rng() * (W - 240);
     s.fences.push({ orient, pos, state: 'warn', t: 1.1, phase: 0 });
   }
+
+  // ---- G3 spiked flail: a seeded tethered ball that sweeps an arc (sec-2 mace) ----
+  function spawnFlail(s) {
+    const ax = 120 + s.rng() * (W - 240);
+    const ay = 90 + s.rng() * (H - 220);
+    const len = 80 + s.rng() * 60;                  // chain length
+    const spin = (s.rng() < 0.5 ? -1 : 1) * 1.8;    // signed angular speed (rad/s)
+    const ang = s.rng() * Math.PI * 2;              // start angle
+    s.flails.push({ ax, ay, len, ang, spin, ballR: 16, state: 'warn', t: 1.0, phase: 0 });
+  }
+
   // emit a homing mine AT a position (the portal mouth) — reuses the mine entity
   function spawnMineAt(s, x, y) {
     s.mines.push({ x, y, r: 11, hp: 1, speed: (62 + s.t * 1.1) * s.diff.mineSpeedMul, phase: s.rng() * Math.PI * 2, flash: 0, vx: 0, vy: 0, entryT: 0 });
@@ -5837,6 +5850,28 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         if (fc.t <= 0) { fc.state = 'fade'; fc.t = 0.35; }
       } else { // fade
         if (fc.t <= 0) s.fences.splice(i, 1);
+      }
+    }
+
+    // ---------- spawn + update spiked flails (G3) ----------
+    s.spawnT.flail -= dt;
+    if (s.spawnT.flail <= 0) {
+      s.spawnT.flail = 16 + s.rng() * 10;
+      if (s.flails.length < 1 && s.diff.spawnMul >= 1) spawnFlail(s); // normal/hard only
+    }
+    for (let i = s.flails.length - 1; i >= 0; i--) {
+      const fl = s.flails[i];
+      fl.phase += dt * 3; fl.t -= dt;
+      if (fl.state === 'warn') {
+        if (fl.t <= 0) { fl.state = 'sweep'; fl.t = 4.5; SY.audio.shoot(); }
+      } else if (fl.state === 'sweep') {
+        fl.ang += fl.spin * dt;
+        const bx = fl.ax + Math.cos(fl.ang) * fl.len, by = fl.ay + Math.sin(fl.ang) * fl.len;
+        const dx = p.x - bx, dy = p.y - by;
+        if (dx * dx + dy * dy < (fl.ballR + p.r) * (fl.ballR + p.r)) hurtPlayer(s, bx, by);
+        if (fl.t <= 0) { fl.state = 'leave'; fl.t = 0.4; }
+      } else { // leave
+        if (fl.t <= 0) s.flails.splice(i, 1);
       }
     }
 
@@ -6575,6 +6610,26 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     ctx.restore();
   }
 
+  function drawFlail(ctx, fl) {
+    const bx = fl.ax + Math.cos(fl.ang) * fl.len, by = fl.ay + Math.sin(fl.ang) * fl.len;
+    ctx.save();
+    if (fl.state === 'warn') { // telegraph the sweep circle
+      ctx.globalAlpha = 0.35 + 0.25 * Math.sin(fl.phase * 2);
+      ctx.strokeStyle = 'rgba(255,90,120,0.6)'; ctx.lineWidth = 2; ctx.setLineDash(FLAIL_DASH);
+      ctx.beginPath(); ctx.arc(fl.ax, fl.ay, fl.len, 0, Math.PI * 2); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.globalAlpha = fl.state === 'warn' ? 0.5 : 0.9; // chain
+    ctx.strokeStyle = 'rgba(255,120,150,0.85)'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(fl.ax, fl.ay); ctx.lineTo(bx, by); ctx.stroke();
+    ctx.fillStyle = '#ff5a78'; // anchor node
+    ctx.beginPath(); ctx.arc(fl.ax, fl.ay, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    if (!SP.draw(ctx, 'flailBall', bx, by, fl.ballR * 2.6, fl.ang * 2)) {
+      ctx.save(); ctx.fillStyle = '#ff5a78';
+      ctx.beginPath(); ctx.arc(bx, by, fl.ballR, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    }
+  }
 
   function drawCrate(ctx, c) {
     const key = c.kind === 'chest' ? 'lootChest' : c.kind === 'console' ? 'lootConsole' : c.kind === 'pod' ? 'capsulePod' : c.kind === 'mimic' ? 'xContainer' : c.kind === 'canister' ? 'lootCanister' : 'lootCrate';
@@ -6685,6 +6740,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   }
 
   const BEAM_DASH = [10, 8]; // hoisted so the telegraph dash doesn't alloc per frame
+  const FLAIL_DASH = [10, 8]; // hoisted: flail warn-circle dash (no per-frame array alloc)
   function drawBeamRay(ctx, x, y, a, len, w) {
     ctx.save(); ctx.translate(x, y); ctx.rotate(a);
     ctx.fillStyle = 'rgba(255,90,158,0.22)'; ctx.fillRect(0, -w, len, w * 2);
@@ -6944,6 +7000,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     if (s.boss) drawBoss(ctx, s);
     for (const c of s.bossCores) drawBossCore(ctx, c, s.boss);
     for (const fc of s.fences) drawFence(ctx, fc);
+    for (const fl of s.flails) drawFlail(ctx, fl);
     drawPlayer(ctx, s);
     for (const dr of s.drones) drawDrone(ctx, dr);
 
