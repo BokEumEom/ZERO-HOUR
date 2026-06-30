@@ -4381,6 +4381,9 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     skullHex:    { x: 1327, y: 545, w: 91, h: 85 },   // skull crest — charger dash telegraph
     // G3 hazard (section-2 ENEMY/HAZARD) — spiked flail ball on a chain (render.js drawFlail)
     flailBall:   { x: 835, y: 64, w: 46, h: 54 },
+    // G4 boost pad (section-3 INTERACTIVE/WORLD) — friendly floor buff (render.js drawPad)
+    padRing:     { x: 34,  y: 392, w: 117, h: 95 }, // hovering ring node — pad base
+    padArrow:    { x: 152, y: 273, w: 74,  h: 99 }, // up-arrow — armed glyph
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
@@ -5179,7 +5182,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       score: 0, combo: 0, maxCombo: 0, comboT: 0,
       pace: [0], paceSec: 0,
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
-      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [], flails: [],
+      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [], flails: [], pads: [],
       parts: [], waves: [], floats: [], blasts: [], warps: [], slashes: [], debris: [],
       boss: null, bossDown: false, bossWarnT: 0, bossCores: [],
       elite: null, eliteSpawned: false,
@@ -5191,7 +5194,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
       heat: 0, heatMul: 1,
-      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, fence: 11, flail: 13, oneup: 16, bomb: 18, intel: 17 },
+      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, fence: 11, flail: 13, pad: 9, oneup: 16, bomb: 18, intel: 17 },
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
@@ -5306,6 +5309,13 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     const spin = (s.rng() < 0.5 ? -1 : 1) * 1.8;    // signed angular speed (rad/s)
     const ang = s.rng() * Math.PI * 2;              // start angle
     s.flails.push({ ax, ay, len, ang, spin, ballR: 16, state: 'warn', t: 1.0, phase: 0 });
+  }
+
+  // ---- G4 boost pad: a seeded friendly floor object; overlap grants fx.BOOST ----
+  function spawnPad(s) {
+    const x = 140 + s.rng() * (W - 280);
+    const y = 130 + s.rng() * (H - 240);
+    s.pads.push({ x, y, r: 30, life: 14, cd: 0, armed: true, phase: 0 });
   }
 
   // emit a homing mine AT a position (the portal mouth) — reuses the mine entity
@@ -6141,6 +6151,24 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       }
     }
 
+    // ---------- spawn + update boost pads (G4) ----------
+    s.spawnT.pad -= dt;
+    if (s.spawnT.pad <= 0) {
+      s.spawnT.pad = 14 + s.rng() * 8;
+      if (s.pads.length < 1) spawnPad(s); // cap 1, all difficulties (positive buff)
+    }
+    for (let i = s.pads.length - 1; i >= 0; i--) {
+      const pd = s.pads[i];
+      pd.phase += dt * 3; pd.life -= dt;
+      if (pd.cd > 0) { pd.cd -= dt; if (pd.cd <= 0) pd.armed = true; }
+      if (pd.armed && dist2(pd, p) < (pd.r + p.r) * (pd.r + p.r)) {
+        s.fx.BOOST = Math.max(s.fx.BOOST, 4); // 4s overdrive (speed + fire)
+        pd.armed = false; pd.cd = 5;
+        wave(s, pd.x, pd.y, 70, '#7dff8a'); SY.audio.powerup();
+      }
+      if (pd.life <= 0) s.pads.splice(i, 1);
+    }
+
     // ---------- boss ----------
     if (s.boss) updateBoss(s, dt, slowMul);
 
@@ -6631,6 +6659,23 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     }
   }
 
+  function drawPad(ctx, pd) {
+    ctx.save(); // pad base ring (dim on cooldown)
+    ctx.globalAlpha = pd.armed ? 1 : 0.4;
+    if (!SP.draw(ctx, 'padRing', pd.x, pd.y, pd.r * 2.4, 0)) {
+      ctx.strokeStyle = '#2de2c6'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(pd.x, pd.y, pd.r, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.restore();
+    if (pd.armed) { // up-arrow glyph, additive pulse
+      ctx.save();
+      ctx.globalAlpha = 0.6 + 0.4 * Math.sin(pd.phase * 3);
+      ctx.globalCompositeOperation = 'lighter';
+      SP.draw(ctx, 'padArrow', pd.x, pd.y - 14, 40, 0);
+      ctx.restore();
+    }
+  }
+
   function drawCrate(ctx, c) {
     const key = c.kind === 'chest' ? 'lootChest' : c.kind === 'console' ? 'lootConsole' : c.kind === 'pod' ? 'capsulePod' : c.kind === 'mimic' ? 'xContainer' : c.kind === 'canister' ? 'lootCanister' : 'lootCrate';
     if (!SP.draw(ctx, key, c.x, c.y, (c.r + 6) * 2.2, 0)) {
@@ -6898,6 +6943,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       ctx.stroke();
       ctx.globalAlpha = 1;
     }
+
+    for (const pd of s.pads) drawPad(ctx, pd);
 
     for (const c of s.crystals) drawCrystal(ctx, c, s.inSurge);
     for (const t of s.tokens) drawToken(ctx, t);

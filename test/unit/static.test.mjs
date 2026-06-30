@@ -447,3 +447,12 @@ test('G3 flail hazard is wired (seeded spawn + render)', () => {
   assert.ok(/spawnFlail\(s\)[\s\S]{0,40}rng/.test(game) || /function spawnFlail[\s\S]{0,200}s\.rng\(/.test(game), 'spawnFlail is seeded');
   assert.ok(/function drawFlail/.test(render) && render.includes('flailBall'), 'render.js draws the flail');
 });
+
+test('G4 boost pad is wired (seeded spawn + floor render)', () => {
+  const game = read(`${NV}/game.js`);
+  const render = read(`${NV}/render.js`);
+  assert.ok(/function spawnPad/.test(game), 'game.js defines spawnPad');
+  assert.ok(game.includes('s.pads'), 'game.js uses s.pads');
+  assert.ok(/function spawnPad[\s\S]{0,200}s\.rng\(/.test(game), 'spawnPad is seeded');
+  assert.ok(/function drawPad/.test(render) && render.includes('padRing'), 'render.js draws the pad');
+});

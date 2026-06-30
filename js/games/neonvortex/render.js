@@ -343,6 +343,23 @@
     }
   }
 
+  function drawPad(ctx, pd) {
+    ctx.save(); // pad base ring (dim on cooldown)
+    ctx.globalAlpha = pd.armed ? 1 : 0.4;
+    if (!SP.draw(ctx, 'padRing', pd.x, pd.y, pd.r * 2.4, 0)) {
+      ctx.strokeStyle = '#2de2c6'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(pd.x, pd.y, pd.r, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.restore();
+    if (pd.armed) { // up-arrow glyph, additive pulse
+      ctx.save();
+      ctx.globalAlpha = 0.6 + 0.4 * Math.sin(pd.phase * 3);
+      ctx.globalCompositeOperation = 'lighter';
+      SP.draw(ctx, 'padArrow', pd.x, pd.y - 14, 40, 0);
+      ctx.restore();
+    }
+  }
+
   function drawCrate(ctx, c) {
     const key = c.kind === 'chest' ? 'lootChest' : c.kind === 'console' ? 'lootConsole' : c.kind === 'pod' ? 'capsulePod' : c.kind === 'mimic' ? 'xContainer' : c.kind === 'canister' ? 'lootCanister' : 'lootCrate';
     if (!SP.draw(ctx, key, c.x, c.y, (c.r + 6) * 2.2, 0)) {
@@ -610,6 +627,8 @@
       ctx.stroke();
       ctx.globalAlpha = 1;
     }
+
+    for (const pd of s.pads) drawPad(ctx, pd);
 
     for (const c of s.crystals) drawCrystal(ctx, c, s.inSurge);
     for (const t of s.tokens) drawToken(ctx, t);

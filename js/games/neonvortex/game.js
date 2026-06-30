@@ -148,7 +148,7 @@
       score: 0, combo: 0, maxCombo: 0, comboT: 0,
       pace: [0], paceSec: 0,
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
-      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [], flails: [],
+      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [], flails: [], pads: [],
       parts: [], waves: [], floats: [], blasts: [], warps: [], slashes: [], debris: [],
       boss: null, bossDown: false, bossWarnT: 0, bossCores: [],
       elite: null, eliteSpawned: false,
@@ -160,7 +160,7 @@
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
       heat: 0, heatMul: 1,
-      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, fence: 11, flail: 13, oneup: 16, bomb: 18, intel: 17 },
+      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, fence: 11, flail: 13, pad: 9, oneup: 16, bomb: 18, intel: 17 },
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
@@ -275,6 +275,13 @@
     const spin = (s.rng() < 0.5 ? -1 : 1) * 1.8;    // signed angular speed (rad/s)
     const ang = s.rng() * Math.PI * 2;              // start angle
     s.flails.push({ ax, ay, len, ang, spin, ballR: 16, state: 'warn', t: 1.0, phase: 0 });
+  }
+
+  // ---- G4 boost pad: a seeded friendly floor object; overlap grants fx.BOOST ----
+  function spawnPad(s) {
+    const x = 140 + s.rng() * (W - 280);
+    const y = 130 + s.rng() * (H - 240);
+    s.pads.push({ x, y, r: 30, life: 14, cd: 0, armed: true, phase: 0 });
   }
 
   // emit a homing mine AT a position (the portal mouth) — reuses the mine entity
@@ -1108,6 +1115,24 @@
         s.pows.splice(i, 1);
         applyPow(s, o);
       }
+    }
+
+    // ---------- spawn + update boost pads (G4) ----------
+    s.spawnT.pad -= dt;
+    if (s.spawnT.pad <= 0) {
+      s.spawnT.pad = 14 + s.rng() * 8;
+      if (s.pads.length < 1) spawnPad(s); // cap 1, all difficulties (positive buff)
+    }
+    for (let i = s.pads.length - 1; i >= 0; i--) {
+      const pd = s.pads[i];
+      pd.phase += dt * 3; pd.life -= dt;
+      if (pd.cd > 0) { pd.cd -= dt; if (pd.cd <= 0) pd.armed = true; }
+      if (pd.armed && dist2(pd, p) < (pd.r + p.r) * (pd.r + p.r)) {
+        s.fx.BOOST = Math.max(s.fx.BOOST, 4); // 4s overdrive (speed + fire)
+        pd.armed = false; pd.cd = 5;
+        wave(s, pd.x, pd.y, 70, '#7dff8a'); SY.audio.powerup();
+      }
+      if (pd.life <= 0) s.pads.splice(i, 1);
     }
 
     // ---------- boss ----------
