@@ -124,6 +124,8 @@
     // G2 danger telegraphs (section-6 BOSS/ELITE) — render-only badges (render.js)
     warnTri:     { x: 991,  y: 536, w: 71, h: 95 },   // warning triangle — elite fire telegraph
     skullHex:    { x: 1327, y: 545, w: 91, h: 85 },   // skull crest — charger dash telegraph
+    // G3 hazard (section-2 ENEMY/HAZARD) — spiked flail ball on a chain (render.js drawFlail)
+    flailBall:   { x: 835, y: 64, w: 46, h: 54 },
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).

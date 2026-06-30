@@ -322,6 +322,26 @@
     ctx.restore();
   }
 
+  function drawFlail(ctx, fl) {
+    const bx = fl.ax + Math.cos(fl.ang) * fl.len, by = fl.ay + Math.sin(fl.ang) * fl.len;
+    ctx.save();
+    if (fl.state === 'warn') { // telegraph the sweep circle
+      ctx.globalAlpha = 0.35 + 0.25 * Math.sin(fl.phase * 2);
+      ctx.strokeStyle = 'rgba(255,90,120,0.6)'; ctx.lineWidth = 2; ctx.setLineDash(FLAIL_DASH);
+      ctx.beginPath(); ctx.arc(fl.ax, fl.ay, fl.len, 0, Math.PI * 2); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.globalAlpha = fl.state === 'warn' ? 0.5 : 0.9; // chain
+    ctx.strokeStyle = 'rgba(255,120,150,0.85)'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(fl.ax, fl.ay); ctx.lineTo(bx, by); ctx.stroke();
+    ctx.fillStyle = '#ff5a78'; // anchor node
+    ctx.beginPath(); ctx.arc(fl.ax, fl.ay, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    if (!SP.draw(ctx, 'flailBall', bx, by, fl.ballR * 2.6, fl.ang * 2)) {
+      ctx.save(); ctx.fillStyle = '#ff5a78';
+      ctx.beginPath(); ctx.arc(bx, by, fl.ballR, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    }
+  }
 
   function drawCrate(ctx, c) {
     const key = c.kind === 'chest' ? 'lootChest' : c.kind === 'console' ? 'lootConsole' : c.kind === 'pod' ? 'capsulePod' : c.kind === 'mimic' ? 'xContainer' : c.kind === 'canister' ? 'lootCanister' : 'lootCrate';
@@ -432,6 +452,7 @@
   }
 
   const BEAM_DASH = [10, 8]; // hoisted so the telegraph dash doesn't alloc per frame
+  const FLAIL_DASH = [10, 8]; // hoisted: flail warn-circle dash (no per-frame array alloc)
   function drawBeamRay(ctx, x, y, a, len, w) {
     ctx.save(); ctx.translate(x, y); ctx.rotate(a);
     ctx.fillStyle = 'rgba(255,90,158,0.22)'; ctx.fillRect(0, -w, len, w * 2);
@@ -691,6 +712,7 @@
     if (s.boss) drawBoss(ctx, s);
     for (const c of s.bossCores) drawBossCore(ctx, c, s.boss);
     for (const fc of s.fences) drawFence(ctx, fc);
+    for (const fl of s.flails) drawFlail(ctx, fl);
     drawPlayer(ctx, s);
     for (const dr of s.drones) drawDrone(ctx, dr);
 
