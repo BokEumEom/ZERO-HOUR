@@ -149,7 +149,7 @@
       pace: [0], paceSec: 0,
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
       crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [],
-      parts: [], waves: [], floats: [], blasts: [],
+      parts: [], waves: [], floats: [], blasts: [], warps: [], slashes: [], debris: [],
       boss: null, bossDown: false, bossWarnT: 0, bossCores: [],
       elite: null, eliteSpawned: false,
       eliteAt: (SURGE_WARMUP + (duration >= 40 ? duration - 20 : duration)) / 2,
@@ -373,6 +373,7 @@
       t: 0, burstT: 1.8 * fm, aimT: 2.6 * fm, plasmaT: 4 * fm, fireMul: fm, flash: 0, dying: 0, ringRot: 0, coresDeployed: false,
     };
     s.bossWarnT = 1.6;
+    spawnWarp(s, W / 2, 128, 240); // warp-in ring at the boss's settle point
     s.shake = Math.max(s.shake, 7);
     SY.audio.bossSpawn();
   }
@@ -393,11 +394,22 @@
   function wave(s, x, y, maxR, color) {
     s.waves.push({ x, y, r: 6, maxR, life: 1, color });
   }
-  // explosion-sprite flash on a destruction event (cosmetic; uses the atlas burst)
-  function blast(s, x, y, size) {
-    // rot is deterministic from position (cosmetic variety without adding a
-    // Math.random call to the fairness baseline)
-    s.blasts.push({ x, y, size, life: 1, rot: (x * 0.7 + y * 0.3) % (Math.PI * 2) });
+  // explosion-sprite flash on a destruction event (cosmetic). `key` selects the
+  // atlas sprite (default the teal `burst`); rot is position-derived (no Math.random).
+  function blast(s, x, y, size, key) {
+    s.blasts.push({ x, y, size, life: 1, rot: (x * 0.7 + y * 0.3) % (Math.PI * 2), key: key || 'burst' });
+  }
+  // warp-in ring on a boss/elite entrance (cosmetic; position-derived rot, no rng)
+  function spawnWarp(s, x, y, maxSize) {
+    s.warps.push({ x, y, maxSize, life: 1, rot: (x * 0.5 + y * 0.5) % (Math.PI * 2) });
+  }
+  // one-shot debris flash on a crate/rock break (cosmetic; position-derived rot)
+  function spawnDebris(s, x, y) {
+    s.debris.push({ x, y, life: 1, rot: (x * 0.3 + y * 0.7) % (Math.PI * 2) });
+  }
+  // directional slash on a charger dash (cosmetic; angle from the dash vector)
+  function spawnSlash(s, x, y, angle) {
+    s.slashes.push({ x, y, angle, life: 1 });
   }
   function floatText(s, x, y, text, color) {
     s.floats.push({ x, y, text, color, life: 1 });
@@ -443,8 +455,8 @@
       s.crystals.push({ x, y, vx: Math.cos(a) * 120, vy: Math.sin(a) * 120, r: 7, phase: s.rng() * 6 });
     }
   }
-  const foeApi = { hurtPlayer, addScore, burst, wave, floatText, dropCrystals, blast };
-  const eliteApi = { hurtPlayer, addScore, spawnPow, spawnLoot, burst, wave, blast, floatText };
+  const foeApi = { hurtPlayer, addScore, burst, wave, floatText, dropCrystals, blast, spawnSlash };
+  const eliteApi = { hurtPlayer, addScore, spawnPow, spawnLoot, burst, wave, blast, floatText, spawnWarp };
 
   // ---------- player damage ----------
   function hurtPlayer(s, x, y) {
@@ -504,7 +516,7 @@
       if (Math.random() < 0.4) burst(s, b.x + (Math.random() - 0.5) * 70, b.y + (Math.random() - 0.5) * 70, '#ffc34d', 6, 200, 3);
       if (b.dying <= 0) {
         // final detonation
-        blast(s, b.x, b.y, 200); blast(s, b.x + 40, b.y - 30, 130);
+        blast(s, b.x, b.y, 200, 'fxBurstLg'); blast(s, b.x + 40, b.y - 30, 130, 'fxBurstLg');
         wave(s, b.x, b.y, 320, '#ffc34d');
         wave(s, b.x, b.y, 220, '#2de2c6');
         burst(s, b.x, b.y, '#ffc34d', 60, 420, 4);
@@ -634,6 +646,7 @@
     // ---------- elite Sentinel (E4a): scripted mid-field beam mini-boss ----------
     if (!s.elite && !s.eliteSpawned && s.duration >= 40 && s.t >= s.eliteAt && s.timeLeft > 20) {
       s.eliteSpawned = true; SY.nvElite.spawn(s);
+      if (s.elite) spawnWarp(s, s.elite.x, s.elite.y, 150);
     }
     if (s.elite) SY.nvElite.update(s, dt, slowMul, eliteApi);
 
@@ -924,7 +937,7 @@
             s.bossCores.splice(j, 1);
             addScore(s, 120, c.x, c.y, 'CORE', 'destroy');
             for (let k = 0; k < 3; k++) { const a = c.ang + k * 2.094; s.crystals.push({ x: c.x, y: c.y, vx: Math.cos(a) * 120, vy: Math.sin(a) * 120, r: 7, phase: k * 2, tier: 'boss' }); }
-            blast(s, c.x, c.y, 90); SY.audio.explode();
+            blast(s, c.x, c.y, 90, 'fxBurstMd'); SY.audio.explode();
           }
           break;
         }
@@ -950,9 +963,10 @@
           burst(s, b.x, b.y, '#9ff5e8', 4, 110, 2);
           if (r.hp <= 0) {
             s.rocks.splice(j, 1);
+            spawnDebris(s, r.x, r.y);
             addScore(s, 40, r.x, r.y, undefined, 'destroy');
             burst(s, r.x, r.y, '#2de2c6', 18, 220, 3);
-            blast(s, r.x, r.y, 64);
+            blast(s, r.x, r.y, 64, 'fxBurstSm');
             wave(s, r.x, r.y, 60, '#2de2c6');
             SY.audio.explode();
             const drops = 4 + Math.floor(s.rng() * 2);
@@ -974,7 +988,7 @@
             s.turrets.splice(j, 1);
             addScore(s, 60, t.x, t.y, undefined, 'destroy');
             burst(s, t.x, t.y, '#ff9a5a', 16, 230, 3);
-            blast(s, t.x, t.y, 60);
+            blast(s, t.x, t.y, 60, 'fxBurstSm');
             wave(s, t.x, t.y, 56, '#ff9a5a');
             SY.audio.explode();
             for (let kk = 0; kk < 3; kk++) {
@@ -1003,16 +1017,17 @@
           burst(s, b.x, b.y, '#ffd9a8', 4, 110, 2);
           if (cr.hp <= 0) {
             s.crates.splice(j, 1);
+            spawnDebris(s, cr.x, cr.y);
             if (cr.kind === 'console') {
               addScore(s, 30, cr.x, cr.y, undefined, 'destroy');
-              blast(s, cr.x, cr.y, 64);
+              blast(s, cr.x, cr.y, 64, 'fxBurstSm');
               spawnPow(s, cr.x, cr.y); // bonus objective — guaranteed power-up
               pushToken(s, cr.x, cr.y, 'data'); // ...plus one guaranteed DATA salvage token (section-7 card)
             } else if (cr.kind === 'pod') {
               // CRYSTAL POD (section-3 capsule) — a crystal cache bursts out.
               // crystals carry no tier → render as teal/amber field gems (intentional: loot, not boss prize).
               addScore(s, 25, cr.x, cr.y, undefined, 'destroy');
-              blast(s, cr.x, cr.y, 70);
+              blast(s, cr.x, cr.y, 70, 'fxBurstSm');
               const n = 6 + Math.floor(s.rng() * 3);
               for (let k = 0; k < n; k++) {
                 const a = s.rng() * Math.PI * 2, d = 10 + s.rng() * 30;
@@ -1021,13 +1036,13 @@
             } else if (cr.kind === 'mimic') {
               // HAZARD MIMIC (section-3 X-container) — looks like loot, bites back
               addScore(s, 35, cr.x, cr.y, undefined, 'destroy');
-              blast(s, cr.x, cr.y, 80);
+              blast(s, cr.x, cr.y, 80, 'fxBurstSm');
               const m = 2 + Math.floor(s.rng() * 2);
               for (let k = 0; k < m; k++) spawnMineAt(s, cr.x, cr.y);
               spawnLoot(s, cr.x, cr.y, 'crate'); // consolation loot offsets the risk
             } else {
               addScore(s, cr.kind === 'chest' ? 40 : 20, cr.x, cr.y, undefined, 'destroy');
-              blast(s, cr.x, cr.y, cr.kind === 'chest' ? 120 : 58);
+              blast(s, cr.x, cr.y, cr.kind === 'chest' ? 120 : 58, 'fxBurstSm');
               spawnLoot(s, cr.x, cr.y, cr.kind);
             }
             SY.audio.explode();
@@ -1107,6 +1122,7 @@
       if (dmg > 0) { s.boss.hp -= dmg; s.boss.flash = 0.1; addScore(s, dmg * 5, undefined, undefined, undefined, 'boss'); }
     }
     if (s.elite && s.elite.state !== 'enter') { s.elite.hp = Math.max(1, s.elite.hp - 5); s.elite.flash = 0.1; }
+    blast(s, x, y, 240, 'fxBurstLg');
     wave(s, x, y, 240, '#ff8a4a');
     s.shake = Math.max(s.shake, 11);
     SY.audio.explode();
@@ -1171,6 +1187,9 @@
       bl.life -= dt * 2.6; // ~0.38s flash
       if (bl.life <= 0) s.blasts.splice(i, 1);
     }
+    for (let i = s.warps.length - 1; i >= 0; i--) { const w = s.warps[i]; w.life -= dt * 1.4; if (w.life <= 0) s.warps.splice(i, 1); }
+    for (let i = s.debris.length - 1; i >= 0; i--) { const d = s.debris[i]; d.life -= dt * 1.6; if (d.life <= 0) s.debris.splice(i, 1); }
+    for (let i = s.slashes.length - 1; i >= 0; i--) { const sl = s.slashes[i]; sl.life -= dt * 3.0; if (sl.life <= 0) s.slashes.splice(i, 1); }
     if (s.shake > 0) s.shake = Math.max(0, s.shake - dt * 26);
   }
 

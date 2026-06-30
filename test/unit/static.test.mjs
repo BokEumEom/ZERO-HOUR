@@ -339,7 +339,7 @@ test('big kills spawn an atlas burst-sprite explosion flash (FX polish)', () => 
   assert.ok(/blasts: \[\]/.test(game), 'state seeds a blasts array');
   const render = read(`${NV}/render.js`);
   assert.ok(/s\.blasts/.test(render), 'render iterates blasts');
-  assert.ok(/SP\.draw\(ctx, 'burst'/.test(render), 'blasts blit the atlas burst sprite');
+  assert.ok(/SP\.draw\(ctx, bl\.key \|\| 'burst'/.test(render), 'blasts blit the atlas burst sprite (key-routed)');
 });
 
 test('crystals use context gem variants (surge amber, boss-drop purple)', () => {
@@ -411,6 +411,17 @@ test('laser fence (F5 hazard) is wired', () => {
   assert.ok(/s\.fences/.test(game) && /function spawnFence/.test(game), 'fence state + spawn helper');
   const render = read(`${NV}/render.js`);
   assert.ok(/function drawFence/.test(render) && /s\.fences/.test(render), 'fence drawn');
+});
+
+test('G1 effects are wired (game spawns + render passes), rng-free', () => {
+  const game = read(`${NV}/game.js`);
+  const render = read(`${NV}/render.js`);
+  for (const sym of ['spawnWarp', 'spawnSlash', 'spawnDebris', 'fxBurstLg', 'fxBurstMd']) {
+    assert.ok(game.includes(sym), `game.js wires ${sym}`);
+  }
+  for (const key of ['fxWarpRing', 'fxSwoosh', 'fxDebris']) {
+    assert.ok(render.includes(key), `render.js draws ${key}`);
+  }
 });
 
 test('INTEL data pickup (F7) is wired', () => {

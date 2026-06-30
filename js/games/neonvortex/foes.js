@@ -112,7 +112,7 @@
         } else if (f.state === 'lock') {
           const d = Math.sqrt(dist2(p, f)) || 1; // re-aim each frame; frozen on dash entry
           f.dirX = (p.x - f.x) / d; f.dirY = (p.y - f.y) / d;
-          if (f.stateT <= 0) { f.state = 'dash'; f.stateT = 1.0; }
+          if (f.stateT <= 0) { f.state = 'dash'; f.stateT = 1.0; if (api.spawnSlash) api.spawnSlash(s, f.x, f.y, Math.atan2(f.dirY, f.dirX)); }
         } else if (f.state === 'dash') {
           f.x += f.dirX * 520 * slowMul * dt;
           f.y += f.dirY * 520 * slowMul * dt;

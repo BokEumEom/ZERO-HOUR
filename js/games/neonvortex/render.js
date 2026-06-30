@@ -591,12 +591,40 @@
       ctx.save();
       ctx.globalAlpha = Math.max(0, bl.life);
       ctx.globalCompositeOperation = 'lighter';
-      if (!SP.draw(ctx, 'burst', bl.x, bl.y, grow, bl.rot)) {
+      if (!SP.draw(ctx, bl.key || 'burst', bl.x, bl.y, grow, bl.rot)) {
         ctx.beginPath();
         ctx.arc(bl.x, bl.y, grow * 0.4, 0, Math.PI * 2);
         ctx.fillStyle = '#ffd9a8';
         ctx.fill();
       }
+      ctx.restore();
+    }
+
+    // warp-in rings (atlas, additive, expanding outward)
+    for (const w of s.warps) {
+      const grow = w.maxSize * (0.3 + (1 - w.life) * 0.7);
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, w.life) * 0.9;
+      ctx.globalCompositeOperation = 'lighter';
+      SP.draw(ctx, 'fxWarpRing', w.x, w.y, grow, w.rot);
+      ctx.restore();
+    }
+
+    // destruction debris (atlas, normal alpha, expanding + fading)
+    for (const d of s.debris) {
+      const grow = 70 * (0.7 + (1 - d.life) * 0.5);
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, d.life);
+      SP.draw(ctx, 'fxDebris', d.x, d.y, grow, d.rot);
+      ctx.restore();
+    }
+
+    // directional slashes (charger dash, atlas, additive)
+    for (const sl of s.slashes) {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, sl.life);
+      ctx.globalCompositeOperation = 'lighter';
+      SP.draw(ctx, 'fxSwoosh', sl.x, sl.y, 70, sl.angle);
       ctx.restore();
     }
 
