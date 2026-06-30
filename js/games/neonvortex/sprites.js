@@ -126,6 +126,9 @@
     skullHex:    { x: 1327, y: 545, w: 91, h: 85 },   // skull crest — charger dash telegraph
     // G3 hazard (section-2 ENEMY/HAZARD) — spiked flail ball on a chain (render.js drawFlail)
     flailBall:   { x: 835, y: 64, w: 46, h: 54 },
+    // G4 boost pad (section-3 INTERACTIVE/WORLD) — friendly floor buff (render.js drawPad)
+    padRing:     { x: 34,  y: 392, w: 117, h: 95 }, // hovering ring node — pad base
+    padArrow:    { x: 152, y: 273, w: 74,  h: 99 }, // up-arrow — armed glyph
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
