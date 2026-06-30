@@ -138,6 +138,9 @@
     hazardStripe:{ x: 363,  y: 523, w: 69, h: 79 }, // orange diagonal hazard stripe (s5)
     // R3 electric arc trap (section-2 xNode — two nodes + cross electric arc)
     arcNode:     { x: 1289, y: 149, w: 140, h: 84 }, // dual-node electric arc emitter (s2)
+    // R4 splitter orb (section-2 spiked orbs — big parent + small split children)
+    orbBig:      { x: 1134, y: 147, w: 51,  h: 53 }, // section-2 spiked orb (parent)
+    orbSmall:    { x: 1244, y: 187, w: 30,  h: 30 }, // section-2 spiked orb (split child)
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).

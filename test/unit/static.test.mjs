@@ -499,3 +499,27 @@ test('R3 electric arc trap is wired (seeded spawn + render + arcNode atlas rect)
   // sprites: arcNode rect at correct coords (no sheet tag)
   assert.ok(/arcNode:\s*\{/.test(spr), 'sprites.js defines arcNode rect');
 });
+
+test('R4 splitter orb is wired (seeded spawn + split + render + atlas rects)', () => {
+  const game = read(`${NV}/game.js`);
+  const render = read(`${NV}/render.js`);
+  const spr = read(`${NV}/sprites.js`);
+  // game: spawnOrb + splitOrb seeded, orbs state array, spawn timer, bullet collision
+  assert.ok(/function spawnOrb/.test(game), 'game.js defines spawnOrb');
+  assert.ok(/function splitOrb/.test(game), 'game.js defines splitOrb');
+  assert.ok(/function spawnOrb[\s\S]{0,300}s\.rng\(/.test(game), 'spawnOrb is seeded');
+  assert.ok(/function splitOrb[\s\S]{0,300}s\.rng\(/.test(game), 'splitOrb is seeded');
+  assert.ok(/orbs: \[\]/.test(game), 'freshState has orbs array');
+  assert.ok(/spawnT\.orb/.test(game), 'orb spawn timer wired');
+  assert.ok(/s\.orbs/.test(game), 'game.js uses s.orbs');
+  // bullet collision: both big and small branches
+  assert.ok(/o\.tier === 'big'[\s\S]{0,120}splitOrb/.test(game), 'big orb kill triggers splitOrb');
+  assert.ok(/ORB_BIG/.test(game) && /ORB_SMALL/.test(game), 'ORB_BIG / ORB_SMALL score consts');
+  // render: drawOrb function + call + sprite keys
+  assert.ok(/function drawOrb/.test(render), 'render.js defines drawOrb');
+  assert.ok(/s\.orbs/.test(render) && /drawOrb/.test(render), 'render.js iterates and draws orbs');
+  assert.ok(/'orbBig'/.test(render) && /'orbSmall'/.test(render), 'drawOrb uses orbBig/orbSmall sprites');
+  // sprites: both orb rects, no sheet tag
+  assert.ok(/orbBig:\s*\{/.test(spr), 'sprites.js defines orbBig rect');
+  assert.ok(/orbSmall:\s*\{/.test(spr), 'sprites.js defines orbSmall rect');
+});
