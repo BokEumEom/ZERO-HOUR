@@ -121,6 +121,9 @@
     fxBurstSm:   { x: 1236, y: 288, w: 81,  h: 73 },  // small orange burst
     fxSwoosh:    { x: 1335, y: 295, w: 75,  h: 78 },  // directional slash (charger dash)
     fxDebris:    { x: 954,  y: 422, w: 84,  h: 62 },  // destruction debris
+    // G2 danger telegraphs (section-6 BOSS/ELITE) — render-only badges (render.js)
+    warnTri:     { x: 991,  y: 536, w: 71, h: 95 },   // warning triangle — elite fire telegraph
+    skullHex:    { x: 1327, y: 545, w: 91, h: 85 },   // skull crest — charger dash telegraph
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
