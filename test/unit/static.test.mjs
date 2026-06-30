@@ -463,3 +463,21 @@ test('R1 decor leftovers are placed in the DECOR array', () => {
     assert.ok(render.includes(key), `render.js DECOR includes ${key}`);
   }
 });
+
+test('R2 sweeping hazard barrier is wired (seeded spawn + render + atlas rect)', () => {
+  const game = read(`${NV}/game.js`);
+  const render = read(`${NV}/render.js`);
+  const spr = read(`${NV}/sprites.js`);
+  // game: spawnBarrier seeded, barriers state array, spawn+update blocks
+  assert.ok(/function spawnBarrier/.test(game), 'game.js defines spawnBarrier');
+  assert.ok(/function spawnBarrier[\s\S]{0,300}s\.rng\(/.test(game), 'spawnBarrier is seeded');
+  assert.ok(/barriers: \[\]/.test(game), 'freshState has barriers array');
+  assert.ok(/s\.barriers\.length < 1 && s\.diff\.spawnMul >= 1/.test(game), 'spawn guard: cap=1, normal/hard only');
+  assert.ok(/spawnT\.barrier/.test(game), 'barrier spawn timer wired');
+  // render: drawBarrier function + call + hazardStripe usage
+  assert.ok(/function drawBarrier/.test(render), 'render.js defines drawBarrier');
+  assert.ok(/s\.barriers/.test(render) && /drawBarrier/.test(render), 'render.js iterates and draws barriers');
+  assert.ok(/hazardStripe/.test(render), 'drawBarrier tiles the hazardStripe sprite');
+  // sprites: hazardStripe rect at correct coords (no sheet tag)
+  assert.ok(/hazardStripe:\s*\{/.test(spr), 'sprites.js defines hazardStripe rect');
+});
