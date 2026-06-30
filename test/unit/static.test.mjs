@@ -438,3 +438,12 @@ test('INTEL data pickup (F7) is wired', () => {
   assert.ok(!/POWER_TYPES = \[[^\]]*INTEL/.test(game), 'INTEL stays OUT of the seeded bag (POWER_TYPES)');
   assert.ok(/INTEL:\s*\{/.test(read(`${NV}/sprites.js`)), 'INTEL power icon rect');
 });
+
+test('G3 flail hazard is wired (seeded spawn + render)', () => {
+  const game = read(`${NV}/game.js`);
+  const render = read(`${NV}/render.js`);
+  assert.ok(/function spawnFlail/.test(game), 'game.js defines spawnFlail');
+  assert.ok(game.includes('s.flails'), 'game.js uses s.flails');
+  assert.ok(/spawnFlail\(s\)[\s\S]{0,40}rng/.test(game) || /function spawnFlail[\s\S]{0,200}s\.rng\(/.test(game), 'spawnFlail is seeded');
+  assert.ok(/function drawFlail/.test(render) && render.includes('flailBall'), 'render.js draws the flail');
+});
