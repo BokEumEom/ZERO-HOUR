@@ -129,6 +129,11 @@
     // G4 boost pad (section-3 INTERACTIVE/WORLD) — friendly floor buff (render.js drawPad)
     padRing:     { x: 34,  y: 392, w: 117, h: 95 }, // hovering ring node — pad base
     padArrow:    { x: 152, y: 273, w: 74,  h: 99 }, // up-arrow — armed glyph
+    // R1 arena decor (section-5 modular leftovers + section-8 mini mark) — ambient DECOR
+    decoHexFrame:{ x: 148, y: 527, w: 75,  h: 68 }, // hex frame
+    decoChip:    { x: 363, y: 616, w: 108, h: 67 }, // circuit chip board
+    decoConduit: { x: 38,  y: 623, w: 156, h: 29 }, // conduit/rail bar
+    miniIcon:    { x: 1357, y: 881, w: 54, h: 47 }, // small ship mark → corner decor
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
