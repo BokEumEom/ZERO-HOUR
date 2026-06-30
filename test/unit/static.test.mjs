@@ -456,3 +456,10 @@ test('G4 boost pad is wired (seeded spawn + floor render)', () => {
   assert.ok(/function spawnPad[\s\S]{0,200}s\.rng\(/.test(game), 'spawnPad is seeded');
   assert.ok(/function drawPad/.test(render) && render.includes('padRing'), 'render.js draws the pad');
 });
+
+test('R1 decor leftovers are placed in the DECOR array', () => {
+  const render = read(`${NV}/render.js`);
+  for (const key of ['decoChip', 'decoHexFrame', 'decoConduit', 'miniIcon']) {
+    assert.ok(render.includes(key), `render.js DECOR includes ${key}`);
+  }
+});

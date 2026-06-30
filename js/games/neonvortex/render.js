@@ -27,6 +27,11 @@
     { key: 'decoNode',    x: 480, y: 40,  size: 52, rot: 0,       alpha: 0.12 },
     { key: 'decoReadout', x: 480, y: 562, size: 70, rot: Math.PI, alpha: 0.12 },
     { key: 'decoNode',    x: 922, y: 300, size: 50, rot: 0,       alpha: 0.12 },
+    // R1: section-5 modular leftovers + section-8 mini mark (edge gaps, low alpha)
+    { key: 'decoChip',     x: 120, y: 250, size: 84,  rot: 0, alpha: 0.13 },
+    { key: 'decoHexFrame', x: 840, y: 215, size: 72,  rot: 0, alpha: 0.13 },
+    { key: 'decoConduit',  x: 650, y: 545, size: 150, rot: 0, alpha: 0.12 },
+    { key: 'miniIcon',     x: 120, y: 380, size: 40,  rot: 0, alpha: 0.12 },
   ];
 
   function poly(ctx, x, y, r, n, rot) {
