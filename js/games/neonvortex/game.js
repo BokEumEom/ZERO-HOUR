@@ -148,7 +148,7 @@
       score: 0, combo: 0, maxCombo: 0, comboT: 0,
       pace: [0], paceSec: 0,
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
-      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [],
+      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [], flails: [],
       parts: [], waves: [], floats: [], blasts: [], warps: [], slashes: [], debris: [],
       boss: null, bossDown: false, bossWarnT: 0, bossCores: [],
       elite: null, eliteSpawned: false,
@@ -160,7 +160,7 @@
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
       heat: 0, heatMul: 1,
-      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, fence: 11, oneup: 16, bomb: 18, intel: 17 },
+      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, fence: 11, flail: 13, oneup: 16, bomb: 18, intel: 17 },
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
@@ -266,6 +266,17 @@
     const pos = orient === 'h' ? 120 + s.rng() * (H - 240) : 120 + s.rng() * (W - 240);
     s.fences.push({ orient, pos, state: 'warn', t: 1.1, phase: 0 });
   }
+
+  // ---- G3 spiked flail: a seeded tethered ball that sweeps an arc (sec-2 mace) ----
+  function spawnFlail(s) {
+    const ax = 120 + s.rng() * (W - 240);
+    const ay = 90 + s.rng() * (H - 220);
+    const len = 80 + s.rng() * 60;                  // chain length
+    const spin = (s.rng() < 0.5 ? -1 : 1) * 1.8;    // signed angular speed (rad/s)
+    const ang = s.rng() * Math.PI * 2;              // start angle
+    s.flails.push({ ax, ay, len, ang, spin, ballR: 16, state: 'warn', t: 1.0, phase: 0 });
+  }
+
   // emit a homing mine AT a position (the portal mouth) — reuses the mine entity
   function spawnMineAt(s, x, y) {
     s.mines.push({ x, y, r: 11, hp: 1, speed: (62 + s.t * 1.1) * s.diff.mineSpeedMul, phase: s.rng() * Math.PI * 2, flash: 0, vx: 0, vy: 0, entryT: 0 });
@@ -808,6 +819,28 @@
         if (fc.t <= 0) { fc.state = 'fade'; fc.t = 0.35; }
       } else { // fade
         if (fc.t <= 0) s.fences.splice(i, 1);
+      }
+    }
+
+    // ---------- spawn + update spiked flails (G3) ----------
+    s.spawnT.flail -= dt;
+    if (s.spawnT.flail <= 0) {
+      s.spawnT.flail = 16 + s.rng() * 10;
+      if (s.flails.length < 1 && s.diff.spawnMul >= 1) spawnFlail(s); // normal/hard only
+    }
+    for (let i = s.flails.length - 1; i >= 0; i--) {
+      const fl = s.flails[i];
+      fl.phase += dt * 3; fl.t -= dt;
+      if (fl.state === 'warn') {
+        if (fl.t <= 0) { fl.state = 'sweep'; fl.t = 4.5; SY.audio.shoot(); }
+      } else if (fl.state === 'sweep') {
+        fl.ang += fl.spin * dt;
+        const bx = fl.ax + Math.cos(fl.ang) * fl.len, by = fl.ay + Math.sin(fl.ang) * fl.len;
+        const dx = p.x - bx, dy = p.y - by;
+        if (dx * dx + dy * dy < (fl.ballR + p.r) * (fl.ballR + p.r)) hurtPlayer(s, bx, by);
+        if (fl.t <= 0) { fl.state = 'leave'; fl.t = 0.4; }
+      } else { // leave
+        if (fl.t <= 0) s.flails.splice(i, 1);
       }
     }
 
