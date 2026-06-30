@@ -148,7 +148,7 @@
       score: 0, combo: 0, maxCombo: 0, comboT: 0,
       pace: [0], paceSec: 0,
       player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
-      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [], flails: [], pads: [],
+      crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [], flails: [], pads: [], barriers: [],
       parts: [], waves: [], floats: [], blasts: [], warps: [], slashes: [], debris: [],
       boss: null, bossDown: false, bossWarnT: 0, bossCores: [],
       elite: null, eliteSpawned: false,
@@ -160,7 +160,7 @@
       freeze: 0, shake: 0,
       surges: [], surgeIdx: 0, surgeWarnT: 0, surgeActiveT: 0, inSurge: false,
       heat: 0, heatMul: 1,
-      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, fence: 11, flail: 13, pad: 9, oneup: 16, bomb: 18, intel: 17 },
+      spawnT: { crystal: 0.4, rock: 1.5, mine: 3.2, pow: 6, turret: 5, crate: 6, fence: 11, flail: 13, pad: 9, oneup: 16, bomb: 18, intel: 17, barrier: 15 },
       powBag: [],
       lastWholeSec: duration,
       collected: 0,
@@ -275,6 +275,21 @@
     const spin = (s.rng() < 0.5 ? -1 : 1) * 1.8;    // signed angular speed (rad/s)
     const ang = s.rng() * Math.PI * 2;              // start angle
     s.flails.push({ ax, ay, len, ang, spin, ballR: 16, state: 'warn', t: 1.0, phase: 0 });
+  }
+
+  // ---- R2 sweeping hazard barrier: telegraphed bar that slides across the arena ----
+  // orient 'h' sweeps vertically (pos=y tracks the bar's y); 'v' sweeps horizontally (pos=x).
+  // Mirrors the F5 fence pattern but moves. Spawn/pos all seeded — daily fairness.
+  function spawnBarrier(s) {
+    const horiz = s.rng() < 0.5;     // 'h' = bar runs horizontally, sweeps top→bottom or reverse
+    const fromStart = s.rng() < 0.5; // which edge it starts from
+    if (horiz) {
+      s.barriers.push({ orient: 'h', pos: fromStart ? 70 : H - 70, half: 22,
+        dir: fromStart ? 1 : -1, speed: 120, state: 'warn', t: 1.2, phase: 0 });
+    } else {
+      s.barriers.push({ orient: 'v', pos: fromStart ? 90 : W - 90, half: 22,
+        dir: fromStart ? 1 : -1, speed: 200, state: 'warn', t: 1.2, phase: 0 });
+    }
   }
 
   // ---- G4 boost pad: a seeded friendly floor object; overlap grants fx.BOOST ----
@@ -848,6 +863,28 @@
         if (fl.t <= 0) { fl.state = 'leave'; fl.t = 0.4; }
       } else { // leave
         if (fl.t <= 0) s.flails.splice(i, 1);
+      }
+    }
+
+    // ---------- spawn + update sweeping hazard barriers (R2) ----------
+    s.spawnT.barrier -= dt;
+    if (s.spawnT.barrier <= 0) {
+      s.spawnT.barrier = 17 + s.rng() * 10;
+      if (s.barriers.length < 1 && s.diff.spawnMul >= 1) spawnBarrier(s); // normal/hard only
+    }
+    for (let i = s.barriers.length - 1; i >= 0; i--) {
+      const ba = s.barriers[i];
+      ba.phase += dt * 4;
+      if (ba.state === 'warn') {
+        ba.t -= dt;
+        if (ba.t <= 0) { ba.state = 'sweep'; SY.audio.shoot(); }
+      } else { // sweep
+        ba.pos += ba.dir * ba.speed * dt;
+        const perp = ba.orient === 'h' ? Math.abs(p.y - ba.pos) : Math.abs(p.x - ba.pos);
+        if (perp < ba.half + p.r) hurtPlayer(s, p.x, p.y);
+        const off = ba.orient === 'h' ? (ba.pos < -30 || ba.pos > H + 30)
+                                      : (ba.pos < -30 || ba.pos > W + 30);
+        if (off) s.barriers.splice(i, 1);
       }
     }
 
