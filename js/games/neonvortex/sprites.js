@@ -144,6 +144,15 @@
     // R5 heavy projectile variants — finnedBolt (player BOOST shot) + pinkLance (boss volley)
     finnedBolt:  { x: 870, y: 271, w: 35, h: 105 }, // section-4 finned cyan bolt
     pinkLance:   { x: 878, y: 538, w: 78, h: 96 },  // section-6 pink lance
+    // R6 final decor sweep (remaining facility odds-and-ends) — ambient DECOR (render.js)
+    glassTube:   { x: 620, y: 269, w: 54,  h: 105 }, // coolant capsule tube (s3)
+    antennaArr:  { x: 436, y: 386, w: 59,  h: 101 }, // antenna/emitter (s3)
+    testTubeA:   { x: 247, y: 614, w: 16,  h: 65 },  // cyan test tube (s5)
+    testTubeB:   { x: 299, y: 614, w: 31,  h: 69 },  // pink test tube (s5)
+    decoBracket: { x: 517, y: 631, w: 140, h: 49 },  // module bracket (s5)
+    redCorner:   { x: 461, y: 522, w: 76,  h: 81 },  // hazard corner frame (s5)
+    bossConsole: { x: 754, y: 531, w: 81,  h: 73 },  // boss command console core (s6)
+    debris2:     { x: 730, y: 159, w: 100, h: 67 },  // debris cluster (s2)
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).

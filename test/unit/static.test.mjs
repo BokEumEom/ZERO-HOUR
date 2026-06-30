@@ -464,6 +464,13 @@ test('R1 decor leftovers are placed in the DECOR array', () => {
   }
 });
 
+test('R6 final decor sweep places the remaining leftovers in DECOR', () => {
+  const render = read(`${NV}/render.js`);
+  for (const key of ['antennaArr', 'glassTube', 'debris2', 'testTubeB', 'bossConsole', 'redCorner', 'decoBracket', 'testTubeA']) {
+    assert.ok(render.includes(key), `render.js DECOR includes ${key}`);
+  }
+});
+
 test('R5 heavy projectile variants are wired (cosmetic, fx.BOOST / b.lance gated)', () => {
   const render = read(`${NV}/render.js`);
   const game = read(`${NV}/game.js`);

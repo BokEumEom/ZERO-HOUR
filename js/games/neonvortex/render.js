@@ -32,6 +32,15 @@
     { key: 'decoHexFrame', x: 840, y: 215, size: 72,  rot: 0, alpha: 0.13 },
     { key: 'decoConduit',  x: 650, y: 545, size: 150, rot: 0, alpha: 0.12 },
     { key: 'miniIcon',     x: 120, y: 380, size: 40,  rot: 0, alpha: 0.12 },
+    // R6: final sweep of remaining facility leftovers (edge gaps, very low alpha)
+    { key: 'antennaArr',   x: 55,  y: 135, size: 60,  rot: 0, alpha: 0.10 },
+    { key: 'glassTube',    x: 905, y: 130, size: 52,  rot: 0, alpha: 0.11 },
+    { key: 'debris2',      x: 760, y: 62,  size: 72,  rot: 0, alpha: 0.09 },
+    { key: 'testTubeB',    x: 250, y: 52,  size: 44,  rot: 0, alpha: 0.10 },
+    { key: 'bossConsole',  x: 55,  y: 305, size: 76,  rot: 0, alpha: 0.10 },
+    { key: 'redCorner',    x: 905, y: 440, size: 58,  rot: 0, alpha: 0.10 },
+    { key: 'decoBracket',  x: 745, y: 556, size: 110, rot: 0, alpha: 0.09 },
+    { key: 'testTubeA',    x: 300, y: 556, size: 36,  rot: 0, alpha: 0.10 },
   ];
 
   function poly(ctx, x, y, r, n, rot) {
