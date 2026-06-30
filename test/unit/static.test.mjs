@@ -481,3 +481,21 @@ test('R2 sweeping hazard barrier is wired (seeded spawn + render + atlas rect)',
   // sprites: hazardStripe rect at correct coords (no sheet tag)
   assert.ok(/hazardStripe:\s*\{/.test(spr), 'sprites.js defines hazardStripe rect');
 });
+
+test('R3 electric arc trap is wired (seeded spawn + render + arcNode atlas rect)', () => {
+  const game = read(`${NV}/game.js`);
+  const render = read(`${NV}/render.js`);
+  const spr = read(`${NV}/sprites.js`);
+  // game: spawnArc seeded, arcs state array, spawn+update block
+  assert.ok(/function spawnArc/.test(game), 'game.js defines spawnArc');
+  assert.ok(/function spawnArc[\s\S]{0,300}s\.rng\(/.test(game), 'spawnArc is seeded');
+  assert.ok(/arcs: \[\]/.test(game), 'freshState has arcs array');
+  assert.ok(/s\.arcs\.length < 1 && s\.diff\.spawnMul >= 1/.test(game), 'spawn guard: cap=1, normal/hard only');
+  assert.ok(/spawnT\.arc/.test(game), 'arc spawn timer wired');
+  // render: drawArc function + call + arcNode usage
+  assert.ok(/function drawArc/.test(render), 'render.js defines drawArc');
+  assert.ok(/s\.arcs/.test(render) && /drawArc/.test(render), 'render.js iterates and draws arcs');
+  assert.ok(/'arcNode'/.test(render), 'drawArc uses the arcNode sprite');
+  // sprites: arcNode rect at correct coords (no sheet tag)
+  assert.ok(/arcNode:\s*\{/.test(spr), 'sprites.js defines arcNode rect');
+});
