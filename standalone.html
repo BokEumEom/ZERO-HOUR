@@ -4376,6 +4376,9 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     fxBurstSm:   { x: 1236, y: 288, w: 81,  h: 73 },  // small orange burst
     fxSwoosh:    { x: 1335, y: 295, w: 75,  h: 78 },  // directional slash (charger dash)
     fxDebris:    { x: 954,  y: 422, w: 84,  h: 62 },  // destruction debris
+    // G2 danger telegraphs (section-6 BOSS/ELITE) — render-only badges (render.js)
+    warnTri:     { x: 991,  y: 536, w: 71, h: 95 },   // warning triangle — elite fire telegraph
+    skullHex:    { x: 1327, y: 545, w: 91, h: 85 },   // skull crest — charger dash telegraph
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
@@ -6633,6 +6636,13 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         ctx.stroke();
         ctx.restore();
       }
+      if (f.state === 'lock') { // skull crest above the charger (dash imminent)
+        ctx.save();
+        ctx.globalAlpha = 0.5 + 0.4 * Math.sin(f.phase * 10);
+        ctx.globalCompositeOperation = 'lighter';
+        SP.draw(ctx, 'skullHex', f.x, f.y - (f.r + 34), 40, 0);
+        ctx.restore();
+      }
       const rot = (f.dirX || f.dirY) ? Math.atan2(f.dirY, f.dirX) + Math.PI / 2 : 0;
       if (!SP.draw(ctx, 'foeCharger', f.x, f.y, (f.r + 5) * 2.3, rot)) {
         ctx.save();
@@ -6692,6 +6702,13 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       ctx.beginPath(); ctx.moveTo(e.x, e.y);
       ctx.lineTo(e.x + Math.cos(e.beamFrom) * 760, e.y + Math.sin(e.beamFrom) * 760);
       ctx.stroke(); ctx.restore();
+    }
+    if (e.state === 'telegraph') { // warning-triangle badge above the elite
+      ctx.save();
+      ctx.globalAlpha = 0.45 + 0.4 * Math.sin(e.phase * 8);
+      ctx.globalCompositeOperation = 'lighter';
+      SP.draw(ctx, 'warnTri', e.x, e.y - (e.r + 40), 48, 0);
+      ctx.restore();
     }
     // firing beam
     if (e.state === 'firing') {
