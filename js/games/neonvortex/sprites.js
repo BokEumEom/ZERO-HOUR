@@ -134,6 +134,8 @@
     decoChip:    { x: 363, y: 616, w: 108, h: 67 }, // circuit chip board
     decoConduit: { x: 38,  y: 623, w: 156, h: 29 }, // conduit/rail bar
     miniIcon:    { x: 1357, y: 881, w: 54, h: 47 }, // small ship mark → corner decor
+    // R2 sweeping hazard barrier (section-5 orange diagonal hazard stripe)
+    hazardStripe:{ x: 363,  y: 523, w: 69, h: 79 }, // orange diagonal hazard stripe (s5)
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
