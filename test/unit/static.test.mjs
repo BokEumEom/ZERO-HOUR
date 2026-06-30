@@ -464,6 +464,14 @@ test('R1 decor leftovers are placed in the DECOR array', () => {
   }
 });
 
+test('R5 heavy projectile variants are wired (cosmetic, fx.BOOST / b.lance gated)', () => {
+  const render = read(`${NV}/render.js`);
+  const game = read(`${NV}/game.js`);
+  assert.ok(/fx\.BOOST[\s\S]{0,80}finnedBolt/.test(render), 'finnedBolt gated on fx.BOOST');
+  assert.ok(/b\.lance[\s\S]{0,120}pinkLance/.test(render), 'pinkLance gated on b.lance');
+  assert.ok(/lance: true/.test(game), 'boss aimed volley tags bullets lance:true');
+});
+
 test('R2 sweeping hazard barrier is wired (seeded spawn + render + atlas rect)', () => {
   const game = read(`${NV}/game.js`);
   const render = read(`${NV}/render.js`);

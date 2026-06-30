@@ -4396,6 +4396,9 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     // R4 splitter orb (section-2 spiked orbs — big parent + small split children)
     orbBig:      { x: 1134, y: 147, w: 51,  h: 53 }, // section-2 spiked orb (parent)
     orbSmall:    { x: 1244, y: 187, w: 30,  h: 30 }, // section-2 spiked orb (split child)
+    // R5 heavy projectile variants — finnedBolt (player BOOST shot) + pinkLance (boss volley)
+    finnedBolt:  { x: 870, y: 271, w: 35, h: 105 }, // section-4 finned cyan bolt
+    pinkLance:   { x: 878, y: 538, w: 78, h: 96 },  // section-6 pink lance
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).
@@ -5674,7 +5677,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
       const base = Math.atan2(p.y - b.y, p.x - b.x);
       for (let k = -1; k <= 1; k++) {
         const a = base + k * 0.16;
-        s.ebullets.push({ x: b.x, y: b.y, vx: Math.cos(a) * 235, vy: Math.sin(a) * 235, r: 5 });
+        s.ebullets.push({ x: b.x, y: b.y, vx: Math.cos(a) * 235, vy: Math.sin(a) * 235, r: 5, lance: true });
       }
     }
     // heavy plasma orb: slow, large, telegraphed aimed shot (reactive aim, no rng)
@@ -7246,7 +7249,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         }
         continue;
       }
-      if (!SP.draw(ctx, 'bulletTeal', b.x, b.y, 18, Math.atan2(b.vy, b.vx) + Math.PI / 2)) {
+      const heavy = s.fx.BOOST > 0; // BOOST upgrades shots to the heavier finned bolt
+      if (!SP.draw(ctx, heavy ? 'finnedBolt' : 'bulletTeal', b.x, b.y, heavy ? 24 : 18, Math.atan2(b.vy, b.vx) + Math.PI / 2)) {
         ctx.save();
         ctx.translate(b.x, b.y);
         ctx.rotate(Math.atan2(b.vy, b.vx));
@@ -7263,6 +7267,13 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
         if (!SP.draw(ctx, 'plasmaOrb', b.x, b.y, b.r * 2.6, b.x * 0.5 + b.y * 0.5)) {
           ctx.save(); ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
           ctx.fillStyle = '#5ad1ff'; ctx.shadowColor = '#5ad1ff'; ctx.shadowBlur = 12; ctx.fill(); ctx.restore();
+        }
+        continue;
+      }
+      if (b.lance) { // boss aimed-volley heavy lance (cosmetic)
+        if (!SP.draw(ctx, 'pinkLance', b.x, b.y, b.r * 5, Math.atan2(b.vy, b.vx) + Math.PI / 2)) {
+          ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+          ctx.fillStyle = '#ff5a78'; ctx.shadowColor = '#ff5a78'; ctx.shadowBlur = 10; ctx.fill(); ctx.shadowBlur = 0;
         }
         continue;
       }
