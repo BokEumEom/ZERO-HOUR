@@ -139,6 +139,35 @@
     ctx.restore();
   }
 
+  function drawOrb(ctx, o) {
+    const key = o.tier === 'big' ? 'orbBig' : 'orbSmall';
+    const size = (o.r + 4) * 2.2;
+    if (SP.draw(ctx, key, o.x, o.y, size, o.rot)) {
+      if (o.flash > 0) { // hit highlight — additive white flash
+        ctx.save();
+        ctx.globalAlpha = 0.55;
+        ctx.globalCompositeOperation = 'lighter';
+        SP.draw(ctx, key, o.x, o.y, size, o.rot);
+        ctx.restore();
+      }
+      return;
+    }
+    // vector fallback (pink circle with spike ring)
+    ctx.save();
+    ctx.translate(o.x, o.y);
+    ctx.rotate(o.rot);
+    ctx.shadowColor = '#ff9ad0';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.arc(0, 0, o.r, 0, Math.PI * 2);
+    ctx.fillStyle = o.flash > 0 ? '#ffffff' : (o.tier === 'big' ? '#cc2277' : '#ff5aaa');
+    ctx.fill();
+    ctx.strokeStyle = '#ff9ad0';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.restore();
+  }
+
   function drawMine(ctx, m) {
     const pulse = 1 + Math.sin(m.phase) * 0.12;
     if (SP.draw(ctx, 'enemySmall', m.x, m.y, (m.r + 3) * 2.3 * pulse, m.phase * 0.4)) {
@@ -715,6 +744,7 @@
     for (const c of s.crystals) drawCrystal(ctx, c, s.inSurge);
     for (const t of s.tokens) drawToken(ctx, t);
     for (const r of s.rocks) drawRock(ctx, r);
+    for (const o of s.orbs) drawOrb(ctx, o);
     for (const c of s.crates) drawCrate(ctx, c);
     for (const o of s.pows) drawPow(ctx, o);
     for (const m of s.mines) drawMine(ctx, m);
