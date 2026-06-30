@@ -141,6 +141,9 @@
     // R4 splitter orb (section-2 spiked orbs — big parent + small split children)
     orbBig:      { x: 1134, y: 147, w: 51,  h: 53 }, // section-2 spiked orb (parent)
     orbSmall:    { x: 1244, y: 187, w: 30,  h: 30 }, // section-2 spiked orb (split child)
+    // R5 heavy projectile variants — finnedBolt (player BOOST shot) + pinkLance (boss volley)
+    finnedBolt:  { x: 870, y: 271, w: 35, h: 105 }, // section-4 finned cyan bolt
+    pinkLance:   { x: 878, y: 538, w: 78, h: 96 },  // section-6 pink lance
   };
 
   // power-up pickup badges (atlas section 1 "POWER-UPS / PICKUPS", cyan row).

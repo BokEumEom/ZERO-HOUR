@@ -628,7 +628,7 @@
       const base = Math.atan2(p.y - b.y, p.x - b.x);
       for (let k = -1; k <= 1; k++) {
         const a = base + k * 0.16;
-        s.ebullets.push({ x: b.x, y: b.y, vx: Math.cos(a) * 235, vy: Math.sin(a) * 235, r: 5 });
+        s.ebullets.push({ x: b.x, y: b.y, vx: Math.cos(a) * 235, vy: Math.sin(a) * 235, r: 5, lance: true });
       }
     }
     // heavy plasma orb: slow, large, telegraphed aimed shot (reactive aim, no rng)

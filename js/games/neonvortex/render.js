@@ -804,7 +804,8 @@
         }
         continue;
       }
-      if (!SP.draw(ctx, 'bulletTeal', b.x, b.y, 18, Math.atan2(b.vy, b.vx) + Math.PI / 2)) {
+      const heavy = s.fx.BOOST > 0; // BOOST upgrades shots to the heavier finned bolt
+      if (!SP.draw(ctx, heavy ? 'finnedBolt' : 'bulletTeal', b.x, b.y, heavy ? 24 : 18, Math.atan2(b.vy, b.vx) + Math.PI / 2)) {
         ctx.save();
         ctx.translate(b.x, b.y);
         ctx.rotate(Math.atan2(b.vy, b.vx));
@@ -821,6 +822,13 @@
         if (!SP.draw(ctx, 'plasmaOrb', b.x, b.y, b.r * 2.6, b.x * 0.5 + b.y * 0.5)) {
           ctx.save(); ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
           ctx.fillStyle = '#5ad1ff'; ctx.shadowColor = '#5ad1ff'; ctx.shadowBlur = 12; ctx.fill(); ctx.restore();
+        }
+        continue;
+      }
+      if (b.lance) { // boss aimed-volley heavy lance (cosmetic)
+        if (!SP.draw(ctx, 'pinkLance', b.x, b.y, b.r * 5, Math.atan2(b.vy, b.vx) + Math.PI / 2)) {
+          ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+          ctx.fillStyle = '#ff5a78'; ctx.shadowColor = '#ff5a78'; ctx.shadowBlur = 10; ctx.fill(); ctx.shadowBlur = 0;
         }
         continue;
       }
