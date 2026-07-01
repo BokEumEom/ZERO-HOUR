@@ -273,7 +273,7 @@ test('boss orbital support cores are wired (deterministic)', () => {
 
 test('difficulty surge scaling + headline difficulty label are wired', () => {
   const game = read(`${NV}/game.js`);
-  assert.match(game, /surgeMul: 0\.7/, 'easy surgeMul');
+  assert.match(game, /surgeMul: 0\.55/, 'easy surgeMul');
   assert.match(game, /surgeMul: 1\.4/, 'hard surgeMul');
   assert.match(game, /\(6 \+ 3 \* k\) \* s\.diff\.surgeMul/, 'buildSurges scales by surgeMul');
   const main = read(`${NV}/main.js`);

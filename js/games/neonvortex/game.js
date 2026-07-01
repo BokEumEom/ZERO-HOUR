@@ -41,10 +41,13 @@
   // turretCap/turretFire are inert until Phase 2 (turret enemy).
   // *Mul knobs multiply onto base constants. bossFireMul multiplies the boss
   // fire-interval (burstT/aimT), so <1 = faster fire, >1 = slower.
+  // maxHp: starting/heal-cap hull. Only easy deviates (4 vs the normal/hard
+  // baseline of 3) — normal must stay exactly as-is for daily fairness +
+  // existing leaderboard/records parity (see LEARNINGS.md / difficulty-feel).
   const DIFF = Object.freeze({
-    easy:   Object.freeze({ turretCap: 0, turretFire: 2.6, spawnMul: 0.75, mineSpeedMul: 0.85, mineCap: 9,  surgeMul: 0.7, lootMul: 1.0, bossHpMul: 0.75, bossFireMul: 1.25, foes: Object.freeze({}) }),
-    normal: Object.freeze({ turretCap: 2, turretFire: 2.6, spawnMul: 1.0,  mineSpeedMul: 1.0,  mineCap: 12, surgeMul: 1.0, lootMul: 1.0, bossHpMul: 1.0,  bossFireMul: 1.0,  foes: Object.freeze({ hunter: 2, charger: 1 }) }),
-    hard:   Object.freeze({ turretCap: 3, turretFire: 1.9, spawnMul: 1.3,  mineSpeedMul: 1.2,  mineCap: 16, surgeMul: 1.4, lootMul: 1.0, bossHpMul: 1.33, bossFireMul: 0.8,  foes: Object.freeze({ hunter: 2, charger: 2, shield: 1, laser: 1 }) }),
+    easy:   Object.freeze({ turretCap: 0, turretFire: 2.6, spawnMul: 0.65, mineSpeedMul: 0.85, mineCap: 7,  surgeMul: 0.55, lootMul: 1.0, bossHpMul: 0.75, bossFireMul: 1.25, maxHp: 4, foes: Object.freeze({}) }),
+    normal: Object.freeze({ turretCap: 2, turretFire: 2.6, spawnMul: 1.0,  mineSpeedMul: 1.0,  mineCap: 12, surgeMul: 1.0,  lootMul: 1.0, bossHpMul: 1.0,  bossFireMul: 1.0,  maxHp: 3, foes: Object.freeze({ hunter: 2, charger: 1 }) }),
+    hard:   Object.freeze({ turretCap: 3, turretFire: 1.9, spawnMul: 1.3,  mineSpeedMul: 1.2,  mineCap: 16, surgeMul: 1.4,  lootMul: 1.0, bossHpMul: 1.33, bossFireMul: 0.8,  maxHp: 3, foes: Object.freeze({ hunter: 2, charger: 2, shield: 1, laser: 1 }) }),
   });
 
   // ---- per-run modifiers (layer on top of DIFF; score-neutral) ----
@@ -70,6 +73,7 @@
       lootMul:      base.lootMul * (mod.lootMul || 1),
       bossHpMul:    base.bossHpMul * (mod.bossHpMul || 1),
       bossFireMul:  base.bossFireMul * (mod.bossFireMul || 1),
+      maxHp:        base.maxHp,
       foes:         mod.foes || base.foes,
     });
   }
@@ -138,16 +142,17 @@
     const duration = Math.round(SY.tweaks.duration);
     const diffKey = DIFF[difficulty] ? difficulty : 'normal';
     const modifier = modifierFor(seedStr); // { key, nameKo, nameEn } — score-neutral
+    const diff = combineDiff(DIFF[diffKey], MODS[modifier.key]);
     const st = {
       rng, seedStr, mode, duration,
-      difficulty: diffKey, diff: combineDiff(DIFF[diffKey], MODS[modifier.key]),
+      difficulty: diffKey, diff,
       modifier,
       t: 0,                       // elapsed sim time
       timeLeft: duration,
       readyT: 1.4,
       score: 0, combo: 0, maxCombo: 0, comboT: 0,
       pace: [0], paceSec: 0,
-      player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: 3, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
+      player: { x: W / 2, y: H * 0.68, vx: 0, vy: 0, r: 13, hp: diff.maxHp, maxHp: diff.maxHp, inv: 0, fireCd: 0, angle: -Math.PI / 2, thrust: 0 },
       crystals: [], rocks: [], mines: [], bullets: [], ebullets: [], pows: [], turrets: [], foes: [], crates: [], tokens: [], drones: [], fences: [], flails: [], pads: [], barriers: [], arcs: [], orbs: [],
       parts: [], waves: [], floats: [], blasts: [], warps: [], slashes: [], debris: [],
       boss: null, bossDown: false, bossWarnT: 0, bossCores: [],
@@ -936,11 +941,12 @@
       if (ar.life <= 0) s.arcs.splice(i, 1);
     }
 
-    // ---------- spawn + update splitter orbs (R4) ----------
+    // ---------- spawn + update splitter orbs (R4) — normal/hard only, like the
+    // other section-R hazards (fence/flail/barrier/arc) gated on spawnMul>=1 ----------
     s.spawnT.orb -= dt;
     if (s.spawnT.orb <= 0) {
       s.spawnT.orb = 9 + s.rng() * 6;
-      if (countOrbTier(s, 'big') < 2) spawnOrb(s);
+      if (countOrbTier(s, 'big') < 2 && s.diff.spawnMul >= 1) spawnOrb(s);
     }
     for (let i = s.orbs.length - 1; i >= 0; i--) {
       const o = s.orbs[i];
@@ -1264,7 +1270,7 @@
     if (o.type === 'SHIELD') { s.shield = true; return; }       // consumable
     if (o.type === 'TIME') { s.timeLeft = Math.min(s.duration + 20, s.timeLeft + 5); return; } // instant
     if (o.type === '1UP') {
-      if (s.player.hp < 3) s.player.hp += 1;   // restore a hull (capped at 3)
+      if (s.player.hp < s.player.maxHp) s.player.hp += 1;   // restore a hull (capped at maxHp)
       else s.shield = true;                     // already full → convert to a shield (never wasted)
       return;
     }

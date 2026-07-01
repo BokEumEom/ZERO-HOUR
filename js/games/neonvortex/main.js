@@ -120,9 +120,9 @@
     hudEls.mode.textContent = s.mode === 'daily' ? 'DAILY ' + recs.today : 'FREE PLAY';
     hudEls.modifier.textContent = s.modifier && s.modifier.key !== 'standard' ? s.modifier.nameEn : '';
 
-    // hearts
+    // hearts (easy runs at maxHp=4; normal/hard stay 3 \u2014 render whatever the run has)
     let hearts = '';
-    for (let i = 0; i < 3; i++) hearts += i < s.player.hp ? '\u25c6 ' : '\u25c7 ';
+    for (let i = 0; i < s.player.maxHp; i++) hearts += i < s.player.hp ? '\u25c6 ' : '\u25c7 ';
     hudEls.hearts.textContent = hearts.trim();
     hudEls.hearts.classList.toggle('low', s.player.hp <= 1);
 

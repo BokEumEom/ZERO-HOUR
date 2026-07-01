@@ -120,6 +120,69 @@ test('surge formation size scales with difficulty', () => {
   assert.deepEqual([...n], [9, 12], 'daily (standard/normal, surgeMul=1.0) sizes = 6 + 3k');
 });
 
+test('easy gives an extra starting/heal-cap hull; normal/hard stay at 3 (daily-safe)', () => {
+  const G = boot().SY.nvGame;
+  assert.equal(G.DIFF.easy.maxHp, 4, 'easy maxHp knob');
+  assert.equal(G.DIFF.normal.maxHp, 3, 'normal maxHp unchanged (daily fairness)');
+  assert.equal(G.DIFF.hard.maxHp, 3, 'hard maxHp unchanged');
+
+  G.start('free', 'easy');
+  assert.equal(G.state.player.hp, 4, 'easy run starts at 4 hull');
+  assert.equal(G.state.player.maxHp, 4);
+
+  G.start('free', 'hard');
+  assert.equal(G.state.player.hp, 3, 'hard run still starts at 3 hull');
+
+  // daily must NEVER inherit easy's extra life, however it was requested
+  G.start('daily', 'easy');
+  assert.equal(G.state.player.maxHp, 3, 'daily stays at 3 hull regardless of requested difficulty');
+});
+
+test('1UP heal caps at the run\'s maxHp, not a hardcoded 3', () => {
+  const G = boot().SY.nvGame;
+  G.start('free', 'easy');
+  for (let i = 0; i < 200 && G.phase !== 'playing'; i++) G.update(1 / 60);
+  const s = G.state;
+  s.player.hp = 3; // one hull down from the easy max of 4
+  s.pows.push({ x: s.player.x, y: s.player.y, type: '1UP', r: 12, life: 9, phase: 0, vy: 0 });
+  G.update(1 / 60);
+  assert.equal(s.player.hp, 4, 'heals up to easy maxHp (not capped at 3)');
+  // already at max -> converts to a shield instead of being wasted
+  s.pows.push({ x: s.player.x, y: s.player.y, type: '1UP', r: 12, life: 9, phase: 0, vy: 0 });
+  G.update(1 / 60);
+  assert.equal(s.player.hp, 4, 'stays at maxHp');
+  assert.equal(s.shield, true, 'excess 1UP converts to a shield');
+});
+
+test('splitter orbs (R4) never spawn on easy, but do on normal/hard', () => {
+  const G = boot().SY.nvGame;
+  assert.equal(G.DIFF.easy.spawnMul, 0.65, 'base easy spawnMul knob');
+  assert.ok(G.DIFF.easy.spawnMul < 1, 'easy is below the orb spawnMul>=1 gate');
+
+  G.start('free', 'easy');
+  for (let i = 0; i < 200 && G.phase !== 'playing'; i++) G.update(1 / 60);
+  const s = G.state;
+  let sawOrb = false;
+  for (let i = 0; i < 60 * 30; i++) { s.player.inv = 1; G.update(1 / 60); if (s.orbs.length > 0) sawOrb = true; }
+  assert.equal(sawOrb, false, 'no orbs spawn on easy over a 30s window');
+
+  G.start('free', 'hard');
+  for (let i = 0; i < 200 && G.phase !== 'playing'; i++) G.update(1 / 60);
+  const s2 = G.state;
+  let sawOrbHard = false;
+  for (let i = 0; i < 60 * 30; i++) { s2.player.inv = 1; G.update(1 / 60); if (s2.orbs.length > 0) sawOrbHard = true; }
+  assert.ok(sawOrbHard, 'orbs still spawn on hard');
+});
+
+test('easy tightens mine/spawn density knobs relative to normal', () => {
+  const G = boot().SY.nvGame;
+  assert.equal(G.DIFF.easy.mineCap, 7, 'base easy mineCap knob');
+  assert.equal(G.DIFF.easy.spawnMul, 0.65, 'base easy spawnMul knob');
+  assert.equal(G.DIFF.easy.surgeMul, 0.55, 'base easy surgeMul knob');
+  assert.ok(G.DIFF.easy.mineCap < G.DIFF.normal.mineCap, 'easy mineCap < normal');
+  assert.ok(G.DIFF.easy.spawnMul < G.DIFF.normal.spawnMul, 'easy spawnMul < normal');
+});
+
 test('a turret is destroyed in 5 hits and scores 60', () => {
   const G = boot().SY.nvGame;
   G.start('free', 'hard');
