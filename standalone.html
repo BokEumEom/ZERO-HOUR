@@ -394,6 +394,30 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   gap: clamp(9px, 2vh, 16px);
   max-height: 88vh; overflow-y: auto;
 }
+/* ---------- scroll-fade hint: JS toggles .has-more-below on scrollable
+   panels/shells (menu, game-over, records, settings, hangar-family screens)
+   when there is unscrolled content below the fold — surfaces secondary
+   content (e.g. the SETTINGS tile, full stat breakdown) that's easy to miss
+   on short phone viewports without a visible scrollbar. ---------- */
+.panel::after, .nv-rank-shell::after, .nv-set-shell::after, .nv-page-shell::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 32px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+.panel.has-more-below::after { opacity: 1; background: linear-gradient(to bottom, transparent, var(--panel) 85%); }
+.nv-rank-shell.has-more-below::after,
+.nv-set-shell.has-more-below::after,
+.nv-page-shell.has-more-below::after {
+  opacity: 1;
+  background: linear-gradient(to bottom, transparent, var(--nv-bg) 85%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel::after, .nv-rank-shell::after, .nv-set-shell::after, .nv-page-shell::after { transition: none; }
+}
 /* small pink tracked label that sits above a title (Shepherd's .kicker) */
 .kicker { font-family: var(--body); font-size: 11px; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase; color: var(--pink); }
 @keyframes mascot-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
@@ -1462,6 +1486,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 /* ===== RANKING console — reference UI (header / highscores title / matrix chart) ===== */
 /* full-bleed scrolling column so the chart, table and medals can breathe */
 #neonvortex-screen-records .nv-rank-shell {
+  position: relative;
   width: 100%;
   max-width: 460px;
   margin-inline: auto;
@@ -1667,6 +1692,7 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 /* The settings screen drops the shared .panel; it is a full-bleed scrolling
    console column so the two cards can breathe and scroll on tall phones. */
 #neonvortex-screen-settings .nv-set-shell {
+  position: relative;
   width: 100%;
   max-width: 460px;
   margin-inline: auto;
@@ -7606,7 +7632,35 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
     // card's bottom would otherwise auto-scroll the card down and hide the headline
     // (TIME UP / score / run modifier). Keep the card at its top; the CTA stays focused.
     if (focusId) { const btn = $(focusId); if (btn) btn.focus({ preventScroll: true }); }
+    // content is often filled in while a screen is still display:none (e.g. the
+    // game-over stat grid, set ~650ms before show() reveals it) — scrollHeight/
+    // clientHeight read as 0 on a hidden element, so the fade needs a recompute
+    // now that the shown screen has real layout metrics.
+    updateAllScrollFades();
   }
+
+  // ---------- scroll-fade hint ----------
+  // Toggles .has-more-below on scrollable panels/shells so a bottom fade
+  // (css/neonvortex.css) hints there's more to scroll to — content like the
+  // SETTINGS tile or the full game-over stat breakdown is otherwise easy to
+  // miss on short phone viewports with no visible scrollbar. Wired once at
+  // boot (the screens are static DOM, just hidden/shown); a MutationObserver
+  // catches async content fills (records/hangar/etc. render via innerHTML)
+  // and scroll/resize keep it in sync as the user interacts.
+  const SCROLL_FADE_SEL = '.panel, .nv-rank-shell, .nv-set-shell, .nv-page-shell';
+  function updateScrollFade(el) {
+    el.classList.toggle('has-more-below', el.scrollHeight - el.scrollTop - el.clientHeight > 2);
+  }
+  function updateAllScrollFades() {
+    document.querySelectorAll(SCROLL_FADE_SEL).forEach(updateScrollFade);
+  }
+  document.querySelectorAll(SCROLL_FADE_SEL).forEach((el) => {
+    updateScrollFade(el);
+    el.addEventListener('scroll', () => updateScrollFade(el), { passive: true });
+    new MutationObserver(() => updateScrollFade(el)).observe(el, { childList: true, subtree: true });
+  });
+  window.addEventListener('resize', updateAllScrollFades);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', updateAllScrollFades);
 
   // screen-reader announcement sink (#a11y-live); used for one-shot moments like
   // the game-over result — NOT the per-frame HUD, which would flood the reader.

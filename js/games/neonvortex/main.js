@@ -183,7 +183,35 @@
     // card's bottom would otherwise auto-scroll the card down and hide the headline
     // (TIME UP / score / run modifier). Keep the card at its top; the CTA stays focused.
     if (focusId) { const btn = $(focusId); if (btn) btn.focus({ preventScroll: true }); }
+    // content is often filled in while a screen is still display:none (e.g. the
+    // game-over stat grid, set ~650ms before show() reveals it) — scrollHeight/
+    // clientHeight read as 0 on a hidden element, so the fade needs a recompute
+    // now that the shown screen has real layout metrics.
+    updateAllScrollFades();
   }
+
+  // ---------- scroll-fade hint ----------
+  // Toggles .has-more-below on scrollable panels/shells so a bottom fade
+  // (css/neonvortex.css) hints there's more to scroll to — content like the
+  // SETTINGS tile or the full game-over stat breakdown is otherwise easy to
+  // miss on short phone viewports with no visible scrollbar. Wired once at
+  // boot (the screens are static DOM, just hidden/shown); a MutationObserver
+  // catches async content fills (records/hangar/etc. render via innerHTML)
+  // and scroll/resize keep it in sync as the user interacts.
+  const SCROLL_FADE_SEL = '.panel, .nv-rank-shell, .nv-set-shell, .nv-page-shell';
+  function updateScrollFade(el) {
+    el.classList.toggle('has-more-below', el.scrollHeight - el.scrollTop - el.clientHeight > 2);
+  }
+  function updateAllScrollFades() {
+    document.querySelectorAll(SCROLL_FADE_SEL).forEach(updateScrollFade);
+  }
+  document.querySelectorAll(SCROLL_FADE_SEL).forEach((el) => {
+    updateScrollFade(el);
+    el.addEventListener('scroll', () => updateScrollFade(el), { passive: true });
+    new MutationObserver(() => updateScrollFade(el)).observe(el, { childList: true, subtree: true });
+  });
+  window.addEventListener('resize', updateAllScrollFades);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', updateAllScrollFades);
 
   // screen-reader announcement sink (#a11y-live); used for one-shot moments like
   // the game-over result — NOT the per-frame HUD, which would flood the reader.

@@ -338,6 +338,18 @@
       check('mobile-ui', 'RETRY is reachable without scrolling on a phone viewport',
         retryR.top >= panelR.top && retryR.bottom <= panelR.bottom + 1,
         'panel=' + JSON.stringify(panelR) + ' retry=' + JSON.stringify(retryR));
+      // scroll-fade hint: the panel's stat breakdown overflows below the fold
+      // at this viewport, so the bottom fade should be showing...
+      check('mobile-ui', 'scroll-fade hint shows on the game-over panel (more content below)',
+        panel.classList.contains('has-more-below'));
+      panel.scrollTop = panel.scrollHeight;
+      // native 'scroll' dispatch is async and can be starved under headless
+      // virtual-time (LEARNINGS.md §2) — fire it synchronously so the check
+      // doesn't depend on that timing.
+      panel.dispatchEvent(new w.Event('scroll'));
+      // ...and clear once scrolled to the bottom.
+      check('mobile-ui', 'scroll-fade hint clears once scrolled to the bottom',
+        !panel.classList.contains('has-more-below'));
       d.getElementById('neonvortex-btn-retry').click();
       await sleep(150);
     }
@@ -357,6 +369,19 @@
       key(w, 'Escape');
       await sleep(100);
       d.getElementById('neonvortex-btn-pause-quit').click();
+      await sleep(150);
+    }
+
+    // meta-page family (Hangar/Overhaul/Achievements/Pilot Log) — safety net
+    // against the same class of bug as records P3 (stale/leaked CSS width)
+    for (const name of ['hangar', 'overhaul', 'achievements', 'pilotlog']) {
+      d.getElementById('neonvortex-btn-' + name).click();
+      await sleep(200);
+      const body = d.getElementById('neonvortex-' + name + '-body').getBoundingClientRect();
+      check('mobile-ui', name + ' page does not overflow the viewport width',
+        body.right <= w.innerWidth + 1,
+        'body.right=' + body.right + ' vw=' + w.innerWidth);
+      d.getElementById('neonvortex-btn-' + name + '-back').click();
       await sleep(150);
     }
 
