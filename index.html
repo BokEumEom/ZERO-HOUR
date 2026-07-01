@@ -140,9 +140,9 @@
           <div id="neonvortex-over-rank"></div>
           <p class="nv-result-meta"><span class="nv-result-rank">PILOT RANK · <b id="neonvortex-over-pilot-rank">—</b></span><span class="nv-result-bank">CRYSTAL BANK · <b id="neonvortex-over-bank">0</b></span></p>
           <span id="neonvortex-over-best-banner"><span id="neonvortex-over-best-label">NEW BEST!</span> ★</span>
-          <div id="neonvortex-over-medals"></div>
-          <div id="neonvortex-over-stats"></div>
-          <canvas id="neonvortex-over-spark" width="320" height="60"></canvas>
+          <!-- primary CTA sits right after the score/rank summary (not after the
+               stat breakdown) so it's reachable without scrolling on short phone
+               viewports — this is the core replay loop, hit every ~60s. -->
           <div class="btn-row">
             <button id="neonvortex-btn-retry" class="arcade-btn primary" type="button">RETRY</button>
             <button id="neonvortex-btn-share" class="arcade-btn" type="button">COPY RESULT</button>
@@ -150,6 +150,9 @@
           </div>
           <p id="neonvortex-over-countdown" class="kr-sub"></p>
           <p class="kr-sub">결과 복사에는 개인정보가 포함되지 않습니다 · R — RETRY · M — MENU</p>
+          <div id="neonvortex-over-medals"></div>
+          <div id="neonvortex-over-stats"></div>
+          <canvas id="neonvortex-over-spark" width="320" height="60"></canvas>
         </div>
       </div>
 

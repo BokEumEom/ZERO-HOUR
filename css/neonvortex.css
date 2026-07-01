@@ -437,12 +437,6 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 .haptic-toggle.available { display: inline-block; }
 
 /* ---------- records screen ---------- */
-#neonvortex-records-body {
-  width: min(360px, 92vw);
-  display: flex; flex-direction: column; gap: 14px;
-  max-height: 62vh; overflow-y: auto;
-  text-align: left;
-}
 .rec-streak { font-size: 13px; color: var(--teal); letter-spacing: 0.08em; }
 .rec-day .boss { color: var(--amber); margin-left: 6px; }
 
@@ -525,6 +519,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   #neonvortex-btn-fullscreen { right: calc(var(--safe-right) + 52px); }
   #neonvortex-btn-pause { right: calc(var(--safe-right) + 8px); }
   #neonvortex-hud { padding-right: calc(var(--safe-right) + 138px); }
+  #neonvortex-screen-records .nv-rank-head,
+  #neonvortex-screen-settings .nv-set-head { padding-right: calc(var(--safe-right) + 82px); }
 }
 
 /* ---------- daily history ---------- */
@@ -1438,7 +1434,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 0 12px;
+  gap: 10px;
+  /* reserve room for the fixed mute/fullscreen corner buttons (z-index:70,
+     always on top) so the status text can't render underneath them */
+  padding: 4px calc(var(--safe-right) + 92px) 12px 0;
   background: var(--nv-bg);
   border-bottom: 1px solid color-mix(in srgb, var(--nv-primary) 20%, transparent);
 }
@@ -1448,6 +1447,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--nv-primary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 /* title: Sora extrabold italic with a cyan bloom, thin gradient rule beneath */
 #neonvortex-screen-records .nv-rank-title-wrap { display: flex; flex-direction: column; gap: 4px; }
@@ -1636,7 +1639,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 0 12px;
+  gap: 10px;
+  /* reserve room for the fixed mute/fullscreen corner buttons (z-index:70,
+     always on top) so the status text can't render underneath them */
+  padding: 4px calc(var(--safe-right) + 92px) 12px 0;
   background: var(--nv-bg);
   border-bottom: 1px solid color-mix(in srgb, var(--nv-primary) 20%, transparent);
 }
@@ -1646,6 +1652,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--nv-primary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 /* title: Sora extrabold italic with a cyan bloom, thin gradient rule beneath */
 #neonvortex-screen-settings .nv-set-title-wrap { display: flex; flex-direction: column; gap: 4px; }

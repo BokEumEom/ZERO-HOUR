@@ -282,6 +282,84 @@
     await sleep(150);
     check('records', 'Esc returns to menu', visible(d, 'neonvortex-screen-menu'));
 
+    // ---------- scenario 7b: mobile viewport UI regressions ----------
+    // Still at the 390x844 portrait size set in scenario 6 — a real phone-class
+    // narrow viewport is required to reproduce these overlap/overflow bugs.
+    const overlaps = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+    // the mute button is always rendered once booted, but its rect can read as
+    // 0×0 for a beat right after a heavy burst of layout changes (scenario 6's
+    // resize + drags) settles — poll instead of a fixed sleep so the overlap
+    // checks below never run against a stale/zero-sized rect (see LEARNINGS.md
+    // "비결정 async 렌더는 고정 sleep 말고 폴링").
+    async function waitLaidOut(el) {
+      for (let t = 0; t < 1000 && el.getBoundingClientRect().width === 0; t += 50) await sleep(50);
+      return el.getBoundingClientRect();
+    }
+    d.getElementById('neonvortex-btn-settings').click();
+    await sleep(150);
+    {
+      const status = d.querySelector('#neonvortex-screen-settings .nv-set-status').getBoundingClientRect();
+      const fs = await waitLaidOut(d.getElementById('neonvortex-btn-fullscreen'));
+      const mute = await waitLaidOut(d.getElementById('neonvortex-btn-mute'));
+      check('mobile-ui', 'settings header status does not overlap corner buttons',
+        !overlaps(status, fs) && !overlaps(status, mute),
+        JSON.stringify({ status, fs, mute }));
+    }
+    d.getElementById('neonvortex-btn-settings-back').click();
+    await sleep(150);
+
+    d.getElementById('neonvortex-btn-records').click();
+    await sleep(150);
+    {
+      const status = d.querySelector('#neonvortex-screen-records .nv-rank-status').getBoundingClientRect();
+      const fs = await waitLaidOut(d.getElementById('neonvortex-btn-fullscreen'));
+      const mute = await waitLaidOut(d.getElementById('neonvortex-btn-mute'));
+      check('mobile-ui', 'records header status does not overlap corner buttons',
+        !overlaps(status, fs) && !overlaps(status, mute),
+        JSON.stringify({ status, fs, mute }));
+      const body = d.getElementById('neonvortex-records-body').getBoundingClientRect();
+      check('mobile-ui', 'records body does not overflow the viewport width',
+        body.right <= w.innerWidth + 1,
+        'body.right=' + body.right + ' vw=' + w.innerWidth);
+    }
+    key(w, 'Escape');
+    await sleep(150);
+
+    // game-over primary CTA must be reachable without scrolling on a phone-height viewport
+    {
+      const g = w.SY.nvGame;
+      g.start('free');
+      stepTo(w, 'playing', (gg) => { if (gg.state) gg.state.readyT = 0.01; });
+      stepTo(w, 'over', (gg) => { if (gg.state) gg.state.timeLeft = 0.04; });
+      await sleep(900);
+      const panel = d.querySelector('#neonvortex-screen-over .panel');
+      const panelR = panel.getBoundingClientRect();
+      const retryR = d.getElementById('neonvortex-btn-retry').getBoundingClientRect();
+      check('mobile-ui', 'RETRY is reachable without scrolling on a phone viewport',
+        retryR.top >= panelR.top && retryR.bottom <= panelR.bottom + 1,
+        'panel=' + JSON.stringify(panelR) + ' retry=' + JSON.stringify(retryR));
+      d.getElementById('neonvortex-btn-retry').click();
+      await sleep(150);
+    }
+
+    // touch joystick must stay on-screen even when the drag starts near a screen edge
+    {
+      stepTo(w, 'playing', (gg) => { if (gg.state) gg.state.readyT = 0.01; });
+      const vp2 = d.getElementById('viewport');
+      const pe2 = (type, x, y) => new w.PointerEvent(type, { pointerId: 2, clientX: x, clientY: y, pointerType: 'touch', bubbles: true });
+      vp2.dispatchEvent(pe2('pointerdown', 3, 400));
+      await sleep(50);
+      const stick = d.getElementById('joystick').getBoundingClientRect();
+      w.dispatchEvent(pe2('pointerup', 3, 400));
+      check('mobile-ui', 'joystick stays within viewport bounds near a screen edge',
+        stick.left >= -1 && stick.right <= w.innerWidth + 1,
+        'stick=' + JSON.stringify(stick) + ' vw=' + w.innerWidth);
+      key(w, 'Escape');
+      await sleep(100);
+      d.getElementById('neonvortex-btn-pause-quit').click();
+      await sleep(150);
+    }
+
     // ---------- scenario 8: atlas systems — elite / missile / 1UP (sim + render) ----------
     ({ w, d } = await freshGame());
     {

@@ -485,12 +485,6 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
 .haptic-toggle.available { display: inline-block; }
 
 /* ---------- records screen ---------- */
-#neonvortex-records-body {
-  width: min(360px, 92vw);
-  display: flex; flex-direction: column; gap: 14px;
-  max-height: 62vh; overflow-y: auto;
-  text-align: left;
-}
 .rec-streak { font-size: 13px; color: var(--teal); letter-spacing: 0.08em; }
 .rec-day .boss { color: var(--amber); margin-left: 6px; }
 
@@ -573,6 +567,8 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   #neonvortex-btn-fullscreen { right: calc(var(--safe-right) + 52px); }
   #neonvortex-btn-pause { right: calc(var(--safe-right) + 8px); }
   #neonvortex-hud { padding-right: calc(var(--safe-right) + 138px); }
+  #neonvortex-screen-records .nv-rank-head,
+  #neonvortex-screen-settings .nv-set-head { padding-right: calc(var(--safe-right) + 82px); }
 }
 
 /* ---------- daily history ---------- */
@@ -1486,7 +1482,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 0 12px;
+  gap: 10px;
+  /* reserve room for the fixed mute/fullscreen corner buttons (z-index:70,
+     always on top) so the status text can't render underneath them */
+  padding: 4px calc(var(--safe-right) + 92px) 12px 0;
   background: var(--nv-bg);
   border-bottom: 1px solid color-mix(in srgb, var(--nv-primary) 20%, transparent);
 }
@@ -1496,6 +1495,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--nv-primary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 /* title: Sora extrabold italic with a cyan bloom, thin gradient rule beneath */
 #neonvortex-screen-records .nv-rank-title-wrap { display: flex; flex-direction: column; gap: 4px; }
@@ -1684,7 +1687,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 0 12px;
+  gap: 10px;
+  /* reserve room for the fixed mute/fullscreen corner buttons (z-index:70,
+     always on top) so the status text can't render underneath them */
+  padding: 4px calc(var(--safe-right) + 92px) 12px 0;
   background: var(--nv-bg);
   border-bottom: 1px solid color-mix(in srgb, var(--nv-primary) 20%, transparent);
 }
@@ -1694,6 +1700,10 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--nv-primary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 /* title: Sora extrabold italic with a cyan bloom, thin gradient rule beneath */
 #neonvortex-screen-settings .nv-set-title-wrap { display: flex; flex-direction: column; gap: 4px; }
@@ -3545,9 +3555,9 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
           <div id="neonvortex-over-rank"></div>
           <p class="nv-result-meta"><span class="nv-result-rank">PILOT RANK · <b id="neonvortex-over-pilot-rank">—</b></span><span class="nv-result-bank">CRYSTAL BANK · <b id="neonvortex-over-bank">0</b></span></p>
           <span id="neonvortex-over-best-banner"><span id="neonvortex-over-best-label">NEW BEST!</span> ★</span>
-          <div id="neonvortex-over-medals"></div>
-          <div id="neonvortex-over-stats"></div>
-          <canvas id="neonvortex-over-spark" width="320" height="60"></canvas>
+          <!-- primary CTA sits right after the score/rank summary (not after the
+               stat breakdown) so it's reachable without scrolling on short phone
+               viewports — this is the core replay loop, hit every ~60s. -->
           <div class="btn-row">
             <button id="neonvortex-btn-retry" class="arcade-btn primary" type="button">RETRY</button>
             <button id="neonvortex-btn-share" class="arcade-btn" type="button">COPY RESULT</button>
@@ -3555,6 +3565,9 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
           </div>
           <p id="neonvortex-over-countdown" class="kr-sub"></p>
           <p class="kr-sub">결과 복사에는 개인정보가 포함되지 않습니다 · R — RETRY · M — MENU</p>
+          <div id="neonvortex-over-medals"></div>
+          <div id="neonvortex-over-stats"></div>
+          <canvas id="neonvortex-over-spark" width="320" height="60"></canvas>
         </div>
       </div>
 
@@ -8909,9 +8922,15 @@ body.portrait #neonvortex-boss-hp { top: calc(var(--safe-top) + 86px); }
   }
   window.addEventListener('pointerup', endStick);
   window.addEventListener('pointercancel', endStick);
+  const STICK_R = 55; // half of #joystick's 110px diameter (css/neonvortex.css) — keep in sync
   function positionStick(x, y, dx, dy) {
-    stickEl.style.left = x + 'px';
-    stickEl.style.top = y + 'px';
+    // clamp the visual circle to the viewport: ADR-0006 lets players drag from
+    // anywhere on screen, including near the edges, where the raw touch point
+    // would otherwise center the 110px circle partly off-screen.
+    const cx = Math.min(Math.max(x, STICK_R), window.innerWidth - STICK_R);
+    const cy = Math.min(Math.max(y, STICK_R), window.innerHeight - STICK_R);
+    stickEl.style.left = cx + 'px';
+    stickEl.style.top = cy + 'px';
     knobEl.style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px))';
   }
 

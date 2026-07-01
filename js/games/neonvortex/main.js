@@ -1499,9 +1499,15 @@
   }
   window.addEventListener('pointerup', endStick);
   window.addEventListener('pointercancel', endStick);
+  const STICK_R = 55; // half of #joystick's 110px diameter (css/neonvortex.css) — keep in sync
   function positionStick(x, y, dx, dy) {
-    stickEl.style.left = x + 'px';
-    stickEl.style.top = y + 'px';
+    // clamp the visual circle to the viewport: ADR-0006 lets players drag from
+    // anywhere on screen, including near the edges, where the raw touch point
+    // would otherwise center the 110px circle partly off-screen.
+    const cx = Math.min(Math.max(x, STICK_R), window.innerWidth - STICK_R);
+    const cy = Math.min(Math.max(y, STICK_R), window.innerHeight - STICK_R);
+    stickEl.style.left = cx + 'px';
+    stickEl.style.top = cy + 'px';
     knobEl.style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px))';
   }
 
